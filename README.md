@@ -23,9 +23,11 @@ python3 -m pip install --user matplotlib numpy scikit-learn cython opencv-python
 
 Follow https://github.com/strawlab/python-pcl/tree/master
 
-and then 
+and then checkout the repository itself, cd  inside it and do
+
 ```
 sudo python setup.py install
+sudo python3 setup.py install
 ```
 
 You may need up to 10 GB free space on your Ubuntu drive.
