@@ -18,6 +18,11 @@ python3 -m pip install --user python-language-server[all]=0.19.0
 python -m pip install --user matplotlib numpy scikit-learn cython opencv-python
 python3 -m pip install --user matplotlib numpy scikit-learn cython opencv-python
 ```
+
+## python-pcl
+
+Following https://github.com/strawlab/python-pcl/tree/master
+
 # Windows
 
 ## python
