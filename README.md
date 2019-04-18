@@ -23,6 +23,8 @@ python3 -m pip install --user matplotlib numpy scikit-learn cython opencv-python
 
 Following https://github.com/strawlab/python-pcl/tree/master
 
+You may need up to 10 GB free space on your Ubuntu drive.
+
 # Windows
 
 ## python
@@ -71,28 +73,18 @@ python3 --version
 ```
 
 
-#### pip
+#### Pip and Setuptools
 If all is well, start updating.
 
 ```
-python -m pip install -U pip
-```
-
-```
-python3 -m pip install -U pip
-```
-
-#### Setuptools
-```
-python -m pip install -U setuptools
-python3 -m pip install -U setuptools
+python -m pip install -U pip setuptools
+python3 -m pip install -U pip setuptools
 ```
 
 #### Python Language Server
 And installing.
 
 ```
-python -m pip install python-language-server[all]==0.19.0
 python3 -m pip install python-language-server[all]==0.19.0
 ```
 
@@ -101,44 +93,17 @@ At this point, you should be able to debug and execute any python file in [Atom]
 
 #### Miscellaneous
 ```
-python -m pip install matplotlib numpy scikit-learn cython
-python3 -m pip install matplotlib numpy scikit-learn cython
+python -m pip install matplotlib numpy scikit-learn cython opencv-python
+python3 -m pip install matplotlib numpy scikit-learn cython opencv-python
 ```
 
 #### python-pcl
 Following https://github.com/strawlab/python-pcl/tree/master
-1. http://pointclouds.org/downloads/
-Start installer again, unchecking PCL core components if it fails
-
-Windows Gtk+ Download
-https://www.microsoft.com/en-us/download/confirmation.aspx?id=44266
-
-Download file unzip. Copy bin Folder to pkg-config Folder
-
-or execute powershell file [Install-GTKPlus.ps1].
-
-Python Version use VisualStudio Compiler
-
-set before Environment variable
 
 
-1.PCL_ROOT
+# Atom
 
-
-set PCL_ROOT=%PCL Install FolderPath%
-
-
-2.PATH
-
-(pcl 1.6.0)
-
-$ set PATH=%PCL_ROOT%/bin/;%OPEN_NI_ROOT%/Tools;$(VTK_ROOT)/bin;%PATH%
-
-
-
-## Atom
-
-### package list
+## package list
 -	higlight selected
 -	minimap
 -	minimap-highlight-selected
@@ -147,54 +112,65 @@ $ set PATH=%PCL_ROOT%/bin/;%OPEN_NI_ROOT%/Tools;$(VTK_ROOT)/bin;%PATH%
 -	ide-python
 -	autocomplete-python
 
-### process-palette configuration
+install packages by opening setting with "Ctrl + ;", then selet the tab Install. Search for all the listed packages and install them.
+
+## process-palette configuration
 
 In the topmost bar of atom, select Packages>Process Palette>Toggle. Press the first Button that says "Do It!" and find the
 Button with the pencil icon labelled "Edit configuration". Choose the global configuration. Delete all existing configurations
 and make a new one. Fill it as follows
 
-##### Action Name
+### Python2
+
+#### Action Name
 `python`
 
-##### Shell Command
+#### Shell Command
 ```
 python {filePath}
 ```
 use the Insert Variable Button, if preferred
 
-##### Working Directory
+#### Working Directory
 ```
 {fileProjectPath}
 ```
 
-##### Keystroke
+#### Keystroke
 ```
 f5
 ```
 
-##### Saving
+#### Saving
 Select 'Referenced' and uncheck 'Prompt before saving'
 
-#### Python3
+### Python3
 Make a new Configuration and change the Action Name and the Shell Command to
 ```
-python3 ...
+python3
 ```
 change the Keystroke also.
 
-#### test it
+### test it
 Open a new file, save it as .py and paste the following inside:
 ```
 import sys
 
 print ('executed with python version ' + str (sys.version_info[0] ) + '.' + str(sys.version_info[1]) + "\n" )
 ```
-
+Press your designated keystroke.
 Voilá. What went wrong?
 
 
 
-### ide python configuration
+## ide python configuration
 
-Set Option "Python Executable" to the full path of your python3 executable (ending ind .exe)
+### Windows
+
+Set Option "Python Executable" to the full path of your python3 executable (ending in .exe). Then Restart Atom.
+
+### Ubuntu
+
+Set Option "Python Executable" to "python3". Then Restart Atom.
+
 (Optional) While programming, keep these options open and add to "PyCodeStyle>Ignore", for example E211, W391, E202, E265
