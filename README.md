@@ -1,3 +1,5 @@
+This is a logfile of the things I used and installed to work on this project.
+
 # Ubuntu (ubuntu Xenial Xerus 16.04, kernel  4.15.0-47-generic)
 
 ## Python
@@ -40,7 +42,7 @@ How to install the python wrapper for the point cloud library
 
 Following https://github.com/strawlab/python-pcl/tree/master
 
-### Build with
+### Built with
 
 - Python 2.7.12, 3.5.2
 - pcl 1.7.2
