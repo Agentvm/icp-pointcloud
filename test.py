@@ -1,18 +1,17 @@
 
 import numpy as np
-import pcl
+#import pcl
 
 
 #################################################################
 print ("\nExample 1: Input Cloud")
 
 # define
-input_cloud = np.array([[1.1,2,3], [4,5,6], [7,8,9], [10, 11, 12]])
+input_cloud = np.array([[1.1, 2, 3], [4, 5, 6], [7, 8, 9], [10, 11, 12]])
 #input_cloud = np.reshape (input_cloud, (-1, 1))
 
 
-
-#check
+# check
 print ('Size: ' + str(input_cloud.size ))
 print ('Size: ' + str(input_cloud.shape ))
 print ('Cloud:\n' + str(input_cloud ))

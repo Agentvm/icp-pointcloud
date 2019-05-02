@@ -1,8 +1,8 @@
 import time
-import pcl
 import sys
 import numpy as np
-from laspy.file import File
+import input_output
+
 
 def pcl_compute_normals (pcl_cloud):
     start_time = time.time()
@@ -23,71 +23,10 @@ def pcl_compute_normals (pcl_cloud):
     else:
         print('Define researching method does not support')
 
-
-
     normals = feat.compute()
     print('Computed normal vectors in ' + str(time.time() - start_time) + ' seconds' )
 
     return normals
-
-
-def load_las(dir_in, filename, dtype = None):
-    """
-    Loads .las data as numpy array
-
-    Inputs:
-        dir_in: string; directory in
-        filename: String; name of the .las tile (incl. .las)
-        dtype: String;
-        if dtype = 'als', then the function will return points as [x, y, z, intensity, class]
-        if dtype = 'dim', then the function will return points as [x, y, z, r, g, b, class]
-        if dtype = None, then the function will return points as [x, y, z, class]
-        default: dtype = None
-
-    Outputs:
-        points: np array; contains n points with different columns depending on dtype
-    """
-
-    # load tile
-    with File(dir_in + filename, mode = 'r') as inFile:
-        x = np.reshape(inFile.x.copy(), (-1, 1)) # create colums
-        y = np.reshape(inFile.y.copy(), (-1, 1))
-        z = np.reshape(inFile.z.copy(), (-1, 1))
-        raw_class = np.reshape(inFile.raw_classification.copy(), (-1, 1))
-
-
-        if dtype == 'dim':
-            red = np.reshape(inFile.red.copy(), (-1, 1))    # add rgb
-            green = np.reshape(inFile.green.copy(), (-1, 1))
-            blue = np.reshape(inFile.blue.copy(), (-1, 1))
-            points = np.concatenate((x, y, z, red, green, blue, raw_class), axis = -1)
-        elif dtype == 'als':
-            intensity = np.reshape(inFile.intensity.copy(), (-1, 1))    # add intensity
-            #num_returns = inFile.num_returns    # number of returns
-            #return_num = inFile.return_num      # this points return number
-            points = np.concatenate((x, y, z, intensity, raw_class), axis = -1)
-        else:
-            points = np.concatenate((x, y, z, raw_class), axis = -1)
-
-    return points
-
-def pcl_load (fileName):
-    # Loading
-    start_time = time.time()
-    fileName = 'clouds/laserscanning_plane_cc.obj'
-    print('Load file ... ')
-    #inputPointCloud = pcl.PointCloud
-    inputPointCloud = pcl.load(fileName)
-    print('Cloud loaded in' + str(time.time() - start_time) + ' seconds.\nNumber of points: ' + str(inputPointCloud.size ) + '\n')
-
-    return inputPointCloud
-
-def numpy_to_pcl (numpy_cloud ):
-    return pcl.PointCloud_XYZI(np.array(numpy_cloud, dtype=np.float32))
-
-
-def pcl_to_numpy (pcl_cloud ):
-    return pcl_cloud.to_array (pcl_cloud)
 
 
 def PCA (input_numpy_cloud ):
@@ -97,34 +36,37 @@ def PCA (input_numpy_cloud ):
     numpy_cloud = numpy_cloud [:, 0:3]
 
     # build a sum over all points
-    sum_xyz = np.array ((0,0,0 ))
-    for point in numpy_cloud:
+    sum_xyz = np.array ((0, 0, 0 ))
+    for i, point in enumerate (numpy_cloud ):
         sum_xyz[0] = sum_xyz[0] + point[0]
         sum_xyz[1] = sum_xyz[1] + point[1]
         sum_xyz[2] = sum_xyz[2] + point[2]
 
+    print ('sum_xyz: ' + str(sum_xyz ))
+
     # and normalize it to get center of mass
     sum_xyz = sum_xyz / numpy_cloud.size
+
+    print ('sum_xyz_norm: ' + str(sum_xyz ))
 
     # reduce point cloud by center of mass
     numpy_cloud_reduced = np.subtract (numpy_cloud[:, 0:3], sum_xyz )
 
-
     # build ATA matrix
-    a_transposed_a = np.zeros ((3,3 ))
+    a_transposed_a = np.zeros ((3, 3 ))
 
     for point in numpy_cloud_reduced:
-       a_transposed_a[0,0] = a_transposed_a[0,0] + np.float_power(point[0],2 );
-       a_transposed_a[0,1] = a_transposed_a[0,1] + point[0] * point[1];
-       a_transposed_a[0,2] = a_transposed_a[0,2] + point[0] * point[2];
+        a_transposed_a[0, 0] = a_transposed_a[0, 0] + np.float_power(point[0], 2 )
+        a_transposed_a[0, 1] = a_transposed_a[0, 1] + point[0] * point[1]
+        a_transposed_a[0, 2] = a_transposed_a[0, 2] + point[0] * point[2]
 
-       a_transposed_a[1,0] = a_transposed_a[1,0] + point[0] * point[1];
-       a_transposed_a[1,1] = a_transposed_a[1,1] + np.float_power(point[1], 2 );
-       a_transposed_a[1,2] = a_transposed_a[1,2] + point[1] * point[2];
+        a_transposed_a[1, 0] = a_transposed_a[1, 0] + point[0] * point[1]
+        a_transposed_a[1, 1] = a_transposed_a[1, 1] + np.float_power(point[1], 2 )
+        a_transposed_a[1, 2] = a_transposed_a[1, 2] + point[1] * point[2]
 
-       a_transposed_a[2,0] = a_transposed_a[2,0] + point[0] * point[2];
-       a_transposed_a[2,1] = a_transposed_a[2,1] + point[2] * point[1];
-       a_transposed_a[2,2] = a_transposed_a[2,2] + np.float_power(point[2], 2 );
+        a_transposed_a[2, 0] = a_transposed_a[2, 0] + point[0] * point[2]
+        a_transposed_a[2, 1] = a_transposed_a[2, 1] + point[2] * point[1]
+        a_transposed_a[2, 2] = a_transposed_a[2, 2] + np.float_power(point[2], 2 )
 
     # get eigenvalues and -vectors from ATA matrix
     eigenvalues = np.zeros (a_transposed_a.shape[0] )
@@ -132,7 +74,7 @@ def PCA (input_numpy_cloud ):
     evals, evecs = np.linalg.eig (a_transposed_a )
 
     # sort them
-    indices = np.argsort (-evals ) # reverse sort: greatest numbers first
+    indices = np.argsort (-evals )  # reverse sort: greatest numbers first
     for loop_count, index in enumerate(indices ):
         eigenvalues[loop_count] = evals[index]
         eigenvectors[:, loop_count] = evecs[:, index]
@@ -145,19 +87,38 @@ def PCA (input_numpy_cloud ):
     return normal_vector, noise, sigma
 
 
-
-
-
 if __name__ == "__main__":
     print ('\nexecuted with python version ' + str (sys.version_info[0] ) + '.' + str(sys.version_info[1]) )
 
-    #pcl_input_cloud = pcl_load ('clouds/laserscanning_plane.ply')
+    #pcl_input_cloud = pcl_load ('clouds/simple_plane.vtk')
+    #numpy_cloud = pcl_input_cloud
     #pcl_normals = pcl_compute_normals (pcl_input_cloud )
     #normal_vector, noise, sigma = PCA (pcl_input_cloud.to_array () )
 
-    np_cloud = load_las ('clouds/', 'laserscanning_plane_cc.las')
+    numpy_cloud_1 = input_output.load_ply_file ('clouds/', 'plane1.ply')    # 23778 points
+    #numpy_cloud_2 = input_output.load_ply_file ('clouds/', 'plane2.ply')
 
-    normal_vector, noise, sigma = PCA (np_cloud )
-    print ('normal_vector: ' + str(normal_vector ))
+    numpy_cloud_1  = input_output.load_las_file ('clouds/', 'plane1.las')  # 31704 points
+    #numpy_cloud_2 = input_output.load_las_file ('clouds/', 'plane2.las')
+
+    #                                                                 matlab: 7926 points
+
+    normal_vector, noise, sigma = PCA (numpy_cloud_1 )
+    print ('Cloud 1:\nnormal_vector: ' + str(normal_vector ))
     print ('noise: ' + str(noise ))
-    print ('sigma: ' + str(sigma ))
+    print ('sigma: ' + str(sigma ) + '\n')
+
+    # normal_vector, noise, sigma = PCA (numpy_cloud_2 )
+    # print ('Cloud 2:\nnormal_vector: ' + str(normal_vector ))
+    # print ('noise: ' + str(noise ))
+    # print ('sigma: ' + str(sigma ))
+
+
+# normal_vector: [0.95553649 0.29451123 0.0145996 ]     # as .ply
+# normal_vector: [ 0.9582111   0.28454521 -0.02941945]  # as .las
+
+# noise: 2.0739264969012923     # as .ply
+# noise: 8.073087439041888      # as .las
+
+# sigma: 0.016179006599999542   # as .ply
+# sigma: 0.03192089063208706    # as .las
