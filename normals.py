@@ -2,9 +2,20 @@ import time
 import sys
 import numpy as np
 import input_output
+#import pcl
 
 
 def pcl_compute_normals (pcl_cloud):
+    '''
+    Computes normals for a pcl cloud
+
+    Input:
+        pcl_cloud (pcl.PointCloud):  Any pcl cloud
+
+    Output:
+        normals (?):    ..?
+    '''
+
     start_time = time.time()
     # Search
     searching_neighbour = {'knn_search': 25}
@@ -31,11 +42,18 @@ def pcl_compute_normals (pcl_cloud):
 
 def normalize_vector (vector ):
     '''
+    Takes a vector and returns it's unit vector
 
+    Input:
+        vector (np.array):  Numpy array with 1 dimension (e.g. composed of a single list or tuple)
+
+    Output:
+        vector (np.array):  The normalized vector with length 1.0
     '''
+
     # check if vector is a matrix
     if (len (vector.shape ) > 1 ):
-        print ("In normalize_vector: Vector is out of shape.")
+        print ("In normalize_vector: Vector is out of shape. Returning input vector.")
         return vector
 
     vector_magnitude = 0
@@ -52,12 +70,12 @@ def PCA (input_numpy_cloud ):
     the given point cloud in respect to this plane.
 
     Input:
-        input_numpy_cloud: numpy array with data points, only the first 3 colums are used
+        input_numpy_cloud (np.array):   numpy array with data points, only the first 3 colums are used
 
     Output:
-        normal_vector:  The normal vector of the computed plane
-        sigma:          The noise as given by the smallest eigenvalue, normalized by number of points
-        mass_center:        Centre of mass
+        normal_vector ([1x3] np.array): The normal vector of the computed plane
+        sigma (float):                  The noise as given by the smallest eigenvalue, normalized by number of points
+        mass_center ([1x3] np.array):   Centre of mass
     """
 
     start_time = time.time()
