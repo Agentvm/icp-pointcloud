@@ -103,9 +103,10 @@ def pcl_load (dir_in, file_name, format = None):
     start_time = time.time()    # measure time
     print('Loading file ' + file_name + ' ...')
 
-    points = pcl.load(dir_in + file_name, format)
+    #points = pcl.load(dir_in + file_name, format)
+    pcl_cloud = pcl.load (dir_in + file_name, format)
 
     print ('Cloud loaded in ' + str(time.time() - start_time) + ' seconds.\nNumber of points: '
-           + str(points.shape[0] ) + '\n')
+           + str(pcl_cloud.size ) + '\n')
 
-    return points
+    return pcl_cloud
