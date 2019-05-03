@@ -15,7 +15,7 @@ def load_ply_file (dir_in, file_name ):
     points = np.asarray(open3d_point_cloud.points )     # convert to numpy array
 
     print ('Cloud loaded in ' + str(time.time() - start_time) + ' seconds.\nNumber of points: '
-           + str(points.size ) + '\n')
+           + str(points.shape[0] ) + '\n')
 
     return points
 
@@ -60,7 +60,7 @@ def load_las_file (dir_in, file_name, dtype=None):
             points = np.concatenate((x, y, z, raw_class), axis = -1)
 
     print ('Cloud loaded in ' + str(time.time() - start_time) + ' seconds.\nNumber of points: '
-           + str(points.size ) + '\n')
+           + str(points.shape[0] ) + '\n')
 
     return points
 
@@ -72,6 +72,6 @@ def pcl_load (dir_in, file_name, format = None):
     points = pcl.load(dir_in + file_name, format)
 
     print ('Cloud loaded in ' + str(time.time() - start_time) + ' seconds.\nNumber of points: '
-           + str(points.size ) + '\n')
+           + str(points.shape[0] ) + '\n')
 
     return points

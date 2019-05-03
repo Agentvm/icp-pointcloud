@@ -22,7 +22,7 @@ if __name__ == '__main__':
     clouds_folder = 'clouds/DIM2016/'
     file_name = 'DSM_Cloud_333140_59950.las'
 
-    #clouds_folder = 'clouds/'
+    #clouds_folder = 'clouds/laserscanning/'
     #file_name = 'laserscanning.ply'
 
     # Loading

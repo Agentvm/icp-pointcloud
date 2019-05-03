@@ -29,28 +29,54 @@ def pcl_compute_normals (pcl_cloud):
     return normals
 
 
+def normalize_vector (vector ):
+    '''
+
+    '''
+    # check if vector is a matrix
+    if (len (vector.shape ) > 1 ):
+        print ("In normalize_vector: Vector is out of shape.")
+        return vector
+
+    vector_magnitude = 0
+    for value in vector:
+        vector_magnitude = vector_magnitude + np.float_power (value, 2 )
+    vector_magnitude = np.sqrt (vector_magnitude )
+
+    return vector / vector_magnitude
+
+
 def PCA (input_numpy_cloud ):
+    """
+    From the points of the given point cloud, this function derives a plane defined by a normal vector and the noise of
+    the given point cloud in respect to this plane.
+
+    Input:
+        input_numpy_cloud: numpy array with data points, only the first 3 colums are used
+
+    Output:
+        normal_vector:  The normal vector of the computed plane
+        sigma:          The noise as given by the smallest eigenvalue, normalized by number of points
+        mass_center:        Centre of mass
+    """
+
     start_time = time.time()
     # we only need three colums [X, Y, Z, I] -> [X, Y, Z]
-    numpy_cloud = input_numpy_cloud.copy ()
-    numpy_cloud = numpy_cloud [:, 0:3]
+    numpy_cloud = input_numpy_cloud[:, 0:3].copy ()     # copying takes roughly 0.000558 seconds per 1000 points
+    cloud_size = numpy_cloud.shape[0]
 
     # build a sum over all points
-    sum_xyz = np.array ((0, 0, 0 ))
+    sum_xyz = np.array ((0, 0, 0 ), float)
     for i, point in enumerate (numpy_cloud ):
         sum_xyz[0] = sum_xyz[0] + point[0]
         sum_xyz[1] = sum_xyz[1] + point[1]
         sum_xyz[2] = sum_xyz[2] + point[2]
 
-    print ('sum_xyz: ' + str(sum_xyz ))
-
     # and normalize it to get center of mass
-    sum_xyz = sum_xyz / numpy_cloud.size
-
-    print ('sum_xyz_norm: ' + str(sum_xyz ))
+    mass_center = sum_xyz / cloud_size
 
     # reduce point cloud by center of mass
-    numpy_cloud_reduced = np.subtract (numpy_cloud[:, 0:3], sum_xyz )
+    numpy_cloud_reduced = np.subtract (numpy_cloud[:, 0:3], mass_center )
 
     # build ATA matrix
     a_transposed_a = np.zeros ((3, 3 ))
@@ -79,12 +105,18 @@ def PCA (input_numpy_cloud ):
         eigenvalues[loop_count] = evals[index]
         eigenvectors[:, loop_count] = evecs[:, index]
 
+    # get the normal vector, normalize it and if it's turned to the ground, turn it around
+    normal_vector = normalize_vector (eigenvectors[:, -1] )     # the last (smallest) vector is the normal vector
+    if (normal_vector[2] < 0):
+        normal_vector = normal_vector * -1
+
+    # get the noise and normalize it
     noise = eigenvalues[-1]
-    normal_vector = eigenvectors[:, -1]
-    sigma = np.sqrt(noise/(numpy_cloud.shape[0] - 3) )
+    sigma = np.sqrt(noise/(cloud_size - 3) )
+
     print('PCA completed in ' + str(time.time() - start_time) + ' seconds.\n' )
 
-    return normal_vector, noise, sigma
+    return normal_vector, sigma, mass_center
 
 
 if __name__ == "__main__":
@@ -95,23 +127,25 @@ if __name__ == "__main__":
     #pcl_normals = pcl_compute_normals (pcl_input_cloud )
     #normal_vector, noise, sigma = PCA (pcl_input_cloud.to_array () )
 
-    numpy_cloud_1 = input_output.load_ply_file ('clouds/', 'plane1.ply')    # 23778 points
-    #numpy_cloud_2 = input_output.load_ply_file ('clouds/', 'plane2.ply')
+    #numpy_cloud_1 = input_output.load_ply_file ('clouds/laserscanning/', 'plane1.ply')    # 3806 points
+    #numpy_cloud_2 = input_output.load_ply_file ('clouds/laserscanning/', 'plane2.ply')    # 3806 points
 
-    numpy_cloud_1  = input_output.load_las_file ('clouds/', 'plane1.las')  # 31704 points
-    #numpy_cloud_2 = input_output.load_las_file ('clouds/', 'plane2.las')
+    numpy_cloud_1 = input_output.load_las_file ('clouds/laserscanning/', 'plane1.las')    # 3806 points
+    numpy_cloud_2 = input_output.load_las_file ('clouds/laserscanning/', 'plane2.las')    # 3806 points
 
     #                                                                 matlab: 7926 points
 
-    normal_vector, noise, sigma = PCA (numpy_cloud_1 )
-    print ('Cloud 1:\nnormal_vector: ' + str(normal_vector ))
-    print ('noise: ' + str(noise ))
-    print ('sigma: ' + str(sigma ) + '\n')
+    #numpy_cloud_1 = np.array(([1, 0, 0], [0, 1, 0], [0, 0, 1], [0, 0, 1.1] ))
 
-    # normal_vector, noise, sigma = PCA (numpy_cloud_2 )
-    # print ('Cloud 2:\nnormal_vector: ' + str(normal_vector ))
-    # print ('noise: ' + str(noise ))
-    # print ('sigma: ' + str(sigma ))
+    normal_vector, sigma, mass_center = PCA (numpy_cloud_1 )
+    print ('Cloud 1:\nnormal_vector: ' + str(normal_vector ))
+    print ('sigma: ' + str(sigma ))
+    print ('mass_center: ' + str(mass_center ) + '\n')
+
+    normal_vector, sigma, mass_center = PCA (numpy_cloud_2 )
+    print ('Cloud 2:\nnormal_vector: ' + str(normal_vector ))
+    print ('sigma: ' + str(sigma ))
+    print ('mass_center: ' + str(mass_center ))
 
 
 # normal_vector: [0.95553649 0.29451123 0.0145996 ]     # as .ply
