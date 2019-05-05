@@ -14,6 +14,10 @@ class XYZCloud(object):
 
     # basic init function
     def __init__(self, x, y, z):
+        '''
+        This function is called when an object of this class is instantiated.
+        It fills the object with the values provided
+        '''
         super(XYZCloud, self).__init__()
         self.x = x
         self.y = y
@@ -22,16 +26,25 @@ class XYZCloud(object):
 
     # numpy init function
     @classmethod
-    def from_numpy_array (cls, input_cloud_numpy):
+    def from_numpy_array (cls, input_cloud_numpy):  # cls = the class
+        '''
+        This wraps __init__ and
+        '''
 
+        # iterating over a list is slightly faster than iterating over a numpy array
         x = input_cloud_numpy[:, 0].tolist ()
         y = input_cloud_numpy[:, 1].tolist ()
         z = input_cloud_numpy[:, 2].tolist ()
 
-        return cls (x, y, z )
+        return cls (x, y, z )   # this calls __init__
 
+    # iteration
     def __iter__(self):
-        #return self
+        '''
+        This function is called when an object of this class is iterated over.
+        Returns an iteratable generator made of namedtuples to make iterating over this class possible
+        '''
+        #returning a generator that is used like an iterator using list comprehension
         return ((Point._make ([x, y, z]) for (x, y, z) in zip(self.x, self.y, self.z )))
 
     # @classmethod
@@ -49,10 +62,25 @@ class XYZCloud(object):
     #         raise StopIteration  # Done iterating.
     # next = __next__  # python2.x compatibility.
 
+    # printing
     def __str__(self):
-        string = str (type(self).__name__) + '\nx   y   z'
-        for (x, y, z) in zip (self.x, self.y, self.z):
-            string = string + '\n' + str(x) + ' ' + str(y) + ' ' + str(z)
+        '''
+        This Method is called when an object of this class is printed.
+        It returns a nicely formatted string containing the points
+        '''
+
+        # general info including name of the class and it's number of points
+        string = str (type(self).__name__) + ', number of points: ' + str (len(self.x )) + '\nx   y   z'
+        margin = 3  # how many points are printed before output is clipped
+
+        # add points pairs to the string, but exlcude those that are out of the margin
+        for counter, (x, y, z) in enumerate (zip (self.x, self.y, self.z) ):
+            if (counter >= margin and counter < len(self.x ) - margin):
+                if (counter == margin + 1):
+                    string = string + "\n\n...\n"
+                pass
+            else:
+                string = string + '\n' + str(x) + ' ' + str(y) + ' ' + str(z)
 
         return str (string )
 
