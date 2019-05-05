@@ -1,20 +1,38 @@
 
 import numpy as np
 #import pcl
+#import custom_clouds
+from custom_clouds import XYZCloud
+
+numpy_array = np.array ([[1.0, 2.0, 3.0], [1.1, 2.1, 3.1], [1.2, 2.2, 3.2], [1.3, 2.3, 3.3]] )
+print ('numpy_array:\n' + str(numpy_array ))
+
+#custom = custom_clouds.XYZCloud(1, 2, 3)
+
+custom = XYZCloud.from_numpy_array (numpy_array )
 
 
-#################################################################
-print ("\nExample 1: Input Cloud")
+print ('\ncustom: ' + str(custom ))
 
-# define
-input_cloud = np.array([[1.1, 2, 3], [4, 5, 6], [7, 8, 9], [10, 11, 12]])
-#input_cloud = np.reshape (input_cloud, (-1, 1))
+print ('\n')
+
+for thing in custom:
+    print ('thing: ' + str(thing ))
+    print ('thing.x: ' + str(thing.x ))
 
 
-# check
-print ('Size: ' + str(input_cloud.size ))
-print ('Shape: ' + str(input_cloud.shape ))
-print ('Cloud:\n' + str(input_cloud ))
+# #################################################################
+# print ("\nExample 1: Input Cloud")
+#
+# # define
+# input_cloud = np.array([[1.1,  2, 3], [4, 5, 6], [7, 8, 9], [10, 11, 12]])
+# #input_cloud = np.reshape (input_cloud, (-1, 1))
+#
+#
+# # check
+# print ('Size: ' + str(input_cloud.size ))
+# print ('Shape: ' + str(input_cloud.shape ))
+# print ('Cloud:\n' + str(input_cloud ))
 
 
 # def normalize_vector (vector ):
