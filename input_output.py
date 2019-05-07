@@ -3,7 +3,7 @@ from laspy.file import File
 import numpy as np
 import pcl
 import time
-from open3d import read_point_cloud, set_verbosity_level, VerbosityLevel
+from open3d import io, PointCloud, Vector3dVector, read_point_cloud, set_verbosity_level, VerbosityLevel
 
 
 def load_ply_file (dir_in, file_name ):
@@ -33,6 +33,31 @@ def load_ply_file (dir_in, file_name ):
            + str(points.shape[0] ) + '\n')
 
     return points
+
+
+def save_ply_file (numpy_cloud, file_name ):
+    '''
+    Takes a directory path and a filename, then loads a .ply pointcloud file and returns it as numpy array.
+
+    Input:
+        numpy_cloud (np.array): The cloud to save
+        dir_in (String):        The relative path to the folder that the file to be loaded is in
+        file_name (String):     The name of the file to be loaded, including it's file type extension (.ply)
+    '''
+
+    # Save a file
+    print('Saving file ' + file_name )
+    if (numpy_cloud.shape[0] == 0):
+        print ("This Cloud has no points. Aborting")
+        return
+
+    # convert to open3d cloud
+    open3d_cloud = PointCloud()
+    open3d_cloud.points = Vector3dVector(numpy_cloud[:, 0:3] )
+
+    # Set Debug log to Error, so it doesn't print a messy loading bar, then write out
+    set_verbosity_level(VerbosityLevel.Error)
+    io.write_point_cloud(file_name, open3d_cloud, write_ascii=True )
 
 
 def load_las_file (dir_in, file_name, dtype=None):
