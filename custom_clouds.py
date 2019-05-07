@@ -6,11 +6,7 @@ Point = namedtuple ("Point", ['x', 'y', 'z'])
 class XYZCloud(object):
     """docstring for XYZCloud."""
 
-    # variables
-    x = []
-    y = []
-    z = []
-    idx = 0
+    # class variables
 
     # basic init function
     def __init__(self, x, y, z):
@@ -19,6 +15,8 @@ class XYZCloud(object):
         It fills the object with the values provided
         '''
         super(XYZCloud, self).__init__()
+
+        # instance variables
         self.x = x
         self.y = y
         self.z = z
