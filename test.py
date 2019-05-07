@@ -1,4 +1,3 @@
-import input_output
 import numpy as np
 
 numpy_cloud = np.array([[1.1, 2.1, 3.1],
@@ -8,8 +7,16 @@ numpy_cloud = np.array([[1.1, 2.1, 3.1],
                         [1.5, 2.5, 3.5],
                         [1.6, 2.6, 3.6]] )
 
-input_output.save_ply_file(numpy_cloud, 'clouds/ALS2016/output_3331359920_1_2016-11-28.ply')
+cloud = [[1.1, 2.1, 3.1],
+         [1.2, 2.2, 3.2],
+         [1.3, 2.3, 3.3],
+         [1.4, 2.4, 3.4],
+         [1.5, 2.5, 3.5],
+         [1.6, 2.6, 3.6]]
 
+cloud.append (numpy_cloud [2, :].tolist ())
+
+print ('numpy_cloud:\n' + str (cloud ))
 
 # win_path = '/some/path/containing/a/Windows Directory'
 # linux_path = '/some/path/containing/a/linux_directory'
