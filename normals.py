@@ -4,6 +4,7 @@ import numpy as np
 import input_output
 import random
 import pcl
+from math import ceil, sqrt
 
 
 def pcl_compute_normals (pcl_cloud):
@@ -60,7 +61,7 @@ def normalize_vector (vector ):
     vector_magnitude = 0
     for value in vector:
         vector_magnitude = vector_magnitude + np.float_power (value, 2 )
-    vector_magnitude = np.sqrt (vector_magnitude )
+    vector_magnitude = sqrt (vector_magnitude )
 
     return vector / vector_magnitude
 
@@ -131,7 +132,7 @@ def PCA (input_numpy_cloud ):
 
     # get the noise and normalize it
     noise = eigenvalues[-1]
-    sigma = np.sqrt(noise/(cloud_size - 3) )
+    sigma = sqrt(noise/(cloud_size - 3) )
 
     print('PCA completed in ' + str(time.time() - start_time) + ' seconds.\n' )
 
@@ -159,26 +160,28 @@ def randomPlaneEstimationII (input_numpy_cloud, draw_radius ):
 
     '''
 
-    start_time = time.time()
+    print ("\n\nrandomPlaneEstimationII is curently not implemented. Aborting. \n\n")
+    return 0
+
     # we only need three colums [X, Y, Z, I] -> [X, Y, Z]
     numpy_cloud = input_numpy_cloud[:, 0:3].copy ()     # copying takes roughly 0.000558 seconds per 1000 points
     cloud_size = numpy_cloud.shape[0]
 
     # convert to pcl cloud to use kdtree
     pcl_cloud = pcl.PointCloud(numpy_cloud)
-    tree = pc_1.make_kdtree_flann()
+    tree = pcl_cloud.make_kdtree_flann()
 
     #indices, sqr_distances = kd.nearest_k_search_for_cloud(pc_2, 1)
 
     # estimate the points
     # first point is a random draw
-    index_1 = randiint(cloud_size, 1 )
-    p1 = numpy_cloud [index_1, :]
+    index_1 = random.randint(cloud_size, 1 )
+    point_1 = numpy_cloud [index_1, :]
 
     # search the kdtree and find the 150 nearest neighbors
 
     # ### PCL-PYTHON CODE: ###############################################
-    #[neighbors, distances] = kd.nearest_k_search_for_cloud (? )
+    #[neighbors, distances] = tree.nearest_k_search_for_cloud (? )
 
     # nearest_k_search_for_cloud(self, BasePointCloud pc, int k=1)
     #
@@ -265,20 +268,22 @@ def randomPlaneEstimationII (input_numpy_cloud, draw_radius ):
     return 0
 
 
-def randomPlaneEstimation (numpy_cloud ):
+def random_plane_estimation (numpy_cloud ):
     '''
     Uses 3 random points to estimate Plane Parameters
     '''
 
     # get 3 random indices
-    indices = randint(0, lnumpy_cloud.shape[0] - 1, size = 3)
-    point_1 = numpy_cloud [indexes[0], :]
-    point_2 = numpy_cloud [indexes[1], :]
-    point_3 = numpy_cloud [indexes[2], :]
+    idx_1, idx_2, idx_3 = random.sample(range(0, numpy_cloud.shape[0] ), 3 )
+    point_1 = numpy_cloud [idx_1, :]
+    point_2 = numpy_cloud [idx_2, :]
+    point_3 = numpy_cloud [idx_3, :]
 
     #normal_vector = normalize_vector (np.transpose (np.cross((point_2 - point_1), (point_3 - point_1 ))))
     normal_vector = normalize_vector (np.cross((point_2 - point_1), (point_3 - point_1 )))
-    plane_parameter_d = -(n[0] * point_1[0] + n[1] * point_1[1] + n[2] * point_1[2] )
+    plane_parameter_d = -(normal_vector[0] * point_1[0]
+                          + normal_vector[1] * point_1[1]
+                          + normal_vector[2] * point_1[2] )
 
     return normal_vector, plane_parameter_d
 
@@ -289,38 +294,50 @@ def ransac_plane_estimation (input_numpy_cloud, threshold, w = .9, z = 0.95 ):
     Uses distance from plane compared to given threshold to determine the consensus set.
     Returns points and point indices of the detected plane.
 
-    w (float between 0 and 1): probability that any observation belongs to the model
-    z (float between 0 and 1): desired probability that the model is found
+    Input:
+        input_numpy_cloud (np.array):   Input cloud
+        treshold (float, in m):         Points closer to the plane than this value are counted as inliers
+        w (float between 0 and 1):      probability that any observation belongs to the model
+        z (float between 0 and 1):      desired probability that the model is found
+    Output:
+        not sure yet
     '''
+
+    # measure time
+    start_time = time.time ()
 
     # determine probabilities
     b = np.float_power(w, 3 )   # probability that all three observations belong to the model
-    k = np.ceil(np.log(1-z ) / np.log(1-b ))   # number of draws
+    k = ceil(np.log(1-z ) / np.log(1-b ))   # number of draws
     print ('With a probability of %.2f%%,\n%i iterations are ', z*100, k )
     print ('enough to find a correct plane in the given Point Cloud.' )
     print ('\nUsing threshold %.2f as max plane distance\n\n', threshold )
 
-    cloud_size = input_numpy_cloud.shape[0]    # saving number of points
+    # copy cloud
+    numpy_cloud = input_numpy_cloud[:, 0:3].copy ()
+    #cloud_size = input_numpy_cloud.shape[0]    # saving number of points
 
     # points matching the cloud
-    valid_points = np.zeros(len, 3)
-    valid_point_indexes = []
+    valid_points = []
+    #valid_point_indices = []
 
     # consensus count [current, max]
-    consensus = [0, 0]
+    current_consensus = 0
+    best_consensus = 0
 
     for i in range (1, k):
         print ('iteration %i/%i\n', i, k )
 
         # new consensus count
-        consensus[1] = 0
+        current_consensus = 0
 
         # array of points currently below plane distance threshold
         points = []
-        point_indexes = []
+        #point_indices = []
 
         # estimate the planes with 3 random points
-        [normal_vector, d] = randomPlaneEstimation (input_numpy_cloud, 0.25 )
+        [normal_vector, d] = random_plane_estimation (numpy_cloud )
+        #[normal_vector, d] = randomPlaneEstimation (numpy_cloud, 0.25 )
 
         # plane paramters are elements of the normal vectors
         a = normal_vector[0]
@@ -328,35 +345,42 @@ def ransac_plane_estimation (input_numpy_cloud, threshold, w = .9, z = 0.95 ):
         c = normal_vector[2]
 
         # computing distances from plane for consensus set
-        for g in range (1, cloud_size ):
+        for point in numpy_cloud:
             # point distance from the plane
-            # dist = np.float_power ((a * input_numpy_cloud (g, 1 )
-            #                         + b * input_numpy_cloud (g, 2 )
-            #                         + c * input_numpy_cloud (g, 3 )
+            # dist = np.float_power ((a * point[0]
+            #                         + b * point[1]
+            #                         + c * point[2]
             #                         + d ), 2 )
             # http://mathworld.wolfram.com/Point-PlaneDistance.html
-            dist = ((a * input_numpy_cloud [g, 1]
-                     + b * input_numpy_cloud [g, 2]
-                     + c * input_numpy_cloud [g, 3]
+            dist = ((a * point[0]
+                   + b * point[1]
+                   + c * point[2]
                      + d )
-                    / (np.sqrt (np.float_power (a, 2 ) + np.float_power (b, 2 ) + np.float_power (c, 2 ))))
+                    / (sqrt (np.float_power (a, 2 ) + np.float_power (b, 2 ) + np.float_power (c, 2 ))))
 
             # threshold match?
             if (dist < threshold ):
-                consensus[0] = consensus[0] + 1     # counting consensus
-                points.append (input_numpy_cloud [g, :])
-                point_indexes.append(g )
+                current_consensus = current_consensus + 1     # counting consensus
+                points.append (point.tolist ())     # this might be slowing the code down
+                #point_indices.append(iterations )
 
-        # # is the current consensus match higher than the previous ones?
-        # if consensus (1) > consensus (2)
-        #     fprintf('found new consensus: %i. previous max consensus:%i\n\n'...
-        #         , consensus(1), consensus(2) )
-        #     valid_points = points
-        #     valid_point_indexes = point_indexes
-        #     consensus (2) = consensus (1)    # keep best consensus set
-        # end
+        # is the current consensus match higher than the previous ones?
+        if (current_consensus > best_consensus ):
+            print ('found new consensus: %i. previous max consensus:%i\n', current_consensus, best_consensus )
+            valid_points = points
+            #valid_point_indices = point_indices
+            best_consensus = current_consensus    # keep best consensus set
 
-    return valid_points, valid_point_indexes
+    # ???? matlab code
+    #valid_points (1,:) = [];
+    #valid_point_indexes = uint32(valid_point_indexes)';
+    #valid_point_indexes (1) = [];
+
+    # print time
+    print('RANSAC completed in ' + str(time.time() - start_time) + ' seconds.\n' )
+
+    #return normal_vector, valid_points, valid_point_indices
+    return normal_vector, valid_points
 
 
 if __name__ == "__main__":
@@ -378,14 +402,18 @@ if __name__ == "__main__":
     #numpy_cloud_1 = np.array(([1, 0, 0], [0, 1, 0], [0, 0, 1], [0, 0, 1.1] ))
 
     normal_vector, sigma, mass_center = PCA (numpy_cloud_1 )
-    print ('Cloud 1:\nnormal_vector: ' + str(normal_vector ))
+    print ('PCA, Cloud 1:\nnormal_vector: ' + str(normal_vector ))
     print ('sigma: ' + str(sigma ))
     print ('mass_center: ' + str(mass_center ) + '\n')
 
-    normal_vector, sigma, mass_center = PCA (numpy_cloud_2 )
-    print ('Cloud 2:\nnormal_vector: ' + str(normal_vector ))
-    print ('sigma: ' + str(sigma ))
-    print ('mass_center: ' + str(mass_center ))
+    # normal_vector, sigma, mass_center = PCA (numpy_cloud_2 )
+    # print ('PCA, Cloud 2:\nnormal_vector: ' + str(normal_vector ))
+    # print ('sigma: ' + str(sigma ))
+    # print ('mass_center: ' + str(mass_center ))
+
+    normal_vector, valid_points = ransac_plane_estimation (numpy_cloud_1, 0.5 )
+    print ('RANSAC, Cloud 1:\nnormal_vector: ' + str(normal_vector ))
+    print ('points:\n' + str(valid_points ) + '\n')
 
 
 # normal_vector: [0.95553649 0.29451123 0.0145996 ]     # as .ply

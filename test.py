@@ -1,4 +1,5 @@
 import numpy as np
+import random
 
 numpy_cloud = np.array([[1.1, 2.1, 3.1],
                         [1.2, 2.2, 3.2],
@@ -7,17 +8,29 @@ numpy_cloud = np.array([[1.1, 2.1, 3.1],
                         [1.5, 2.5, 3.5],
                         [1.6, 2.6, 3.6]] )
 
-cloud = [[1.1, 2.1, 3.1],
-         [1.2, 2.2, 3.2],
-         [1.3, 2.3, 3.3],
-         [1.4, 2.4, 3.4],
-         [1.5, 2.5, 3.5],
-         [1.6, 2.6, 3.6]]
+indices = random.sample(range(0, numpy_cloud.shape[0] ), 6 )
+print ('indices: ' + str (indices ))
 
-cloud.append (numpy_cloud [2, :].tolist ())
+for idx in indices:
+    print (numpy_cloud[idx, :] )
 
-print ('numpy_cloud:\n' + str (cloud ))
-
+# numpy_cloud = np.array([[1.1, 2.1, 3.1],
+#                         [1.2, 2.2, 3.2],
+#                         [1.3, 2.3, 3.3],
+#                         [1.4, 2.4, 3.4],
+#                         [1.5, 2.5, 3.5],
+#                         [1.6, 2.6, 3.6]] )
+#
+# cloud = [[1.1, 2.1, 3.1],
+#          [1.2, 2.2, 3.2],
+#          [1.3, 2.3, 3.3],
+#          [1.4, 2.4, 3.4],
+#          [1.5, 2.5, 3.5],
+#          [1.6, 2.6, 3.6]]
+#
+# cloud.append (numpy_cloud [2, :].tolist ())
+#
+#
 # win_path = '/some/path/containing/a/Windows Directory'
 # linux_path = '/some/path/containing/a/linux_directory'
 # print (win_path.replace (' ', '\ ' ))
