@@ -271,6 +271,10 @@ def randomPlaneEstimationII (input_numpy_cloud, draw_radius ):
 def random_plane_estimation (numpy_cloud ):
     '''
     Uses 3 random points to estimate Plane Parameters
+
+    Output:
+        normal_vector :
+        plane_parameter_d :
     '''
 
     # get 3 random indices
@@ -279,11 +283,14 @@ def random_plane_estimation (numpy_cloud ):
     point_2 = numpy_cloud [idx_2, :]
     point_3 = numpy_cloud [idx_3, :]
 
-    #normal_vector = normalize_vector (np.transpose (np.cross((point_2 - point_1), (point_3 - point_1 ))))
+    # get the normal vector, normalize it and if it's turned to the ground, turn it around
     normal_vector = normalize_vector (np.cross((point_2 - point_1), (point_3 - point_1 )))
     plane_parameter_d = -(normal_vector[0] * point_1[0]
                           + normal_vector[1] * point_1[1]
                           + normal_vector[2] * point_1[2] )
+
+    if (normal_vector[2] < 0):      # z component
+        normal_vector = normal_vector * -1
 
     return normal_vector, plane_parameter_d
 
@@ -309,16 +316,16 @@ def ransac_plane_estimation (input_numpy_cloud, threshold, w = .9, z = 0.95 ):
     # determine probabilities
     b = np.float_power(w, 3 )   # probability that all three observations belong to the model
     k = ceil(np.log(1-z ) / np.log(1-b ))   # number of draws
-    print ('With a probability of %.2f%%,\n%i iterations are ', z*100, k )
-    print ('enough to find a correct plane in the given Point Cloud.' )
-    print ('\nUsing threshold %.2f as max plane distance\n\n', threshold )
+    #print ('With a probability of %.2f%%,\n%i iterations are ', z*100, k )
+    #print ('enough to find a correct plane in the given Point Cloud.' )
+    #print ('\nUsing threshold %.2f as max plane distance\n\n', threshold )
 
     # copy cloud
     numpy_cloud = input_numpy_cloud[:, 0:3].copy ()
     #cloud_size = input_numpy_cloud.shape[0]    # saving number of points
 
     # points matching the cloud
-    valid_points = []
+    consensus_points = []
     #valid_point_indices = []
 
     # consensus count [current, max]
@@ -326,7 +333,7 @@ def ransac_plane_estimation (input_numpy_cloud, threshold, w = .9, z = 0.95 ):
     best_consensus = 0
 
     for i in range (1, k):
-        print ('iteration %i/%i\n', i, k )
+        #print ('iteration %i/%i\n', i, k )
 
         # new consensus count
         current_consensus = 0
@@ -366,21 +373,21 @@ def ransac_plane_estimation (input_numpy_cloud, threshold, w = .9, z = 0.95 ):
 
         # is the current consensus match higher than the previous ones?
         if (current_consensus > best_consensus ):
-            print ('found new consensus: %i. previous max consensus:%i\n', current_consensus, best_consensus )
-            valid_points = points
+            #print ('found new consensus: %i. previous max consensus:%i\n', current_consensus, best_consensus )
+            consensus_points = points
             #valid_point_indices = point_indices
             best_consensus = current_consensus    # keep best consensus set
 
     # ???? matlab code
-    #valid_points (1,:) = [];
+    #consensus_points (1,:) = [];
     #valid_point_indexes = uint32(valid_point_indexes)';
     #valid_point_indexes (1) = [];
 
     # print time
     print('RANSAC completed in ' + str(time.time() - start_time) + ' seconds.\n' )
 
-    #return normal_vector, valid_points, valid_point_indices
-    return normal_vector, valid_points
+    #return normal_vector, consensus_points, valid_point_indices
+    return normal_vector, consensus_points
 
 
 if __name__ == "__main__":
@@ -411,9 +418,9 @@ if __name__ == "__main__":
     # print ('sigma: ' + str(sigma ))
     # print ('mass_center: ' + str(mass_center ))
 
-    normal_vector, valid_points = ransac_plane_estimation (numpy_cloud_1, 0.5 )
+    normal_vector, consensus_points = ransac_plane_estimation (numpy_cloud_1, 0.5 )
     print ('RANSAC, Cloud 1:\nnormal_vector: ' + str(normal_vector ))
-    print ('points:\n' + str(valid_points ) + '\n')
+    print ('consensus_points:\n' + str(consensus_points ) + '\n')
 
 
 # normal_vector: [0.95553649 0.29451123 0.0145996 ]     # as .ply
