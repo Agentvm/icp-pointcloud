@@ -14,7 +14,7 @@
 
 ### Notizen
 
--   100m x 100m
+-   100m x 100m + Rand für Normalenvektorbestimmung
 -   Ausschneiden, CC-Werte abspeichern (siehe unten)
 -   Alle Details zur erzeugten Wolke notieren
 -   Matching: 20 + Punktpaare pro Kachel
