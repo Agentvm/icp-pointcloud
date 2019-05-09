@@ -20,7 +20,7 @@
 -   Matching: 20 + Punktpaare pro Kachel
 
 
-## Cloud Compare Prozess zum Extrahieren eines Punktwolkensegementes
+## Cloud Compare Prozess zum Extrahieren eines Punktwolkensegmentes
 
 -   Verschiebung beim Einladen der Wolke minimieren
 -   Wähle "Set Top View"
