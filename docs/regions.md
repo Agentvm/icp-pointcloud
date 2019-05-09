@@ -28,7 +28,7 @@
 -   Passe die Parameter per visueller Verschiebung oder im Fenster an
 -   Wähle "Extract contour as polyline" im Fenster, wähle Flat dimension = 'z', Max edge length = 100, bestätige den Dialog
 -   Beende Cross Section (Fenster schließen)
--   Speichere (nur) die erzeugte Polyline unter dem Namen der Punktwolke ab (Endung .bin)
+-   Speichere zur Wiederholbarkeit die erzeugte Polyline unter dem Namen der Punktwolke ab (Endung .bin)
 -   Wähle "Segment" in der oberen Leiste, oder "Tools>Segmentation>Extract Segment"
--   Wähle "Import polyline from DB for segmentation" im neuen Fenster
+-   Wähle "Import polyline from DB for segmentation" im neuen Fenster und wähle die erzeugte Polyline
 -   Wähle "Confirm Segmentation" im Fenster
