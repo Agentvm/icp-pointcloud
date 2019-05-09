@@ -1,4 +1,5 @@
 import numpy as np
+import input_output
 
 
 def unit_vector(vector):
@@ -13,6 +14,8 @@ numpy_cloud = np.array([[1.1, 2.1, 3.1],
                         [1.5, 2.5, 3.5],
                         [1.6, 2.6, 3.6]] )
 
+input_output.save_ascii_file(numpy_cloud )
+print ("Done.")
 
 # import numpy as np
 # import random

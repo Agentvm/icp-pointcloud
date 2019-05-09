@@ -3,7 +3,28 @@ from laspy.file import File
 import numpy as np
 import pcl
 import time
+from os.path import isfile
 from open3d import io, PointCloud, Vector3dVector, read_point_cloud, set_verbosity_level, VerbosityLevel
+
+
+def save_ascii_file (numpy_cloud, path = "clouds/tmp/output_cloud.asc" ):
+
+    # "%.2f %.2f %.2f %.8f %.8f %.8f %.0f %.0f"
+    format = "%.2f %.2f %.2f"
+    for i in range (numpy_cloud.shape[1] - 3 ):
+        format = format + " %.8f"
+
+    leading_line = "//" + "X " + " Y " + " Z"
+
+    np.savetxt(path,  # pfad + name
+    numpy_cloud,  # numpy array
+    header=leading_line,
+    comments='',
+    fmt = format)  # format
+
+
+def check_for_file (path ):
+    return isfile(path )
 
 
 def load_ply_file (dir_in, file_name ):
