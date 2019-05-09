@@ -1,152 +1,8 @@
 import time
-import sys
 import numpy as np
-import input_output
 import random
 import pcl
 from math import ceil, sqrt
-
-
-def pcl_compute_normals (pcl_cloud):
-    '''
-    Computes normals for a pcl cloud
-
-    Input:
-        pcl_cloud (pcl.PointCloud):  Any pcl cloud
-
-    Output:
-        normals (?):    ..?
-    '''
-
-    start_time = time.time()
-    # Search
-    searching_neighbour = {'knn_search': 25}
-    feat = pcl_cloud.make_NormalEstimation()
-
-    if 'range_search' in searching_neighbour.keys():
-        # Range search
-        searching_para = searching_neighbour['range_search'] if searching_neighbour['range_search'] > 0 else 0.1
-        feat.setRadiusSearch(searching_para)
-    elif 'knn_search' in searching_neighbour.keys():
-        # kNN search
-        searching_para = int(searching_neighbour['knn_search']) if int(searching_neighbour['knn_search']) > 5 else 20
-        tree = pcl_cloud.make_kdtree()
-        feat.set_SearchMethod(tree)
-        feat.set_KSearch(searching_para)
-    else:
-        print('Define researching method does not support')
-
-    normals = feat.compute()
-    print('Computed normal vectors in ' + str(time.time() - start_time) + ' seconds' )
-
-    return normals
-
-
-def normalize_vector (vector ):
-    '''
-    Takes a vector and returns it's unit vector
-
-    Input:
-        vector (np.array):  Numpy array with 1 dimension (e.g. composed of a single list or tuple)
-
-    Output:
-        vector (np.array):  The normalized vector with length 1.0
-    '''
-
-    # check if vector is a matrix
-    if (len (vector.shape ) > 1 ):
-        print ("In normalize_vector: Vector is out of shape. Returning input vector.")
-        return vector
-
-    vector_magnitude = 0
-    for value in vector:
-        vector_magnitude = vector_magnitude + np.float_power (value, 2 )
-    vector_magnitude = sqrt (vector_magnitude )
-
-    return vector / vector_magnitude
-
-
-def PCA (input_numpy_cloud ):
-    """
-    From the points of the given point cloud, this function derives a plane defined by a normal vector and the noise of
-    the given point cloud in respect to this plane.
-
-    Input:
-        input_numpy_cloud (np.array):   numpy array with data points, only the first 3 colums are used
-
-    Output:
-        normal_vector ([1x3] np.array): The normal vector of the computed plane
-        sigma (float):                  The noise as given by the smallest eigenvalue, normalized by number of points
-        mass_center ([1x3] np.array):   Centre of mass
-    """
-
-    start_time = time.time()
-    # we only need three colums [X, Y, Z, I] -> [X, Y, Z]
-    numpy_cloud = input_numpy_cloud[:, 0:3].copy ()     # copying takes roughly 0.000558 seconds per 1000 points
-    cloud_size = numpy_cloud.shape[0]
-
-    # build a sum over all points
-    sum_xyz = np.array ((0, 0, 0 ), float)
-    for i, point in enumerate (numpy_cloud ):
-        sum_xyz[0] = sum_xyz[0] + point[0]
-        sum_xyz[1] = sum_xyz[1] + point[1]
-        sum_xyz[2] = sum_xyz[2] + point[2]
-
-    # and normalize it to get center of mass
-    mass_center = sum_xyz / cloud_size
-
-    # reduce point cloud by center of mass
-    numpy_cloud_reduced = np.subtract (numpy_cloud[:, 0:3], mass_center )
-
-    # build ATA matrix
-    a_transposed_a = np.zeros ((3, 3 ))
-
-    for point in numpy_cloud_reduced:
-        a_transposed_a[0, 0] = a_transposed_a[0, 0] + np.float_power(point[0], 2 )
-        a_transposed_a[0, 1] = a_transposed_a[0, 1] + point[0] * point[1]
-        a_transposed_a[0, 2] = a_transposed_a[0, 2] + point[0] * point[2]
-
-        a_transposed_a[1, 0] = a_transposed_a[1, 0] + point[0] * point[1]
-        a_transposed_a[1, 1] = a_transposed_a[1, 1] + np.float_power(point[1], 2 )
-        a_transposed_a[1, 2] = a_transposed_a[1, 2] + point[1] * point[2]
-
-        a_transposed_a[2, 0] = a_transposed_a[2, 0] + point[0] * point[2]
-        a_transposed_a[2, 1] = a_transposed_a[2, 1] + point[2] * point[1]
-        a_transposed_a[2, 2] = a_transposed_a[2, 2] + np.float_power(point[2], 2 )
-
-    # get eigenvalues and -vectors from ATA matrix
-    eigenvalues = np.zeros (a_transposed_a.shape[0] )
-    eigenvectors = np.zeros ((a_transposed_a.shape[0], a_transposed_a.shape[0] ))
-    evals, evecs = np.linalg.eig (a_transposed_a )
-
-    # sort them
-    indices = np.argsort (-evals )  # reverse sort: greatest numbers first
-    for loop_count, index in enumerate(indices ):
-        eigenvalues[loop_count] = evals[index]
-        eigenvectors[:, loop_count] = evecs[:, index]
-
-    # get the normal vector, normalize it and if it's turned to the ground, turn it around
-    normal_vector = normalize_vector (eigenvectors[:, -1] )     # the last (smallest) vector is the normal vector
-    if (normal_vector[2] < 0):
-        normal_vector = normal_vector * -1
-
-    # get the noise and normalize it
-    noise = eigenvalues[-1]
-    sigma = sqrt(noise/(cloud_size - 3) )
-
-    print('PCA completed in ' + str(time.time() - start_time) + ' seconds.\n' )
-
-    # # norm the vector
-    # n = n / norm(n);
-    #
-    # # plane parameters
-    # a = n(1); b = n(2); c = n(3);
-    # d = -(a*p_mean(1) + b*p_mean(2) + c*p_mean(3));
-    #
-    # # noise
-    # sigma = sqrt(lambda/(cloud_size - 3) );
-
-    return normal_vector, sigma, mass_center
 
 
 def randomPlaneEstimationII (input_numpy_cloud, draw_radius ):
@@ -268,6 +124,171 @@ def randomPlaneEstimationII (input_numpy_cloud, draw_radius ):
     return 0
 
 
+def pcl_compute_normals (pcl_cloud):
+    '''
+    Computes normals for a pcl cloud
+
+    Input:
+        pcl_cloud (pcl.PointCloud):  Any pcl cloud
+
+    Output:
+        normals (?):    ..?
+    '''
+
+    start_time = time.time()
+    # Search
+    searching_neighbour = {'knn_search': 25}
+    feat = pcl_cloud.make_NormalEstimation()
+
+    if 'range_search' in searching_neighbour.keys():
+        # Range search
+        searching_para = searching_neighbour['range_search'] if searching_neighbour['range_search'] > 0 else 0.1
+        feat.setRadiusSearch(searching_para)
+    elif 'knn_search' in searching_neighbour.keys():
+        # kNN search
+        searching_para = int(searching_neighbour['knn_search']) if int(searching_neighbour['knn_search']) > 5 else 20
+        tree = pcl_cloud.make_kdtree()
+        feat.set_SearchMethod(tree)
+        feat.set_KSearch(searching_para)
+    else:
+        print('Define researching method does not support')
+
+    normals = feat.compute()
+    print('Computed normal vectors in ' + str(time.time() - start_time) + ' seconds' )
+
+    return normals
+
+
+def normalize_vector (vector ):
+    '''
+    Takes a vector and returns it's unit vector
+    '''
+
+    # check if vector is a matrix
+    if (len (vector.shape ) > 1 ):
+        print ("In normalize_vector: Vector is out of shape. Returning input vector.")
+        return vector
+
+    if (np.sum (vector ) == 0):
+        print ("In normalize_vector: Vector is 0. Returning input vector.")
+        return vector
+
+    # vector_magnitude = 0
+    # for value in vector:
+    #     vector_magnitude = vector_magnitude + np.float_power (value, 2 )
+    # vector_magnitude = sqrt (vector_magnitude )
+    #
+    # return vector / vector_magnitude
+
+    return vector / np.linalg.norm(vector)
+
+
+# def angle_between(v1, v2):
+#     """ Returns the angle in radians between vectors 'v1' and 'v2'::
+#
+#             >>> angle_between((1, 0, 0), (0, 1, 0))
+#             1.5707963267948966
+#             >>> angle_between((1, 0, 0), (1, 0, 0))
+#             0.0
+#             >>> angle_between((1, 0, 0), (-1, 0, 0))
+#             3.141592653589793
+#     """
+#     v1_u = normalize_vector (v1 )
+#     v2_u = normalize_vector (v2 )
+#     return np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
+
+
+def eigenvalue_decomposition (a_t_a_matrix ):
+    '''
+    Uses np.linalg.eig () to decompose a 3x3 matrix.
+    Returns normal vector and smallest eigenvalue.
+    '''
+    # get eigenvalues and -vectors from ATA matrix
+    eigenvalues = np.zeros (a_t_a_matrix.shape[0] )
+    eigenvectors = np.zeros ((a_t_a_matrix.shape[0], a_t_a_matrix.shape[0] ))
+    evals, evecs = np.linalg.eig (a_t_a_matrix )
+
+    # sort them
+    indices = np.argsort (-evals )  # reverse sort: greatest numbers first
+    for loop_count, index in enumerate(indices ):
+        eigenvalues[loop_count] = evals[index]
+        eigenvectors[:, loop_count] = evecs[:, index]
+
+    # get the normal vector, normalize it and if it's turned to the ground, turn it around
+    normal_vector = normalize_vector (eigenvectors[:, -1] )     # the last (smallest) vector is the normal vector
+    if (normal_vector[2] < 0):
+        normal_vector = normal_vector * -1
+
+    return normal_vector, eigenvalues[-1]
+
+
+def build_covariance_matrix (input_numpy_cloud, reduce_by_center_of_mass=True ):
+
+    # build a sum over all points
+    sum_xyz = np.sum (input_numpy_cloud, axis=0 )
+
+    # and normalize it to get center of mass
+    mass_center = sum_xyz / input_numpy_cloud.shape[0]
+
+    # reduce point cloud by center of mass
+    if (reduce_by_center_of_mass ):
+        numpy_cloud_reduced = np.subtract (input_numpy_cloud[:, 0:3], mass_center )
+    else:
+        numpy_cloud_reduced = input_numpy_cloud
+
+    # build ATA matrix
+    a_transposed_a = np.zeros ((3, 3 ))
+
+    for point in numpy_cloud_reduced:
+        a_transposed_a[0, 0] = a_transposed_a[0, 0] + np.float_power(point[0], 2 )
+        a_transposed_a[0, 1] = a_transposed_a[0, 1] + point[0] * point[1]
+        a_transposed_a[0, 2] = a_transposed_a[0, 2] + point[0] * point[2]
+
+        a_transposed_a[1, 0] = a_transposed_a[1, 0] + point[0] * point[1]
+        a_transposed_a[1, 1] = a_transposed_a[1, 1] + np.float_power(point[1], 2 )
+        a_transposed_a[1, 2] = a_transposed_a[1, 2] + point[1] * point[2]
+
+        a_transposed_a[2, 0] = a_transposed_a[2, 0] + point[0] * point[2]
+        a_transposed_a[2, 1] = a_transposed_a[2, 1] + point[2] * point[1]
+        a_transposed_a[2, 2] = a_transposed_a[2, 2] + np.float_power(point[2], 2 )
+
+    return a_transposed_a, mass_center
+
+
+def PCA (input_numpy_cloud ):
+    """
+    From the points of the given point cloud, this function derives a plane defined by a normal vector and the noise of
+    the given point cloud in respect to this plane.
+
+    Input:
+        input_numpy_cloud (np.array):   numpy array with data points, only the first 3 colums are used
+
+    Output:
+        normal_vector ([1x3] np.array): The normal vector of the computed plane
+        sigma (float):                  The noise as given by the smallest eigenvalue, normalized by number of points
+        mass_center ([1x3] np.array):   Centre of mass
+    """
+
+    start_time = time.time()
+    # we only need three colums [X, Y, Z, I] -> [X, Y, Z]
+    numpy_cloud = input_numpy_cloud[:, 0:3].copy ()     # copying takes roughly 0.000558 seconds per 1000 points
+    cloud_size = numpy_cloud.shape[0]
+
+    # get covariance matrix
+    a_transposed_a, mass_center = build_covariance_matrix (numpy_cloud )
+
+    # get normal vector and smallest eigenvector
+    normal_vector, smallest_eigenvalue = eigenvalue_decomposition (a_transposed_a )
+
+    # get the noise and normalize it
+    noise = smallest_eigenvalue
+    sigma = sqrt(noise/(cloud_size - 3) )
+
+    print ('PCA completed in ' + str(time.time() - start_time) + ' seconds.\n' )
+
+    return normal_vector, sigma, mass_center
+
+
 def random_plane_estimation (numpy_cloud ):
     '''
     Uses 3 random points to estimate Plane Parameters
@@ -279,6 +300,7 @@ def random_plane_estimation (numpy_cloud ):
 
     # get 3 random indices
     idx_1, idx_2, idx_3 = random.sample(range(0, numpy_cloud.shape[0] ), 3 )
+
     point_1 = numpy_cloud [idx_1, :]
     point_2 = numpy_cloud [idx_2, :]
     point_3 = numpy_cloud [idx_3, :]
@@ -288,7 +310,6 @@ def random_plane_estimation (numpy_cloud ):
     plane_parameter_d = -(normal_vector[0] * point_1[0]
                           + normal_vector[1] * point_1[1]
                           + normal_vector[2] * point_1[2] )
-
     if (normal_vector[2] < 0):      # z component
         normal_vector = normal_vector * -1
 
@@ -313,52 +334,37 @@ def ransac_plane_estimation (input_numpy_cloud, threshold, w = .9, z = 0.95 ):
     # measure time
     start_time = time.time ()
 
-    # determine probabilities
-    b = np.float_power(w, 3 )   # probability that all three observations belong to the model
-    k = ceil(np.log(1-z ) / np.log(1-b ))   # number of draws
-    #print ('With a probability of %.2f%%,\n%i iterations are ', z*100, k )
-    #print ('enough to find a correct plane in the given Point Cloud.' )
-    #print ('\nUsing threshold %.2f as max plane distance\n\n', threshold )
-
-    # copy cloud
-    numpy_cloud = input_numpy_cloud[:, 0:3].copy ()
-    #cloud_size = input_numpy_cloud.shape[0]    # saving number of points
-
-    # points matching the cloud
-    consensus_points = []
-    #valid_point_indices = []
-
-    # consensus count [current, max]
+    # variables
+    consensus_points = []  # points matching the cloud
+    normal_vector_list = []
     current_consensus = 0
     best_consensus = 0
 
+    # determine probabilities and number of draws
+    b = np.float_power(w, 3 )   # probability that all three observations belong to the model
+    k = ceil(np.log(1-z ) / np.log(1-b ))   # number of draws
+
+    # copy cloud
+    numpy_cloud = input_numpy_cloud[:, 0:3].copy ()
+
+    # iterate: draw 3 points k times
     for i in range (1, k):
-        #print ('iteration %i/%i\n', i, k )
 
-        # new consensus count
+        # reset
         current_consensus = 0
-
-        # array of points currently below plane distance threshold
         points = []
-        #point_indices = []
 
-        # estimate the planes with 3 random points
+        # estimate a plane with 3 random points
         [normal_vector, d] = random_plane_estimation (numpy_cloud )
-        #[normal_vector, d] = randomPlaneEstimation (numpy_cloud, 0.25 )
+        normal_vector_list.append (normal_vector )
 
-        # plane paramters are elements of the normal vectors
+        # plane paramters are elements of the normal vector
         a = normal_vector[0]
         b = normal_vector[1]
         c = normal_vector[2]
 
-        # computing distances from plane for consensus set
+        # computing distances of every point from plane for consensus set
         for point in numpy_cloud:
-            # point distance from the plane
-            # dist = np.float_power ((a * point[0]
-            #                         + b * point[1]
-            #                         + c * point[2]
-            #                         + d ), 2 )
-            # http://mathworld.wolfram.com/Point-PlaneDistance.html
             dist = ((a * point[0]
                    + b * point[1]
                    + c * point[2]
@@ -369,65 +375,13 @@ def ransac_plane_estimation (input_numpy_cloud, threshold, w = .9, z = 0.95 ):
             if (dist < threshold ):
                 current_consensus = current_consensus + 1     # counting consensus
                 points.append (point.tolist ())     # this might be slowing the code down
-                #point_indices.append(iterations )
 
         # is the current consensus match higher than the previous ones?
         if (current_consensus > best_consensus ):
-            #print ('found new consensus: %i. previous max consensus:%i\n', current_consensus, best_consensus )
             consensus_points = points
-            #valid_point_indices = point_indices
             best_consensus = current_consensus    # keep best consensus set
-
-    # ???? matlab code
-    #consensus_points (1,:) = [];
-    #valid_point_indexes = uint32(valid_point_indexes)';
-    #valid_point_indexes (1) = [];
 
     # print time
     print('RANSAC completed in ' + str(time.time() - start_time) + ' seconds.\n' )
 
-    #return normal_vector, consensus_points, valid_point_indices
     return normal_vector, consensus_points
-
-
-if __name__ == "__main__":
-    print ('\nexecuted with python version ' + str (sys.version_info[0] ) + '.' + str(sys.version_info[1]) )
-
-    #pcl_input_cloud = pcl_load ('clouds/simple_plane.vtk')
-    #numpy_cloud = pcl_input_cloud
-    #pcl_normals = pcl_compute_normals (pcl_input_cloud )
-    #normal_vector, noise, sigma = PCA (pcl_input_cloud.to_array () )
-
-    #numpy_cloud_1 = input_output.load_ply_file ('clouds/laserscanning/', 'plane1.ply')    # 3806 points
-    #numpy_cloud_2 = input_output.load_ply_file ('clouds/laserscanning/', 'plane2.ply')    # 3806 points
-
-    numpy_cloud_1 = input_output.load_las_file ('clouds/laserscanning/', 'plane1.las')    # 3806 points
-    numpy_cloud_2 = input_output.load_las_file ('clouds/laserscanning/', 'plane2.las')    # 3806 points
-
-    #                                                                 matlab: 7926 points
-
-    #numpy_cloud_1 = np.array(([1, 0, 0], [0, 1, 0], [0, 0, 1], [0, 0, 1.1] ))
-
-    normal_vector, sigma, mass_center = PCA (numpy_cloud_1 )
-    print ('PCA, Cloud 1:\nnormal_vector: ' + str(normal_vector ))
-    print ('sigma: ' + str(sigma ))
-    print ('mass_center: ' + str(mass_center ) + '\n')
-
-    # normal_vector, sigma, mass_center = PCA (numpy_cloud_2 )
-    # print ('PCA, Cloud 2:\nnormal_vector: ' + str(normal_vector ))
-    # print ('sigma: ' + str(sigma ))
-    # print ('mass_center: ' + str(mass_center ))
-
-    normal_vector, consensus_points = ransac_plane_estimation (numpy_cloud_1, 0.5 )
-    print ('RANSAC, Cloud 1:\nnormal_vector: ' + str(normal_vector ))
-    print ('consensus_points:\n' + str(consensus_points ) + '\n')
-
-
-# normal_vector: [0.95553649 0.29451123 0.0145996 ]     # as .ply
-# normal_vector: [ 0.9582111   0.28454521 -0.02941945]  # as .las
-
-# noise: 2.0739264969012923     # as .ply
-# noise: 8.073087439041888      # as .las
-
-# sigma: 0.016179006599999542   # as .ply
-# sigma: 0.03192089063208706    # as .las

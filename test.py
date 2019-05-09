@@ -1,5 +1,10 @@
 import numpy as np
-import random
+
+
+def unit_vector(vector):
+    """ Returns the unit vector of the vector.  """
+    return vector / np.linalg.norm(vector)
+
 
 numpy_cloud = np.array([[1.1, 2.1, 3.1],
                         [1.2, 2.2, 3.2],
@@ -8,11 +13,41 @@ numpy_cloud = np.array([[1.1, 2.1, 3.1],
                         [1.5, 2.5, 3.5],
                         [1.6, 2.6, 3.6]] )
 
-indices = random.sample(range(0, numpy_cloud.shape[0] ), 6 )
-print ('indices: ' + str (indices ))
 
-for idx in indices:
-    print (numpy_cloud[idx, :] )
+# import numpy as np
+# import random
+#
+#
+# numpy_cloud = np.array([[1.1, 2.1, 3.1],
+#                         [1.2, 2.2, 3.2],
+#                         [1.3, 2.3, 3.3],
+#                         [1.4, 2.4, 3.4],
+#                         [1.5, 2.5, 3.5],
+#                         [1.6, 2.6, 3.6]] )
+#
+# indices = random.sample(range(0, numpy_cloud.shape[0] ), 6 )
+# print ('indices: ' + str (indices ))
+#
+# for idx in indices:
+#     print (numpy_cloud[idx, :] )
+
+# from custom_clouds import XYZCloud
+#
+# numpy_array = np.array ([[1.0, 2.0, 3.0], [1.1, 2.1, 3.1], [1.2, 2.2, 3.2], [1.3, 2.3, 3.3]] )
+# print ('numpy_array:\n' + str(numpy_array ))
+#
+# #custom = custom_clouds.XYZCloud(1, 2, 3)
+#
+# custom = XYZCloud.from_numpy_array (numpy_array )
+#
+#
+# print ('\ncustom: ' + str(custom ))
+#
+# print ('\n')
+#
+# for point in custom:
+#     print ('point: ' + str(point ))
+#     print ('point.x: ' + str(point.x ))
 
 # numpy_cloud = np.array([[1.1, 2.1, 3.1],
 #                         [1.2, 2.2, 3.2],
@@ -105,25 +140,6 @@ for idx in indices:
 # for i in range(pc_1.size):
 #     print('index of the closest point in pc_1 to point %d in pc_2 is %d' % (i, indices[i, 0]))
 #     print('the squared distance between these two points is %f' % sqr_distances[i, 0])
-
-
-# from custom_clouds import XYZCloud
-#
-# numpy_array = np.array ([[1.0, 2.0, 3.0], [1.1, 2.1, 3.1], [1.2, 2.2, 3.2], [1.3, 2.3, 3.3]] )
-# print ('numpy_array:\n' + str(numpy_array ))
-#
-# #custom = custom_clouds.XYZCloud(1, 2, 3)
-#
-# custom = XYZCloud.from_numpy_array (numpy_array )
-#
-#
-# print ('\ncustom: ' + str(custom ))
-#
-# print ('\n')
-#
-# for thing in custom:
-#     print ('thing: ' + str(thing ))
-#     print ('thing.x: ' + str(thing.x ))
 
 
 # #################################################################
