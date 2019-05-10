@@ -33,7 +33,7 @@ python3 -m pip install --user python-language-server[all]=0.19.0
 
 ```
 python -m pip install --user matplotlib numpy scikit-learn cython opencv-python open3d-python
-python3 -m pip install --user matplotlib numpy scikit-learn cython opencv-python open3d-python
+python3 -m pip install --user matplotlib numpy scikit-learn cython opencv-python open3d-python pandas
 ```
 
 ## python-pcl
