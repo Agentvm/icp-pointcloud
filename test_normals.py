@@ -13,20 +13,20 @@ if __name__ == "__main__":
     #normal_vector, noise, sigma = PCA (pcl_input_cloud.to_array () )
 
     # ply files
-    #numpy_cloud_1 = input_output.load_ply_file ('clouds/laserscanning/', 'plane1.ply')    # 3806 points
+    numpy_cloud_1 = input_output.load_ply_file ('clouds/laserscanning/', 'plane1.ply')    # 3806 points
     #numpy_cloud_2 = input_output.load_ply_file ('clouds/laserscanning/', 'plane2.ply')    # 3806 points
 
     # las files
     #numpy_cloud_1 = input_output.load_las_file ('clouds/laserscanning/', 'plane1.las')    # 3806 points
     #numpy_cloud_2 = input_output.load_las_file ('clouds/laserscanning/', 'plane2.las')    # 3806 points
 
-    # simple plane
-    numpy_cloud_1 = np.array ([[1, 0, 0],   # +x
-                              [2, 1, 0],  # -x
-                              [0, 1, 0],
-                              [3, 1.5, 0],
-                              [-2, 1.5, 0],
-                              [3, 1, 0.51]])  # +y
+    # # simple plane
+    # numpy_cloud_1 = np.array ([[1, 0, 0],   # +x
+    #                           [2, 1, 0],  # -x
+    #                           [0, 1, 0],
+    #                           [3, 1.5, 0],
+    #                           [-2, 1.5, 0],
+    #                           [3, 1, 0.51]])  # +y
 
     # Simple plane OUTPUT
     # executed with python version 3.5
@@ -49,11 +49,11 @@ if __name__ == "__main__":
 
     #                                                                 matlab: 7926 points
 
-    # # 1st cloud
-    # normal_vector, sigma, mass_center = normals.PCA (numpy_cloud_1 )
-    # print ('PCA, Cloud 1:\nnormal_vector: ' + str(normal_vector ))
-    # print ('sigma: ' + str(sigma ))
-    # print ('mass_center: ' + str(mass_center ) + '\n')
+    # 1st cloud
+    normal_vector, sigma, mass_center = normals.PCA (numpy_cloud_1 )
+    print ('PCA, Cloud 1:\nnormal_vector: ' + str(normal_vector ))
+    print ('sigma: ' + str(sigma ))
+    print ('mass_center: ' + str(mass_center ) + '\n')
 
     normal_vector, consensus_points = normals.ransac_plane_estimation (numpy_cloud_1, 0.5 )
     print ('RANSAC, Cloud 1:\nnormal_vector: ' + str(normal_vector ))

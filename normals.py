@@ -1,127 +1,8 @@
 import time
 import numpy as np
 import random
-import pcl
+#import pcl
 from math import ceil, sqrt
-
-
-def randomPlaneEstimationII (input_numpy_cloud, draw_radius ):
-    '''
-    Uses 1 random point and two points in the neighborhood of the first one
-    to estimate Plane Parameters. It can therefore find a plane in a scene with multiple planes
-
-    Input:
-        input_numpy_cloud (np.array):   numpy array with data points, only the first 3 colums are used
-    Output:
-
-    '''
-
-    print ("\n\nrandomPlaneEstimationII is curently not implemented. Aborting. \n\n")
-    return 0
-
-    # we only need three colums [X, Y, Z, I] -> [X, Y, Z]
-    numpy_cloud = input_numpy_cloud[:, 0:3].copy ()     # copying takes roughly 0.000558 seconds per 1000 points
-    cloud_size = numpy_cloud.shape[0]
-
-    # convert to pcl cloud to use kdtree
-    pcl_cloud = pcl.PointCloud(numpy_cloud)
-    tree = pcl_cloud.make_kdtree_flann()
-
-    #indices, sqr_distances = kd.nearest_k_search_for_cloud(pc_2, 1)
-
-    # estimate the points
-    # first point is a random draw
-    index_1 = random.randint(cloud_size, 1 )
-    point_1 = numpy_cloud [index_1, :]
-
-    # search the kdtree and find the 150 nearest neighbors
-
-    # ### PCL-PYTHON CODE: ###############################################
-    #[neighbors, distances] = tree.nearest_k_search_for_cloud (? )
-
-    # nearest_k_search_for_cloud(self, BasePointCloud pc, int k=1)
-    #
-    #     Find the k nearest neighbours and squared distances for all points in the pointcloud.
-    #     Results are in ndarrays, size (pc.size, k) Returns: (k_indices, k_sqr_distances)
-    #
-    # nearest_k_search_for_point(self, BasePointCloud pc, int index, int k=1)
-    #
-    #     Find the k nearest neighbours and squared distances for the point at pc[index].
-    #     Results are in ndarrays, size (k) Returns: (k_indices, k_sqr_distances)
-
-    # ### MATLAB CODE: ##########################################################
-    #[neighbors, distances] = knnsearch (tree, p1, 'K', 150 );
-
-    # # Transposing
-    # neighbors = neighbors'
-    # distances = distances'
-    #
-    # # --------------------------------------------------------------------
-    # # find neighbors with distance greater than specified threshold
-    # nearest_acceptable_neighbor = 0
-    # farthest_acceptable_neighbor = 0
-    # for i = 1:length(distances)
-    #    if distances(i) > draw_radius
-    #        if nearest_acceptable_neighbor == 0
-    #             nearest_acceptable_neighbor = i
-    #        end
-    #        if distances(i) > draw_radius * 1.7
-    #             farthest_acceptable_neighbor = i
-    #             break
-    #
-    # # find random neigbors with distance in threshold
-    # if nearest_acceptable_neighbor ~= 0 && farthest_acceptable_neighbor ~= 0:
-    #     index2 = randi([nearest_acceptable_neighbor, farthest_acceptable_neighbor], 1, 2)
-    # else:
-    #     fprintf ('WARNING, randomPlaneEstimationII: No neighbors could ')
-    #     fprintf ('be determined in close proximity to the first draw. ')
-    #     fprintf ('Using random point.')
-    #     index2 = randi(length(neighbors), 1, 2 )
-    # end
-    #
-    # p2 = c(neighbors(index2(1)), : )    # point 2
-    #
-    # # --------------------------------------------------------------------
-    # # search the kdtree and find the 150 nearest neighbors for point 2
-    # [neighbors, distances] = knnsearch (tree, p2, 'K', 150 )
-    # neighbors = neighbors'
-    # distances = distances'
-    #
-    # # find neighbors with distance greater than specified threshold
-    # nearest_acceptable_neighbor = 0
-    # farthest_acceptable_neighbor = 0
-    # for i = 1:length(distances)
-    #    if distances(i) > draw_radius
-    #        if nearest_acceptable_neighbor == 0
-    #             nearest_acceptable_neighbor = i
-    #        end
-    #        if distances(i) > draw_radius * 1.7
-    #             farthest_acceptable_neighbor = i
-    #             break
-    #
-    # # find random neigbors with distance in threshold
-    # if nearest_acceptable_neighbor ~= 0 && farthest_acceptable_neighbor ~= 0
-    #     index3 = randi([nearest_acceptable_neighbor, farthest_acceptable_neighbor ], 1, 2)
-    # else
-    #     fprintf ('WARNING, randomPlaneEstimationII: A neighbor could not ')
-    #     fprintf ('be determined in close proximity to the second draw. ')
-    #     fprintf ('Using random point.')
-    #     index3 = randi(length(neighbors), 1, 2)
-    # end
-    #
-    # p3 = c(neighbors(index3(2)), : )
-    #
-    # # DEBUG show the points
-    # #scatter3(p1(1,1), p1(1,2), p1(1,3), 20, 'o');
-    # #scatter3(p2(1,1), p2(1,2), p2(1,3), 20, '+');
-    # #scatter3(p3(1,1), p3(1,2), p3(1,3), 20, '*');
-    #
-    # # compute the plane parameters
-    # n = transpose (cross((p2 - p1 ), (p3 - p1 )))
-    # n = n / norm(n )
-    # d = -(n(1 )*p1(1 ) + n(2 )*p1(2 ) + n(3 )*p1(3 ))
-    #
-    return 0
 
 
 def pcl_compute_normals (pcl_cloud):
@@ -264,9 +145,9 @@ def PCA (input_numpy_cloud ):
         input_numpy_cloud (np.array):   numpy array with data points, only the first 3 colums are used
 
     Output:
-        normal_vector ([1x3] np.array): The normal vector of the computed plane
+        normal_vector ([1, 3] np.array): The normal vector of the computed plane
         sigma (float):                  The noise as given by the smallest eigenvalue, normalized by number of points
-        mass_center ([1x3] np.array):   Centre of mass
+        mass_center ([1, 3] np.array):   Centre of mass
     """
 
     start_time = time.time()
@@ -291,11 +172,14 @@ def PCA (input_numpy_cloud ):
 
 def random_plane_estimation (numpy_cloud ):
     '''
-    Uses 3 random points to estimate Plane Parameters
+    Uses 3 random points to estimate Plane Parameters. Used for RANSAC.
+
+    Input:
+        numpy_cloud (np.array): The Point Cloud in which to find a random plane
 
     Output:
-        normal_vector :
-        plane_parameter_d :
+        normal_vector ([1, 3] np.array):
+        plane_parameter_d (float):
     '''
 
     # get 3 random indices
@@ -314,6 +198,43 @@ def random_plane_estimation (numpy_cloud ):
         normal_vector = normal_vector * -1
 
     return normal_vector, plane_parameter_d
+
+
+def plane_consensus (numpy_cloud, normal_vector, d, threshold ):
+    '''
+
+    Input:
+        numpy_cloud ([n, 3] np.array):
+        normal_vector ([1, 3] np.array):
+        d
+        threshold
+
+    Output:
+        consensus_count (int):
+        consensus_points ([[x,y,z], ...] list)
+    '''
+
+    # plane paramters are elements of the normal vector
+    a = normal_vector[0]
+    b = normal_vector[1]
+    c = normal_vector[2]
+
+    # computing distances of every point from plane for consensus set
+    consensus_count = 0
+    consensus_points = []
+    for point in numpy_cloud:
+        dist = ((a * point[0]
+               + b * point[1]
+               + c * point[2]
+                 + d )
+                / (sqrt (np.float_power (a, 2 ) + np.float_power (b, 2 ) + np.float_power (c, 2 ))))
+
+        # threshold match?
+        if (dist < threshold ):
+            consensus_count = consensus_count + 1     # counting consensus
+            consensus_points.append (point.tolist ())     # this might be slowing the code down
+
+    return consensus_count, consensus_points
 
 
 def ransac_plane_estimation (input_numpy_cloud, threshold, w = .9, z = 0.95 ):
@@ -335,10 +256,10 @@ def ransac_plane_estimation (input_numpy_cloud, threshold, w = .9, z = 0.95 ):
     start_time = time.time ()
 
     # variables
-    consensus_points = []  # points matching the cloud
-    normal_vector_list = []
     current_consensus = 0
     best_consensus = 0
+    consensus_points = []  # points matching the cloud
+    consensus_normal_vector = []
 
     # determine probabilities and number of draws
     b = np.float_power(w, 3 )   # probability that all three observations belong to the model
@@ -350,38 +271,19 @@ def ransac_plane_estimation (input_numpy_cloud, threshold, w = .9, z = 0.95 ):
     # iterate: draw 3 points k times
     for i in range (1, k):
 
-        # reset
-        current_consensus = 0
-        points = []
-
         # estimate a plane with 3 random points
         [normal_vector, d] = random_plane_estimation (numpy_cloud )
-        normal_vector_list.append (normal_vector )
 
-        # plane paramters are elements of the normal vector
-        a = normal_vector[0]
-        b = normal_vector[1]
-        c = normal_vector[2]
-
-        # computing distances of every point from plane for consensus set
-        for point in numpy_cloud:
-            dist = ((a * point[0]
-                   + b * point[1]
-                   + c * point[2]
-                     + d )
-                    / (sqrt (np.float_power (a, 2 ) + np.float_power (b, 2 ) + np.float_power (c, 2 ))))
-
-            # threshold match?
-            if (dist < threshold ):
-                current_consensus = current_consensus + 1     # counting consensus
-                points.append (point.tolist ())     # this might be slowing the code down
+        # count all points that consent with the plane
+        current_consensus, current_consensus_points = plane_consensus (numpy_cloud, normal_vector, d, threshold )
 
         # is the current consensus match higher than the previous ones?
         if (current_consensus > best_consensus ):
-            consensus_points = points
+            consensus_points = current_consensus_points
             best_consensus = current_consensus    # keep best consensus set
+            consensus_normal_vector = normal_vector
 
     # print time
     print('RANSAC completed in ' + str(time.time() - start_time) + ' seconds.\n' )
 
-    return normal_vector, consensus_points
+    return consensus_normal_vector, consensus_points
