@@ -14,8 +14,10 @@ numpy_cloud = np.array([[1.1, 2.1, 3.1],
                         [1.5, 2.5, 3.5],
                         [1.6, 2.6, 3.6]] )
 
-input_output.save_ascii_file(numpy_cloud )
-print ("Done.")
+last_times_correlations = np.array([1, 2, 3, 4])
+correlations = np.array([1, 2, 3, 4])
+
+print (np.sum(last_times_correlations[:] - correlations[:]) == 0 )
 
 # import numpy as np
 # import random
