@@ -1,23 +1,40 @@
 import numpy as np
-import input_output
+from custom_clouds import CustomCloud
 
 
-def unit_vector(vector):
-    """ Returns the unit vector of the vector.  """
-    return vector / np.linalg.norm(vector)
+numpy_cloud = np.array([[1.1111, 2.1, 3.1, 0.5],
+                        [1.2, 2.2, 3.2, 0.5],
+                        [1.3, 2.3, 3.3, 0.5],
+                        [1.4, 2.4, 3.4, 0.5],
+                        [1.5, 2.5, 3.5, 0.5],
+                        [1.6, 2.6, 3.6, 0.5]] )
+
+custom = CustomCloud.initialize_xyzi (numpy_cloud )
+happy = np.array((0.0, 1.0, 1.0, 0.0, 1.0, 1.0 ))
+
+# print
+print ('\ncustom.fields: ' + str(custom.labels ))
+print ('\nhas happy: ' + str(custom.has_field ("happy" ) ))
+print ('\nCustom cloud:\n' + str(custom ))
+
+# add some random field
+print ('\n\n------------------------------------------\nadding field happy')
+custom.add_field (happy, "happy" )
+
+# print
+print ('\ncustom.fields: ' + str(custom.labels ))
+print ('\nhas happy: ' + str(custom.has_field ("happy" ) ))
+print ('\nCustom cloud:\n' + str(custom ))
+
+print ('\ncustom.fields.happy: ' + str(custom.fields.happy ) + '\n')
+
+for point in custom:
+    print ('point: ' + str(point ))
+    if (custom.has_field ("happy" )):
+        print ('point.happy: ' + str(point.happy ))
 
 
-numpy_cloud = np.array([[1.1, 2.1, 3.1],
-                        [1.2, 2.2, 3.2],
-                        [1.3, 2.3, 3.3],
-                        [1.4, 2.4, 3.4],
-                        [1.5, 2.5, 3.5],
-                        [1.6, 2.6, 3.6]] )
-
-last_times_correlations = np.array([1, 2, 3, 4])
-correlations = np.array([1, 2, 3, 4])
-
-print (np.sum(last_times_correlations[:] - correlations[:]) == 0 )
+########
 
 # import numpy as np
 # import random
@@ -36,23 +53,6 @@ print (np.sum(last_times_correlations[:] - correlations[:]) == 0 )
 # for idx in indices:
 #     print (numpy_cloud[idx, :] )
 
-# from custom_clouds import XYZCloud
-#
-# numpy_array = np.array ([[1.0, 2.0, 3.0], [1.1, 2.1, 3.1], [1.2, 2.2, 3.2], [1.3, 2.3, 3.3]] )
-# print ('numpy_array:\n' + str(numpy_array ))
-#
-# #custom = custom_clouds.XYZCloud(1, 2, 3)
-#
-# custom = XYZCloud.from_numpy_array (numpy_array )
-#
-#
-# print ('\ncustom: ' + str(custom ))
-#
-# print ('\n')
-#
-# for point in custom:
-#     print ('point: ' + str(point ))
-#     print ('point.x: ' + str(point.x ))
 
 # numpy_cloud = np.array([[1.1, 2.1, 3.1],
 #                         [1.2, 2.2, 3.2],
