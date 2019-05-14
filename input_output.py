@@ -18,6 +18,8 @@ def save_ascii_file (numpy_cloud, field_names_list, path = "clouds/tmp/output_cl
         path (str):                         The path to the file to save
     '''
 
+    print('Saving file ' + path )
+
     # "%.2f %.2f %.2f %.8f %.8f %.8f %.0f %.0f"
     format = "%.2f %.2f %.2f"
     for i in range (numpy_cloud.shape[1] - 3 ):

@@ -1,16 +1,23 @@
 import numpy as np
 import input_output
 from custom_clouds import CustomCloud
+import time
 
-numpy_cloud = np.array([[1.1111, 2.1, 3.1, 0.5],
-                        [1.2, 2.2, 3.2, 0.5],
-                        [1.3, 2.3, 3.3, 0.5],
-                        [1.4, 2.4, 3.4, 0.5],
-                        [1.5, 2.5, 3.5, 0.5],
-                        [1.6, 2.6, 3.6, 0.5]] )
+# numpy_cloud = np.array([[1.1111, 2.1, 3.1, 0.5],
+#                         [1.2, 2.2, 3.2, 0.5],
+#                         [1.3, 2.3, 3.3, 0.5],
+#                         [1.4, 2.4, 3.4, 0.5],
+#                         [1.5, 2.5, 3.5, 0.5],
+#                         [1.6, 2.6, 3.6, 0.5]] )
 
+numpy_cloud = np.random.rand (1000000, 3) * 1000
+
+a = time.time ()
 custom_cloud = CustomCloud.initialize_xyz(numpy_cloud )
+print (time.time () - a )
+a = time.time ()
 input_output.save_ascii_file(custom_cloud.data, custom_cloud.labels )
+print (time.time () - a )
 
 
 # from custom_clouds import CustomCloud
