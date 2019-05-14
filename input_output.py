@@ -7,14 +7,24 @@ from os.path import isfile
 from open3d import io, PointCloud, Vector3dVector, read_point_cloud, set_verbosity_level, VerbosityLevel
 
 
-def save_ascii_file (numpy_cloud, path = "clouds/tmp/output_cloud.asc" ):
+def save_ascii_file (numpy_cloud, field_names_list, path = "clouds/tmp/output_cloud.asc" ):
+    '''
+    Saves Pointcloud as ASCII file
+
+    Input:
+        numpy_cloud (np.array):             Data array
+        field_names_list ([str, str, ...]): List of strings containing the labels of the pointcloud columns. These will
+                                            be written to the header of the ascii file
+        path (str):                         The path to the file to save
+    '''
 
     # "%.2f %.2f %.2f %.8f %.8f %.8f %.0f %.0f"
     format = "%.2f %.2f %.2f"
     for i in range (numpy_cloud.shape[1] - 3 ):
         format = format + " %.8f"
 
-    leading_line = "//" + "X " + " Y " + " Z"
+    field_names_list = ['{0} '.format(name) for name in field_names_list]
+    leading_line = "//" + ''.join(field_names_list)
 
     np.savetxt(path,  # pfad + name
     numpy_cloud,  # numpy array

@@ -4,7 +4,16 @@ from collections import namedtuple
 
 
 class CustomCloud(object ):
-    """CustomCloud docstring"""
+    """
+    CustomCloud:
+
+    Attributes:
+        data (np.array):
+        labels (list of str):
+        fields (container of numpy colums):
+        rows (container of numpy rows):
+
+    """
 
     # basic init function
     def __init__(self, numpy_array, labels_list ):
@@ -26,6 +35,9 @@ class CustomCloud(object ):
 
         # numpy attributes
         self.shape = self.data.shape
+        self.size = self.data.size
+        self.itemsize = self.data.itemsize
+        self.nbytes = self.data.nbytes
 
     # numpy init function
     @classmethod
@@ -51,7 +63,7 @@ class CustomCloud(object ):
         if (input_cloud_numpy.shape[1] < 4 ):
             raise ValueError("The given numpy array only has " + str (input_cloud_numpy.shape[1] ) + " rows. Aborting.")
 
-        return cls (input_cloud_numpy[:, 0:4], ["x", "y", "z", "i"] )   # this calls __init__
+        return cls (input_cloud_numpy[:, 0:4], ["x", "y", "z", "intensity"] )   # this calls __init__
 
     # numpy init function
     @classmethod
@@ -78,19 +90,42 @@ class CustomCloud(object ):
         #returning a generator that is used like an iterator using list comprehension
         return ((Point._make (row) for (row) in self.data ))
 
+    # makes CustomCloud[:, "x":"z"] possible
+    # def __getitem__(self, input):
+        # length, fields = input
+        # print ("length.start: " + str(length.start ))
+        # print ("length.stop: " + str(length.stop ))
+        # print ("length.step: " + str(length.step ))
+        #
+        # print ("fields.start: " + str(fields.start ))
+        # print ("fields.stop: " + str(fields.stop ))
+        # print ("fields.step: " + str(fields.step ))
+
+        # index = start
+        # if stop is None:
+        #     end = start + 1
+        # else:
+        #     end = stop
+        # if step is None:
+        #     stride = 1
+        # else:
+        #     stride = step
+        # return self.__data[index:end:stride]
+
     # printing
     def __str__(self ):
         '''
         This Method is called when an object of this class is printed.
-        It returns a nicely formatted string containing the points
+        It returns a nicely formatted string containing the first few and last few points.
         '''
 
         cloud_size = self.data.shape[0]
+        np.set_printoptions (precision=1)  # print to give a rough outline of the cloud
 
         # general info including name of the class and it's number of points
         string = str (type(self).__name__  # + ',\nwith labels: ' + str (self.labels )
                      + ', number of points: ' + str (cloud_size ) + '\n' + str (self.labels ).replace (',', '') )
-        margin = 2  # how many points are printed before output is clipped
+        margin = 3  # how many points are printed before output is clipped
 
         # add points pairs to the string, but exlcude those that are out of the margin
         for counter, row in enumerate (self.data ):
@@ -101,7 +136,23 @@ class CustomCloud(object ):
             else:
                 string = string + '\n' + str(row )
 
+        np.set_printoptions (precision=None)
         return str (string )
+
+    def update_attributes (self ):
+        '''
+        This is called after changing the structure of the cloud
+        '''
+        # instance variables
+        labels = namedtuple("Colums", self.labels )
+        self.fields = labels._make (column for column in self.data.T )
+        self.rows = self.__iter__ ()
+
+        # numpy attributes
+        self.shape = self.data.shape
+        self.size = self.data.size
+        self.itemsize = self.data.itemsize
+        self.nbytes = self.data.nbytes
 
     # def __repr__(self):
     #     return "x, y, z"
@@ -111,8 +162,7 @@ class CustomCloud(object ):
         This function adds a field (colum) to the cloud.
         '''
         if (len (input_cloud_numpy.shape ) != 1):   # if no shape is one
-            raise ValueError("The given numpy array is misshaped. Please pass an array which has shape (n, 1). "
-                             + "Aborting.")
+            raise ValueError("The given numpy array is misshaped. Expected an array of shape (1, n). Aborting.")
 
         # if (input_cloud_numpy.shape[1] != 1):
         #     input_cloud_numpy = input_cloud_numpy.T     # transpose
@@ -127,8 +177,7 @@ class CustomCloud(object ):
 
         # update labels
         self.labels.append (field_name )
-        labels = namedtuple("Colums", self.labels )
-        self.fields = labels._make (column for column in self.data.T )
+        self.update_attributes ()
 
     def add_normals (self, input_cloud_numpy ):
         '''
@@ -148,8 +197,7 @@ class CustomCloud(object ):
 
         # update labels
         self.labels.append (["norm_x", "norm_y", "norm_z"] )
-        labels = namedtuple("Colums", self.labels )
-        self.fields = labels._make (column for column in self.data.T )
+        self.update_attributes ()
 
     def has_field (self, field_name ):
         return any(field_name in s for s in self.labels)
