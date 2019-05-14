@@ -222,12 +222,10 @@ def plane_consensus (numpy_cloud, normal_vector, d, threshold ):
     # computing distances of every point from plane for consensus set
     consensus_count = 0
     consensus_points = []
+
+    divisor = np.float_power (a, 2 ) + np.float_power (b, 2 ) + np.float_power (c, 2 )
     for point in numpy_cloud:
-        dist = ((a * point[0]
-               + b * point[1]
-               + c * point[2]
-                 + d )
-                / (sqrt (np.float_power (a, 2 ) + np.float_power (b, 2 ) + np.float_power (c, 2 ))))
+        dist = (a * point[0] + b * point[1] + c * point[2] + d ) / sqrt (divisor)
 
         # threshold match?
         if (dist < threshold ):
