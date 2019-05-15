@@ -7,7 +7,6 @@
 -   y gut
 -   Wald
 -   Acker
--   Wasser
 -   Fahrbahn
 -   Gebäude abgerissen/ neu gebaut
 
@@ -17,6 +16,7 @@
 -   100m x 100m + Rand für Normalenvektorbestimmung
 -   Ausschneiden, CC-Werte abspeichern (siehe unten)
 -   Alle Details zur erzeugten Wolke notieren
+-   Ein Bild machen
 -   Matching: 20 + Punktpaare pro Kachel
 
 
@@ -30,5 +30,5 @@
 -   Beende Cross Section (Fenster schließen)
 -   Speichere zur Wiederholbarkeit die erzeugte Polyline unter dem Namen der Punktwolke ab (Endung .bin)
 -   Wähle "Segment" in der oberen Leiste, oder "Tools>Segmentation>Extract Segment"
--   Wähle "Import polyline from DB for segmentation" im neuen Fenster und wähle die erzeugte Polyline
+-   Wähle "Import polyline from DB for segmentation" im neuen Fenster und wähle die erzeugte Polyline (Akzeptiere den Viewport)
 -   Wähle "Confirm Segmentation" im Fenster
