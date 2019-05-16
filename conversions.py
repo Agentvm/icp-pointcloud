@@ -2,6 +2,32 @@ import pcl
 import numpy as np
 
 
+def reduce_cloud (input_cloud_numpy, copy=True, return_transformation=False, return_as_float32=False ):
+
+    # copy to avoid refernce disaster
+    if (copy ):
+        numpy_cloud = input_cloud_numpy.copy ()
+    else:
+        numpy_cloud = input_cloud_numpy
+
+    # get the minimum x and y values (center of mass would be even better)
+    min_x_coordinate = np.min (numpy_cloud[:, 0] )
+    min_y_coordinate = np.min (numpy_cloud[:, 1] )
+
+    # reduce coordinates to ensure that the precisison of float32 is enough
+    numpy_cloud[:, 0] = numpy_cloud[:, 0] - min_x_coordinate
+    numpy_cloud[:, 1] = numpy_cloud[:, 1] - min_y_coordinate
+
+    if (return_as_float32 and return_transformation ):
+        return numpy_cloud.astype (np.float32 ), min_x_coordinate, min_y_coordinate
+    elif (return_as_float32 ):
+        numpy_cloud.astype (np.float32 )
+    elif (return_transformation ):
+        numpy_cloud, min_x_coordinate, min_y_coordinate
+
+    return numpy_cloud
+
+
 def numpy_to_pcl (input_cloud_numpy):
     """
     Takes a numpy array and returns a pcl cloud, and the values that have been subtracted from the cloud to fit the
@@ -24,11 +50,8 @@ def numpy_to_pcl (input_cloud_numpy):
         return pcl.PointCloudXYZ ()     # abort
 
     # reduce coordinates to ensure that the precision of float32 is enough
-    min_x_coordinate = input_cloud_numpy[:, 0].min
-    min_y_coordinate = input_cloud_numpy[:, 1].min
-    input_cloud_numpy[:, 0] = input_cloud_numpy[:, 0] - min_x_coordinate
-    input_cloud_numpy[:, 1] = input_cloud_numpy[:, 1] - min_y_coordinate
-
+    input_cloud_numpy, min_x_coordinate, min_y_coordinate = reduce_cloud (input_cloud_numpy,
+                                                                         return_transformation=True )
     # DIM cloud, with RGB
     if (numpy_colums == 6):
         # Python understands float as Float64, which C++ understands as Double, therefore, a conversion is needed.

@@ -1,23 +1,52 @@
 import numpy as np
-import input_output
 from custom_clouds import CustomCloud
-import time
 
-# numpy_cloud = np.array([[1.1111, 2.1, 3.1, 0.5],
-#                         [1.2, 2.2, 3.2, 0.5],
-#                         [1.3, 2.3, 3.3, 0.5],
-#                         [1.4, 2.4, 3.4, 0.5],
-#                         [1.5, 2.5, 3.5, 0.5],
-#                         [1.6, 2.6, 3.6, 0.5]] )
+numpy_cloud = np.array([[1.1, 2.1, 3.1],
+                        [1.2, 2.2, 3.2],
+                        [1.3, 2.3, 3.3],
+                        [1.4, 2.4, 3.4],
+                        [1.5, 2.5, 3.5],
+                        [1.6, 2.6, 3.6]] )
 
-numpy_cloud = np.random.rand (1000000, 3) * 1000
+a = CustomCloud.initialize_xyz (numpy_cloud )
 
-a = time.time ()
-custom_cloud = CustomCloud.initialize_xyz(numpy_cloud )
-print (time.time () - a )
-a = time.time ()
-input_output.save_ascii_file(custom_cloud.data, custom_cloud.labels )
-print (time.time () - a )
+a.fields.y = 0
+
+print (a.fields.y)
+
+for point in a:
+    point.x = 0
+    print (point)
+
+print (a)
+# import input_output
+#
+#
+# big_numpy_cloud = np.array([[1010, 2100, 3.1, 0.5, 1010, 2100, 3.1],
+#                             [1620, 1500, 3.2, 0.5, 1010, 2100, 3.1],
+#                             [1880, 1470, 3.3, 0.5, 1010, 2100, 3.1]] )
+#
+# #print (big_numpy_cloud[:, 1] - 1000.0)
+# input_output.save_ascii_file (big_numpy_cloud,
+#                              ['x', 'y', 'z', 'i', 'normx', 'normy', 'normz'],
+#                              "clouds/tmp/input_output_test.asc" )
+#
+# custom_cloud = input_output.load_ascii_file ("clouds/tmp/input_output_test.asc", return_custom_cloud=True)
+#
+# print ("Custom:\n" + str(custom_cloud ))
+
+
+# #time difference between numpy and custom cloud ~ 1/1.5
+# from custom_clouds import CustomCloud
+# import time
+# numpy_cloud = np.random.rand (1000000, 3) * 1000
+#
+# a = time.time ()
+# custom_cloud = CustomCloud.initialize_xyz(numpy_cloud )
+# print (time.time () - a )
+# a = time.time ()
+# input_output.save_ascii_file(custom_cloud.data, custom_cloud.labels )
+# print (time.time () - a )
 
 
 # from custom_clouds import CustomCloud
