@@ -90,6 +90,9 @@ class CustomCloud(object ):
         #returning a generator that is used like an iterator using list comprehension
         return ((Point._make (row) for (row) in self.data ))
 
+    def __getitem__(self, input):
+        return self.data.__getitem__ (input)
+
     # makes CustomCloud[:, "x":"z"] possible
     # def __getitem__(self, input):
         # length, fields = input
