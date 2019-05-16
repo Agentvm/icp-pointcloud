@@ -17,8 +17,8 @@ if __name__ == "__main__":
     #numpy_cloud_2 = input_output.load_ply_file ('clouds/laserscanning/', 'plane2.ply')    # 3806 points
 
     # las files
-    #numpy_cloud_1 = input_output.load_las_file ('clouds/laserscanning/', 'plane1.las')    # 3806 points
-    #numpy_cloud_2 = input_output.load_las_file ('clouds/laserscanning/', 'plane2.las')    # 3806 points
+    #numpy_cloud_1 = input_output.load_las_file ('clouds/laserscanning/plane1.las')    # 3806 points
+    #numpy_cloud_2 = input_output.load_las_file ('clouds/laserscanning/plane2.las')    # 3806 points
 
     # # simple plane
     # numpy_cloud_1 = np.array ([[1, 0, 0],   # +x

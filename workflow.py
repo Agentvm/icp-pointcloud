@@ -26,7 +26,7 @@ if __name__ == '__main__':
     #file_name = 'laserscanning.ply'
 
     # Loading
-    numpy_cloud = input_output.load_las_file (clouds_folder, file_name )
+    numpy_cloud = input_output.load_las_file (clouds_folder + file_name )
 
     print ('Numpy:\n' + str(numpy_cloud ) + "\n\n" )
 

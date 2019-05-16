@@ -5,9 +5,9 @@ import pcl
 import time
 from os.path import isfile
 from open3d import io, PointCloud, Vector3dVector, read_point_cloud, set_verbosity_level, VerbosityLevel
+from custom_clouds import CustomCloud
 
-
-def save_ascii_file (numpy_cloud, field_names_list, path = "clouds/tmp/output_cloud.asc" ):
+def save_ascii_file (numpy_cloud, field_labels_list, path ):
     '''
     Saves Pointcloud as ASCII file
 
@@ -25,7 +25,7 @@ def save_ascii_file (numpy_cloud, field_names_list, path = "clouds/tmp/output_cl
     for i in range (numpy_cloud.shape[1] - 3 ):
         format = format + " %.8f"
 
-    field_names_list = ['{0} '.format(name) for name in field_names_list]
+    field_names_list = ['{0} '.format(name) for name in field_labels_list]
     leading_line = "//" + ''.join(field_names_list)
 
     np.savetxt(path,  # pfad + name
@@ -33,6 +33,21 @@ def save_ascii_file (numpy_cloud, field_names_list, path = "clouds/tmp/output_cl
     header=leading_line,
     comments='',
     fmt = format)  # format
+
+
+def load_ascii_file (path, return_custom_cloud=False ):
+
+    numpy_cloud = np.loadtxt (path, comments='//')
+
+    if (return_custom_cloud ):
+        # get the first line of the file, extracting the field labels
+        with open(path) as f:
+            field_labels_list = f.readline().strip ('//').split ()
+        custom_cloud = CustomCloud (numpy_cloud, field_labels_list )
+
+        return custom_cloud
+
+    return numpy_cloud
 
 
 def check_for_file (path ):
@@ -93,7 +108,7 @@ def save_ply_file (numpy_cloud, file_name ):
     io.write_point_cloud(file_name, open3d_cloud, write_ascii=True )
 
 
-def load_las_file (dir_in, file_name, dtype=None):
+def load_las_file (file_path, dtype=None, return_custom_cloud=False ):
     """
     Loads .las data as numpy array
 
@@ -112,9 +127,9 @@ def load_las_file (dir_in, file_name, dtype=None):
 
     # Load a file
     start_time = time.time()    # measure time
-    print('Loading file ' + file_name + ' ...')
+    print('Loading file ' + file_path + ' ...')
 
-    with File(dir_in + file_name, mode = 'r') as inFile:
+    with File(file_path, mode = 'r') as inFile:
         # add points by adding xyz channels. Reshape to create colums
         x = np.reshape(inFile.x.copy(), (-1, 1))
         y = np.reshape(inFile.y.copy(), (-1, 1))
@@ -129,14 +144,25 @@ def load_las_file (dir_in, file_name, dtype=None):
             green = np.reshape(inFile.green.copy(), (-1, 1))
             blue = np.reshape(inFile.blue.copy(), (-1, 1))
             points = np.concatenate((x, y, z, red, green, blue, raw_class), axis = -1)  # join all values in an np.array
+            if (return_custom_cloud ):
+                points = CustomCloud (points, ['x', 'y', 'z', 'red', 'green', 'blue', 'raw_class'])
         elif dtype == 'als':
             # add LIDAR intensity
             intensity = np.reshape(inFile.intensity.copy(), (-1, 1))
-            #num_returns = inFile.num_returns    # number of returns
-            #return_num = inFile.return_num      # this points return number
-            points = np.concatenate((x, y, z, intensity, raw_class), axis = -1)  # join all values in one np.array
+            num_returns = np.reshape(inFile.num_returns.copy(), (-1, 1))    # number of returns
+            return_num = np.reshape(inFile.return_num.copy(), (-1, 1))      # this points' return number
+            #measure_time = inFile.time
+            measure_time = return_num.copy ()   # fix fix fix fix fix fix fix fix fix fix fix fix fix fix fix fix fix
+
+            # join all values in one np.array
+            points = np.concatenate((x, y, z, intensity, num_returns, return_num, measure_time, raw_class), axis = -1)
+            if (return_custom_cloud ):
+                points = CustomCloud (points,
+                                    ['x', 'y', 'z', 'intensity', 'num_returns', 'return_num', 'time', 'raw_class'])
         else:
             points = np.concatenate((x, y, z, raw_class), axis = -1)  # join all values in one np.array
+            if (return_custom_cloud ):
+                points = CustomCloud (points, ['x', 'y', 'z', 'raw_class'])
 
     print ('Cloud loaded in ' + str(time.time() - start_time) + ' seconds.\nNumber of points: '
            + str(points.shape[0] ) + '\n')
