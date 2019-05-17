@@ -95,7 +95,7 @@ if __name__ == "__main__":
     # print ('numpy_cloud_1[corr_l_r]:\n' + str(numpy_cloud_1[corr_l_r[:3], :] ) + '\n')
 
     # # test sklearn tree   #########################################################
-    tree = sklearn.neighbors.kd_tree.KDTree (numpy_cloud_2, leaf_size=40)
+    tree = sklearn.neighbors.kd_tree.KDTree (numpy_cloud_2, leaf_size=40, metric='euclidean')
     # correlations = list(itertools.chain(*tree.query (numpy_cloud_1, k=1, return_distance=False )))
     # print ("correlations: " + str (correlations[:3] ))
     # print ('numpy_cloud_1[correlations]:\n' + str(numpy_cloud_1[correlations[:3], :] ) + '\n')
