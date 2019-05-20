@@ -7,6 +7,7 @@ from os.path import isfile
 from open3d import io, PointCloud, Vector3dVector, read_point_cloud, set_verbosity_level, VerbosityLevel
 from custom_clouds import CustomCloud
 
+
 def save_ascii_file (numpy_cloud, field_labels_list, path ):
     '''
     Saves Pointcloud as ASCII file
@@ -21,9 +22,10 @@ def save_ascii_file (numpy_cloud, field_labels_list, path ):
     print('Saving file ' + path )
 
     # "%.2f %.2f %.2f %.8f %.8f %.8f %.0f %.0f"
-    format = "%.2f %.2f %.2f"
+    # "%.8f %.8f %.8f %.2f %.2f %.2f"
+    format = "%.8f %.8f %.8f"
     for i in range (numpy_cloud.shape[1] - 3 ):
-        format = format + " %.8f"
+        format = format + " %.2f"
 
     field_names_list = ['{0} '.format(name) for name in field_labels_list]
     leading_line = "//" + ''.join(field_names_list)
@@ -145,20 +147,28 @@ def load_las_file (file_path, dtype=None, return_custom_cloud=False ):
             blue = np.reshape(inFile.blue.copy(), (-1, 1))
             points = np.concatenate((x, y, z, red, green, blue, raw_class), axis = -1)  # join all values in an np.array
             if (return_custom_cloud ):
-                points = CustomCloud (points, ['x', 'y', 'z', 'red', 'green', 'blue', 'raw_class'])
+                points = CustomCloud (points, ['X', 'Y', 'Z',
+                                               'Rf', 'Gf', 'Bf',
+                                               'Classification'])
+
         elif dtype == 'als':
             # add LIDAR intensity
             intensity = np.reshape(inFile.intensity.copy(), (-1, 1))
             num_returns = np.reshape(inFile.num_returns.copy(), (-1, 1))    # number of returns
             return_num = np.reshape(inFile.return_num.copy(), (-1, 1))      # this points' return number
-            #measure_time = inFile.time
-            measure_time = return_num.copy ()   # fix fix fix fix fix fix fix fix fix fix fix fix fix fix fix fix fix
+            point_src_id = np.reshape(inFile.pt_src_id.copy(), (-1, 1))    # this points' file origin id
 
             # join all values in one np.array
-            points = np.concatenate((x, y, z, intensity, num_returns, return_num, measure_time, raw_class), axis = -1)
+            points = np.concatenate((x, y, z, intensity, num_returns, return_num, point_src_id, raw_class), axis = -1)
             if (return_custom_cloud ):
                 points = CustomCloud (points,
-                                    ['x', 'y', 'z', 'intensity', 'num_returns', 'return_num', 'time', 'raw_class'])
+                                      ['x', 'y', 'z',
+                                       'Intensity',
+                                       'Number_of_Returns',
+                                       'Return_Number',
+                                       'Point_Source_ID',
+                                       'Classification'])
+
         else:
             points = np.concatenate((x, y, z, raw_class), axis = -1)  # join all values in one np.array
             if (return_custom_cloud ):

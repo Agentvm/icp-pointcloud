@@ -43,40 +43,42 @@ class CustomCloud(object ):
     @classmethod
     def initialize_xyz (cls, input_cloud_numpy ):  # cls = the class
         '''
-        Initialize a Pointcloud from a numpy array with three colums: x, y and z
+        Initialize a Pointcloud from a numpy array with three colums: X, Y, and Z
         This wraps __init__ and hands over the according numpy colums and labels
         '''
 
         if (input_cloud_numpy.shape[1] < 3 ):
             raise ValueError("The given numpy array only has " + str (input_cloud_numpy.shape[1] ) + " rows. Aborting.")
 
-        return cls (input_cloud_numpy[:, 0:3], ["x", "y", "z"] )   # this calls __init__
+        return cls (input_cloud_numpy[:, 0:3], ["X", "Y", "Z"] )   # this calls __init__
 
     # numpy init function
     @classmethod
     def initialize_xyzi (cls, input_cloud_numpy ):  # cls = the class
         '''
-        Initialize a Pointcloud from a numpy array with four colums: x, y, z and intensity
+        Initialize a Pointcloud from a numpy array with four colums: X, Y, Z and Intensity
         This wraps __init__ and hands over the according numpy colums and labels
         '''
 
         if (input_cloud_numpy.shape[1] < 4 ):
             raise ValueError("The given numpy array only has " + str (input_cloud_numpy.shape[1] ) + " rows. Aborting.")
 
-        return cls (input_cloud_numpy[:, 0:4], ["x", "y", "z", "intensity"] )   # this calls __init__
+        return cls (input_cloud_numpy[:, 0:4], ["X", "Y", "Z", "Intensity"] )   # this calls __init__
 
     # numpy init function
     @classmethod
     def initialize_xyzrgb (cls, input_cloud_numpy ):  # cls = the class
         '''
-        Initialize a Pointcloud from a numpy array with six colums: x, y, z, red, green, blue
+        Initialize a Pointcloud from a numpy array with six colums: X, Y, Z, red, green and blue (Rf, Gf, Bf)
         This wraps __init__ and hands over the according numpy colums and labels
+
+        Please use 0-1 float color
         '''
 
         if (input_cloud_numpy.shape[1] < 6 ):
             raise ValueError("The given numpy array only has " + str (input_cloud_numpy.shape[1] ) + " rows. Aborting.")
 
-        return cls (input_cloud_numpy[:, 0:6], ["x", "y", "z", "r", "g", "b"] )   # this calls __init__
+        return cls (input_cloud_numpy[:, 0:6], ["X", "Y", "Z", "Rf", "GF", "Bf"] )   # this calls __init__
 
     # iteration
     def __iter__(self ):

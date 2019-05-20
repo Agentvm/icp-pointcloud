@@ -64,17 +64,28 @@ def reduce_clouds ():
         if (file_extension != ".las" ):
             continue
 
+        field_labels_list = ['X', 'Y', 'Z']
+
         # load the file, then reduce it
         if ("DSM_Cloud" in file_path):
             # Load DIM cloud
             numpy_cloud = input_output.load_las_file (file_path, dtype="dim" )
+            numpy_cloud[:, 3:6] = numpy_cloud[:, 3:6] / 65535.0  # rgb short int to float
+            field_labels_list.append ('Rf ' 'Gf ' 'Bf ' 'Classification')
         else:
             # Load ALS cloud
             numpy_cloud = input_output.load_las_file (file_path, dtype="als")
+            field_labels_list.append('Intensity '
+                                     'Number_of_Returns '
+                                     'Return_Number '
+                                     'Point_Source_ID '
+                                     'Classification')
+
+        # reduce
         numpy_cloud = reduce_cloud (numpy_cloud, copy=False )
 
         # save them again
-        input_output.save_ascii_file (numpy_cloud, ['x', 'y', 'z'], "clouds/tmp/reduce_test.asc" )
+        input_output.save_ascii_file (numpy_cloud, field_labels_list, "clouds/tmp/reduce_test.asc" )
 
     print ("Done.")
     return True
