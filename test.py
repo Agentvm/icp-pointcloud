@@ -1,24 +1,105 @@
 import numpy as np
-from custom_clouds import CustomCloud
+import sklearn.neighbors    # kdtree
+import normals
+import math
+import input_output
+from os.path import isfile, join, splitext
 
-numpy_cloud = np.array([[1.1, 2.1, 3.1],
-                        [1.2, 2.2, 3.2],
-                        [1.3, 2.3, 3.3],
-                        [1.4, 2.4, 3.4],
-                        [1.5, 2.5, 3.5],
-                        [1.6, 2.6, 3.6]] )
+# numpy_cloud = np.array([[1.1, 2.1, 3.1],
+#                         [1.2, 2.2, 3.2],
+#                         [1.3, 2.3, 3.3],
+#                         [1.4, 2.4, 3.4],
+#                         [1.5, 2.5, 3.5],
+#                         [1.6, 2.6, 3.6]] )
 
-a = CustomCloud.initialize_xyz (numpy_cloud )
+file_path = "clouds/Regions/Test Xy/33314059955_05_2014-01-03 - Cloud.las"
+filename, file_extension = splitext(file_path )
 
-a.fields.y = 0
+field_labels_list = ['X', 'Y', 'Z']
 
-print (a.fields.y)
+# load the file, then reduce it
+if ("DSM_Cloud" in file_path):
+    # Load DIM cloud
+    numpy_cloud = input_output.load_las_file (file_path, dtype="dim" )
+    numpy_cloud[:, 3:6] = numpy_cloud[:, 3:6] / 65535.0  # rgb short int to float
+    field_labels_list.append ('Rf ' 'Gf ' 'Bf ' 'Classification ')
+else:
+    # Load ALS cloud
+    numpy_cloud = input_output.load_las_file (file_path, dtype="als")
+    field_labels_list.append('Intensity '
+                             'Number_of_Returns '
+                             'Return_Number '
+                             'Point_Source_ID '
+                             'Classification ')
 
-for point in a:
-    point.x = 0
-    print (point)
+# compute normals
+# kdtree radius search
+tree = sklearn.neighbors.kd_tree.KDTree (numpy_cloud, leaf_size=40, metric='euclidean')
+query_radius = 5.0  # m
 
-print (a)
+list_of_point_indices = tree.query_radius(numpy_cloud, r=query_radius )
+additional_values = np.zeros ((numpy_cloud.shape[0], 4 ))
+
+# compute normals for each point
+for index, point_neighbor_indices in enumerate (list_of_point_indices ):
+
+    # you can't estimate a cloud with less than three neighbors
+    if (len (point_neighbor_indices) < 3 ):
+        continue
+
+    # do a Principal Component Analysis with the plane points obtained by a RANSAC plane estimation
+    normal_vector, sigma, mass_center = normals.PCA (
+                normals.ransac_plane_estimation (numpy_cloud[point_neighbor_indices, :],   # point neighbors
+                                                 threshold=0.3,  # max point distance from the plane
+                                                 w=0.6,         # probability for the point to be an inlier
+                                                 z=0.90)        # desired probability that plane is found
+                                                 [1] )          # only use the second return value, the points
+
+    # join the normal_vector and sigma value to a 4x1 array and write them to the corresponding position
+    additional_values[index, :] = np.append (normal_vector, sigma)
+
+# add the newly computed values to the cloud
+numpy_cloud = np.concatenate ((numpy_cloud, additional_values), axis=1)
+field_labels_list.append('Nx ' 'Ny ' 'Nz ' 'Sigma ' )
+
+# save the cloud again
+input_output.save_ascii_file (numpy_cloud, field_labels_list, filename + "_reduced_normals.asc" )
+
+print ("Done.")
+
+# # misc tests
+# def something ():
+#     return (1, 2, 3, 4)
+#
+#
+# print (something ()[1:])
+#
+# file_path = "This/is/a/very/long/path.las"
+# #file_path = "Short/Path.las"
+# #file_path = "Path.las"
+# #file_path = "This / is //\ a_wierd/\\ path.las"
+#
+# print (file_path)
+# print (len(file_path.split ('/')))
+# print (file_path.split ('/')[-2])
+
+# # cloud not mutable :(
+#from custom_clouds import CustomCloud
+#
+#
+# a = CustomCloud.initialize_xyz (numpy_cloud )
+#
+# a.fields.y = 0
+#
+# print (a.fields.y)
+#
+# for point in a:
+#     point.x = 0
+#     print (point)
+#
+# print (a)
+
+
 # import input_output
 #
 #
