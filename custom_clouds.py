@@ -165,6 +165,13 @@ class CustomCloud(object ):
     def add_field (self, input_cloud_numpy, field_name):
         '''
         This function adds a field (colum) to the cloud.
+
+        Naming Convention examples:
+            'Intensity '
+            'Number_of_Returns '
+            'Return_Number '
+            'Point_Source_ID '
+            'Classification'
         '''
         if (len (input_cloud_numpy.shape ) != 1):   # if no shape is one
             raise ValueError("The given numpy array is misshaped. Expected an array of shape (1, n). Aborting.")
