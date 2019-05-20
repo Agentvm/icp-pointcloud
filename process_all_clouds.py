@@ -104,7 +104,7 @@ def process_clouds ():
         # compute normals
         # kdtree radius search
         tree = sklearn.neighbors.kd_tree.KDTree (numpy_cloud, leaf_size=40, metric='euclidean')
-        query_radius = 7.0  # m
+        query_radius = 5.0  # m
 
         list_of_point_indices = tree.query_radius(numpy_cloud, r=query_radius )
         additional_values = np.zeros ((numpy_cloud.shape[0], 4 ))
@@ -121,7 +121,7 @@ def process_clouds ():
                         normals.ransac_plane_estimation (numpy_cloud[point_neighbor_indices, :],   # point neighbors
                                                          threshold=0.3,  # max point distance from the plane
                                                          w=0.6,         # probability for the point to be an inlier
-                                                         z=0.95)        # desired probability that plane is found
+                                                         z=0.90)        # desired probability that plane is found
                                                          [1] )          # only use the second return value, the points
 
             # join the normal_vector and sigma value to a 4x1 array and write them to the corresponding position
