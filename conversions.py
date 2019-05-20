@@ -21,9 +21,9 @@ def reduce_cloud (input_cloud_numpy, copy=True, return_transformation=False, ret
     if (return_as_float32 and return_transformation ):
         return numpy_cloud.astype (np.float32 ), min_x_coordinate, min_y_coordinate
     elif (return_as_float32 ):
-        numpy_cloud.astype (np.float32 )
+        return numpy_cloud.astype (np.float32 )
     elif (return_transformation ):
-        numpy_cloud, min_x_coordinate, min_y_coordinate
+        return numpy_cloud, min_x_coordinate, min_y_coordinate
 
     return numpy_cloud
 

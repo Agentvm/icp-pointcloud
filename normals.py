@@ -51,7 +51,7 @@ def normalize_vector (vector ):
         return vector
 
     if (np.sum (vector ) == 0):
-        print ("In normalize_vector: Vector is 0. Returning input vector.")
+        #print ("In normalize_vector: Vector is 0. Returning input vector.")
         return vector
 
     # vector_magnitude = 0
@@ -151,8 +151,14 @@ def PCA (input_numpy_cloud ):
     """
 
     start_time = time.time()
+
+    # abort, if there are no points
+    if (input_numpy_cloud.shape[0] == 0):
+        print ("In normals.py, in PCA: The input array is empty. Returning a null vector and sigma")
+        return np.array ((0, 0, 0)), 0.0, np.array ((0, 0, 0))
+
     # we only need three colums [X, Y, Z, I] -> [X, Y, Z]
-    numpy_cloud = input_numpy_cloud[:, 0:3].copy ()     # copying takes roughly 0.000558 seconds per 1000 points
+    numpy_cloud = input_numpy_cloud[:, :3].copy ()     # copying takes roughly 0.000558 seconds per 1000 points
     cloud_size = numpy_cloud.shape[0]
 
     # get covariance matrix
@@ -163,9 +169,12 @@ def PCA (input_numpy_cloud ):
 
     # get the noise and normalize it
     noise = smallest_eigenvalue
-    sigma = sqrt(noise/(cloud_size - 3) )
+    if (cloud_size <= 3 or noise < 1 * 10 ** -10):
+        sigma = noise   # no noise with 3 points
+    else:
+        sigma = sqrt(noise/(cloud_size - 3) )
 
-    print ('PCA completed in ' + str(time.time() - start_time) + ' seconds.\n' )
+    #print ('PCA completed in ' + str(time.time() - start_time) + ' seconds.\n' )
 
     return normal_vector, sigma, mass_center
 
@@ -247,7 +256,8 @@ def ransac_plane_estimation (input_numpy_cloud, threshold, w = .9, z = 0.95 ):
         w (float between 0 and 1):      probability that any observation belongs to the model
         z (float between 0 and 1):      desired probability that the model is found
     Output:
-        not sure yet
+        consensus_normal_vector ([1, 3] np.array):  The normal_vector computed
+        consensus_points (np.array):                All points used for plane estimation
     '''
 
     # measure time
@@ -272,6 +282,10 @@ def ransac_plane_estimation (input_numpy_cloud, threshold, w = .9, z = 0.95 ):
         # estimate a plane with 3 random points
         [normal_vector, d] = random_plane_estimation (numpy_cloud )
 
+        # this happens if three points are the same or on a line
+        if (np.sum (normal_vector ) == 0 ):
+            continue
+
         # count all points that consent with the plane
         current_consensus, current_consensus_points = plane_consensus (numpy_cloud, normal_vector, d, threshold )
 
@@ -282,6 +296,6 @@ def ransac_plane_estimation (input_numpy_cloud, threshold, w = .9, z = 0.95 ):
             consensus_normal_vector = normal_vector
 
     # print time
-    print('RANSAC completed in ' + str(time.time() - start_time) + ' seconds.\n' )
+    #print('RANSAC completed in ' + str(time.time() - start_time) + ' seconds.\n' )
 
-    return consensus_normal_vector, consensus_points
+    return np.array (consensus_normal_vector), np.array (consensus_points).copy ()
