@@ -5,6 +5,7 @@ from os.path import isfile, join, splitext
 import sklearn.neighbors    # kdtree
 import normals
 import numpy as np
+import psutil
 
 
 def get_all_files_in_subfolders (path_to_folder, permitted_file_extension=None ):
@@ -43,12 +44,13 @@ def get_all_files_in_subfolders (path_to_folder, permitted_file_extension=None )
 
 
 def process_clouds ():
-
-    # load all .las files in a given folder, reduce their points, so they are closer to zero,
-    # then save them again with a different name
+    '''
+    Loads all .las files in a given folder, reduces their points so they are closer to zero, cumputes normals for all
+    points, then saves them again with a different name
+    '''
 
     # crawl path
-    path = "clouds/Regions/"    # there are obly clouds below this folder
+    path = "clouds/Regions/"
     full_paths = get_all_files_in_subfolders (path, ".las" )
     print ("full_paths: " + str (full_paths ))
 
@@ -57,9 +59,9 @@ def process_clouds ():
         if (input_output.check_for_file (file_path ) is False ):
             print ("File " + file_path + " was not found. Aborting.")
             return False
-    previous_folder = ""
 
-    # load las clouds
+    # process las clouds
+    previous_folder = ""    # for file folder comparison
     for file_path in full_paths:
         print ("\n\n-------------------------------------------------------")
 
@@ -70,16 +72,14 @@ def process_clouds ():
 
         field_labels_list = ['X', 'Y', 'Z']
 
-        # load the file, then reduce it
+        # # load the file
         if ("DSM_Cloud" in file_path):
-
-            continue    # Not enough Memory for DIM clouds
-
             # Load DIM cloud
             numpy_cloud = input_output.load_las_file (file_path, dtype="dim" )
             numpy_cloud[:, 3:6] = numpy_cloud[:, 3:6] / 65535.0  # rgb short int to float
             field_labels_list.append ('Rf ' 'Gf ' 'Bf ' 'Classification ')
         else:
+            continue    # only processing DIM clouds
             # Load ALS cloud
             numpy_cloud = input_output.load_las_file (file_path, dtype="als")
             field_labels_list.append('Intensity '
@@ -88,6 +88,7 @@ def process_clouds ():
                                      'Point_Source_ID '
                                      'Classification ')
 
+        # # reduce the cloud, so all points are closer to origin
         # all clouds in one folder should get the same trafo
         if (len(file_path.split ('/')) == 1):
             current_folder = file_path
@@ -101,16 +102,29 @@ def process_clouds ():
         numpy_cloud[:, 0] = numpy_cloud[:, 0] - min_x_coordinate
         numpy_cloud[:, 1] = numpy_cloud[:, 1] - min_y_coordinate
 
-        # compute normals
-        # kdtree radius search
+        # # compute normals
+        # build a kdtree
         tree = sklearn.neighbors.kd_tree.KDTree (numpy_cloud, leaf_size=40, metric='euclidean')
-        query_radius = 5.0  # m
 
-        list_of_point_indices = tree.query_radius(numpy_cloud, r=query_radius )
+        # set radius for neighbor search
+        query_radius = 5.0  # m
+        if ("DSM_Cloud" in file_path):  # DIM clouds are roughly 6 times more dense than ALS clouds
+            query_radius = query_radius / 6
+
+        # kdtree radius search
+        list_of_point_indices = tree.query_radius(numpy_cloud, r=query_radius )     # this floods memory
         additional_values = np.zeros ((numpy_cloud.shape[0], 4 ))
 
         # compute normals for each point
         for index, point_neighbor_indices in enumerate (list_of_point_indices ):
+
+            # check memory usage
+            if (psutil.virtual_memory().percent > 95.0):
+                print (print ("!!! Memory Usage too high: "
+                              + str(psutil.virtual_memory().percent)
+                              + "%. Breaking loop. There still are "
+                              + str (len (list_of_point_indices) - index)
+                              + " normal vectors left to compute."))
 
             # you can't estimate a cloud with less than three neighbors
             if (len (point_neighbor_indices) < 3 ):
@@ -132,7 +146,7 @@ def process_clouds ():
         field_labels_list.append('Nx ' 'Ny ' 'Nz ' 'Sigma ' )
 
         # save the cloud again
-        input_output.save_ascii_file (numpy_cloud, field_labels_list, filename + "_reduced.asc" )
+        input_output.save_ascii_file (numpy_cloud, field_labels_list, filename + "_reduced_normals.asc" )
 
     print ("Done.")
     return True

@@ -64,19 +64,23 @@ def normalize_vector (vector ):
     return vector / np.linalg.norm(vector)
 
 
-# def angle_between(v1, v2):
-#     """ Returns the angle in radians between vectors 'v1' and 'v2'::
-#
-#             >>> angle_between((1, 0, 0), (0, 1, 0))
-#             1.5707963267948966
-#             >>> angle_between((1, 0, 0), (1, 0, 0))
-#             0.0
-#             >>> angle_between((1, 0, 0), (-1, 0, 0))
-#             3.141592653589793
-#     """
-#     v1_u = normalize_vector (v1 )
-#     v2_u = normalize_vector (v2 )
-#     return np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
+def angle_between(v1, v2):
+    """ Returns the angle in radians between vectors 'v1' and 'v2'::
+
+            >>> angle_between((1, 0, 0), (0, 1, 0))
+            1.5707963267948966
+            >>> angle_between((1, 0, 0), (1, 0, 0))
+            0.0
+            >>> angle_between((1, 0, 0), (-1, 0, 0))
+            3.141592653589793
+    """
+
+    if (v1 is None or v2 is None or None in v1 or None in v2 ):
+        return None
+
+    v1_u = normalize_vector (v1 )
+    v2_u = normalize_vector (v2 )
+    return np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
 
 
 def eigenvalue_decomposition (a_t_a_matrix ):
@@ -154,7 +158,7 @@ def PCA (input_numpy_cloud ):
 
     # abort, if there are no points
     if (input_numpy_cloud.shape[0] == 0):
-        print ("In normals.py, in PCA: The input array is empty. Returning a null vector and sigma")
+        #print ("In normals.py, in PCA: The input array is empty. Returning a null vector and sigma")
         return np.array ((0, 0, 0)), 0.0, np.array ((0, 0, 0))
 
     # we only need three colums [X, Y, Z, I] -> [X, Y, Z]
