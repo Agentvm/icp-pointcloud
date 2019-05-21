@@ -79,7 +79,6 @@ def process_clouds ():
             numpy_cloud[:, 3:6] = numpy_cloud[:, 3:6] / 65535.0  # rgb short int to float
             field_labels_list.append ('Rf ' 'Gf ' 'Bf ' 'Classification ')
         else:
-            continue    # only processing DIM clouds
             # Load ALS cloud
             numpy_cloud = input_output.load_las_file (file_path, dtype="als")
             field_labels_list.append('Intensity '
