@@ -1,7 +1,7 @@
 import normals
 import input_output
 import sys
-import numpy as np
+#import numpy as np
 
 
 if __name__ == "__main__":

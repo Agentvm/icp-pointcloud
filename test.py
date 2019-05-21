@@ -13,18 +13,21 @@ numpy_cloud = np.array([[1.1, 2.1, 3.1],
 # import numpy as np
 # import sklearn.neighbors    # kdtree
 # import normals
-# import math
+# #import math
 # import input_output
-# from os.path import isfile, join, splitext
+# from os.path import splitext
+# from conversions import reduce_cloud
+# import psutil
 #
-#
-# file_path = "clouds/Regions/Test Xy/33314059955_05_2014-01-03 - Cloud.las"
+# file_path = "clouds/Regions/Everything/DSM_Cloud_333165_59950 - Cloud.las"
 # filename, file_extension = splitext(file_path )
 #
 # field_labels_list = ['X', 'Y', 'Z']
+# previous_folder = ""
 #
 # # load the file, then reduce it
 # if ("DSM_Cloud" in file_path):
+#
 #     # Load DIM cloud
 #     numpy_cloud = input_output.load_las_file (file_path, dtype="dim" )
 #     numpy_cloud[:, 3:6] = numpy_cloud[:, 3:6] / 65535.0  # rgb short int to float
@@ -38,16 +41,40 @@ numpy_cloud = np.array([[1.1, 2.1, 3.1],
 #                              'Point_Source_ID '
 #                              'Classification ')
 #
-# # compute normals
-# # kdtree radius search
-# tree = sklearn.neighbors.kd_tree.KDTree (numpy_cloud, leaf_size=40, metric='euclidean')
-# query_radius = 5.0  # m
+# print ("------------------------------------------------\ncloud successfully loaded!")
 #
-# list_of_point_indices = tree.query_radius(numpy_cloud, r=query_radius )
+# # all clouds in one folder should get the same trafo
+# if (len(file_path.split ('/')) == 1):
+#     current_folder = file_path
+# else:
+#     current_folder = file_path.split ('/')[-2]
+# if (current_folder != previous_folder):
+#     min_x_coordinate, min_y_coordinate = reduce_cloud (numpy_cloud, return_transformation=True )[1:]
+# previous_folder = current_folder
+#
+# # reduce
+# numpy_cloud[:, 0] = numpy_cloud[:, 0] - min_x_coordinate
+# numpy_cloud[:, 1] = numpy_cloud[:, 1] - min_y_coordinate
+#
+# print ("------------------------------------------------\ncloud successfully reduced!")
+# # compute normals
+# # build a kdtree
+# tree = sklearn.neighbors.kd_tree.KDTree (numpy_cloud, leaf_size=40, metric='euclidean')
+#
+# # set radius for neighbor search
+# query_radius = 5.0  # m
+# if ("DSM_Cloud" in file_path):  # DIM clouds are roughly 6 times more dense than ALS clouds
+#     query_radius = query_radius / 6
+#
+# # kdtree radius search
+# list_of_point_indices = tree.query_radius(numpy_cloud, r=query_radius )     # this floods memory
 # additional_values = np.zeros ((numpy_cloud.shape[0], 4 ))
 #
 # # compute normals for each point
 # for index, point_neighbor_indices in enumerate (list_of_point_indices ):
+#
+#     if (psutil.virtual_memory().percent > 95.0):
+#         print (print ("!!! Memory Usage too high: " + str(psutil.virtual_memory().percent) + "%. Breaking loop."))
 #
 #     # you can't estimate a cloud with less than three neighbors
 #     if (len (point_neighbor_indices) < 3 ):
@@ -64,9 +91,14 @@ numpy_cloud = np.array([[1.1, 2.1, 3.1],
 #     # join the normal_vector and sigma value to a 4x1 array and write them to the corresponding position
 #     additional_values[index, :] = np.append (normal_vector, sigma)
 #
+#
+# print ("------------------------------------------------\ncloud successfully norm norm!")
+#
 # # add the newly computed values to the cloud
 # numpy_cloud = np.concatenate ((numpy_cloud, additional_values), axis=1)
 # field_labels_list.append('Nx ' 'Ny ' 'Nz ' 'Sigma ' )
+#
+# print ("------------------------------------------------\nnorm norm added!")
 #
 # # save the cloud again
 # input_output.save_ascii_file (numpy_cloud, field_labels_list, filename + "_reduced_normals.asc" )
