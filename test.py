@@ -8,6 +8,18 @@ numpy_cloud = np.array([[1.1, 2.1, 3.1],
                         [1.5, 2.5, 3.5],
                         [1.6, 2.6, 3.6]] )
 
+def display_small_cloud (cloud ):
+    fig = pyplot.figure()
+    ax = Axes3D(fig)
+
+    print (type (cloud))
+    if isinstance(cloud, pcl._pcl.PointCloud):
+        cloud = cloud.to_array ()
+
+    for i in range(0, cloud.size):
+        ax.scatter(cloud[i][0], cloud[i][1], cloud[i][2])
+
+    pyplot.show()
 
 # # reduce and compute normals for a cloud specified by file_path
 # import numpy as np
