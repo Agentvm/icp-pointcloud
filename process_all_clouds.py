@@ -70,6 +70,9 @@ def process_clouds ():
         if (file_extension != ".las" ):
             continue
 
+        if ("_reduced_normals" in file_path):
+            continue
+
         field_labels_list = ['X', 'Y', 'Z']
 
         # # load the file
