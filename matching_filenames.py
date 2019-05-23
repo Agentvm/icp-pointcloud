@@ -13,11 +13,13 @@ def get_matching_filenames(filename):
     """
     # get filenames
     s = filename.split('_')[0]
+
     # get minimal and mean values
     xmin = int(s[0:5] + '0')
     ymin = int(s[5:])
     xmean = xmin + 5
     ymean = ymin + 5
+    
     # build file strings
     prep = 'DSM_Cloud_'
     ending = '.las'
