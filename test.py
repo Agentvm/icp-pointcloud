@@ -1,5 +1,5 @@
 import numpy as np
-
+from data import reference_transformations
 
 numpy_cloud = np.array([[1.1, 2.1, 3.1],
                         [1.2, 2.2, 3.2],
@@ -8,18 +8,62 @@ numpy_cloud = np.array([[1.1, 2.1, 3.1],
                         [1.5, 2.5, 3.5],
                         [1.6, 2.6, 3.6]] )
 
-def display_small_cloud (cloud ):
-    fig = pyplot.figure()
-    ax = Axes3D(fig)
+#
+reference_dict = reference_transformations.translations
+icp_results = {
+        # Everything
+        'clouds/Regions/Everything/ALS14_Cloud_reference_reduced_normals_cleared.asc':
+        ((0, 0, 0), 0),
+        'clouds/Regions/Everything/ALS16_Cloud _Scan54_reduced_normals_cleared.asc':
+        ((-0.05, 0.12, -0.008), 0.13),
+        'clouds/Regions/Everything/ALS16_Cloud _Scan55_reduced_normals_cleared.asc':
+        ((-0.040, 0.050, -0.01), 0.01),
+        'clouds/Regions/Everything/DSM_Cloud_reduced_normals.asc':
+        ((0.015, -0.06, 0.29), 0.05)
+        }
 
-    print (type (cloud))
-    if isinstance(cloud, pcl._pcl.PointCloud):
-        cloud = cloud.to_array ()
+for key in icp_results:
 
-    for i in range(0, cloud.size):
-        ax.scatter(cloud[i][0], cloud[i][1], cloud[i][2])
+    # find the computed results in the reference data
+    if (key in reference_dict ):
 
-    pyplot.show()
+        # mash up the string
+        folder = str(key.split ('/')[-2])
+        list_of_filename_attributes = key.split ('/')[-1].split ('_')[0:3]
+        list_of_filename_attributes = ['{0}_'.format(element) for element in list_of_filename_attributes]
+
+        # unpack values
+        ref_translation, ref_mse = reference_dict [key]
+        icp_translation, icp_mse = icp_results [key]
+
+        # print comparison
+        print ('\n' + folder + "/"
+               + ''.join(list_of_filename_attributes)
+               + "\n\treference:\t" + '({: .8f}, '.format(ref_translation[0])
+                                    + '{: .8f}, '.format(ref_translation[1])
+                                    + '{: .8f}), '.format(ref_translation[2])
+                                    + ' {: .8f}, '.format(ref_mse)
+               + "\n\ticp result:\t" + '({: .8f}, '.format(icp_translation[0])
+                                     + '{: .8f}, '.format(icp_translation[1])
+                                     + '{: .8f}), '.format(icp_translation[2])
+                                     + '({: .8f}, '.format(icp_mse[0])
+                                     + '{: .8f}, '.format(icp_mse[1])
+                                     + '{: .8f}) '.format(icp_mse[2]))
+
+# {:8.3f}
+
+# # delete everything that has more or equal to 20 in the 8th row:
+# numpy_cloud = numpy_cloud[numpy_cloud[:, 7] < 20]
+# cloud_altered = True
+
+# def display_small_cloud (cloud ):
+#     fig = pyplot.figure()
+#     ax = Axes3D(fig)
+#
+#     for i in range(0, cloud.size):
+#         ax.scatter(cloud[i][0], cloud[i][1], cloud[i][2])
+#
+#     pyplot.show()
 
 # # reduce and compute normals for a cloud specified by file_path
 # import numpy as np
