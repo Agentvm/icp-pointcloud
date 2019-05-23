@@ -46,9 +46,9 @@ def normalize_vector (vector ):
     '''
 
     # check if vector is a matrix
-    if (len (vector.shape ) > 1 ):
-        print ("In normalize_vector: Vector is out of shape. Returning input vector.")
-        return vector
+    # if (len (vector.shape ) > 1 ):
+    #     print ("In normalize_vector: Vector is out of shape. Returning input vector.")
+    #     return vector
 
     if (np.sum (vector ) == 0):
         #print ("In normalize_vector: Vector is 0. Returning input vector.")

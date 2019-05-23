@@ -1,5 +1,5 @@
-import normals
-import input_output
+from modules import normals
+from modules import input_output
 import sys
 #import numpy as np
 

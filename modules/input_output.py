@@ -39,6 +39,8 @@ def save_ascii_file (numpy_cloud, field_labels_list, path ):
 
 def load_ascii_file (path, return_custom_cloud=False ):
 
+    start_time = time.time()    # measure time
+    print('Loading file ' + path + ' ...')
     numpy_cloud = np.loadtxt (path, comments='//')
 
     if (return_custom_cloud ):
@@ -48,6 +50,9 @@ def load_ascii_file (path, return_custom_cloud=False ):
         custom_cloud = CustomCloud (numpy_cloud, field_labels_list )
 
         return custom_cloud
+
+    print ('Cloud loaded in ' + str(time.time() - start_time) + ' seconds.\nNumber of points: '
+           + str(numpy_cloud.shape[0] ) + '\n')
 
     return numpy_cloud
 
@@ -141,10 +146,10 @@ def load_las_file (file_path, dtype=None, return_custom_cloud=False ):
         raw_class = np.reshape(inFile.raw_classification.copy(), (-1, 1))
 
         if dtype == 'dim':
-            # add rgb color channels
-            red = np.reshape(inFile.red.copy(), (-1, 1))
-            green = np.reshape(inFile.green.copy(), (-1, 1))
-            blue = np.reshape(inFile.blue.copy(), (-1, 1))
+            # add rgb color channels and convert them to float
+            red = np.reshape(inFile.red.copy() / 65535.0, (-1, 1))
+            green = np.reshape(inFile.green.copy() / 65535.0, (-1, 1))
+            blue = np.reshape(inFile.blue.copy() / 65535.0, (-1, 1))
             points = np.concatenate((x, y, z, red, green, blue, raw_class), axis = -1)  # join all values in an np.array
             if (return_custom_cloud ):
                 points = CustomCloud (points, ['X', 'Y', 'Z',
