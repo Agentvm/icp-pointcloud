@@ -1,6 +1,6 @@
 """Import this for a simple iterative closest point algorithm"""
 
-import input_output
+from modules import input_output
 import sklearn.neighbors    # kdtree
 import numpy as np
 import time                 # measure time
