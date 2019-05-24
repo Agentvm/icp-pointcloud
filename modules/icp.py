@@ -71,11 +71,10 @@ def icp (numpy_reference_cloud, numpy_aligned_cloud, verbose = False ):
 
         iterations = iterations + 1
 
-    print (iterations)
     if (iterations >= 3000 ):
-        print ("Too many iterations (100000). Aborting.")
-
-    print('ICP finished in ' + str(time.time() - start_time) + ' seconds' )
+        print ("\nToo many iterations (100000). Aborting.")
+    else:
+        print('\nICP finished in ' + str(time.time() - start_time) + ' seconds' )
 
     return (translation[0], translation[1], translation[2]), \
            (mean_squared_error[0], mean_squared_error[1], mean_squared_error[2])

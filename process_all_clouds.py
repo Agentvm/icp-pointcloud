@@ -6,6 +6,7 @@ from os import listdir, walk
 from os.path import isfile, join, splitext
 import sklearn.neighbors    # kdtree
 import numpy as np
+import random
 import psutil
 
 
@@ -190,7 +191,7 @@ def process_clouds (file_extension, reduce_clouds=False, do_normal_calculation=F
     icp_reference_cloud = None
 
     # process clouds
-    for file_path in full_paths[4:6]:
+    for file_path in full_paths[4:8]:
         print ("\n\n-------------------------------------------------------")
 
         # # split path and extension
@@ -242,6 +243,21 @@ def process_clouds (file_extension, reduce_clouds=False, do_normal_calculation=F
 
         elif (apply_icp_algorithm ):
             # the folder is the same -> this is the second file in this folder
+
+            # sample DIM Clouds
+            if ("DSM_Cloud" in file_path):
+
+                sample_factor = 6
+
+                # deterministic sampling
+                #numpy_cloud = numpy_cloud[::sample_factor]
+
+                # random sampling
+                indices = random.sample(range(0, numpy_cloud.shape[0] ), int (numpy_cloud.shape[0] / sample_factor ))
+                numpy_cloud = numpy_cloud[indices, :]
+
+                print ("DIM Cloud sampled, factor: " + str(sample_factor ))
+
             icp_results.update (do_icp (icp_reference_cloud, numpy_cloud, file_path ))
 
         previous_folder = current_folder
