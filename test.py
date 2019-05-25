@@ -8,8 +8,9 @@ numpy_cloud = np.array([[1.1, 2.1, 3.1],
                         [1.5, 2.5, 3.5],
                         [1.6, 2.6, 3.6]] )
 
-#
+list = [0, 1, 2, 3, 4, 5]
 
+print (list[3:4])
 
 # import random
 #

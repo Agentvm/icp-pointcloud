@@ -47,7 +47,7 @@ def get_all_files_in_subfolders (path_to_folder, permitted_file_extension=None )
     return full_paths
 
 
-def compute_normals (numpy_cloud, file_path, field_labels_list ):
+def compute_normals (numpy_cloud, file_path, field_labels_list, query_radius ):
     '''
     Computes Normals for a Cloud an concatenates the newly computed colums with the Cloud.
     '''
@@ -56,9 +56,9 @@ def compute_normals (numpy_cloud, file_path, field_labels_list ):
     tree = sklearn.neighbors.kd_tree.KDTree (numpy_cloud, leaf_size=40, metric='euclidean')
 
     # set radius for neighbor search
-    query_radius = 5.0  # m
     if ("DSM_Cloud" in file_path):  # DIM clouds are roughly 6 times more dense than ALS clouds
-        query_radius = query_radius / 6
+        #query_radius = 0.8  # m
+        query_radius = 1.5  # m
 
     # kdtree radius search
     list_of_point_indices = tree.query_radius(numpy_cloud, r=query_radius )
@@ -74,6 +74,7 @@ def compute_normals (numpy_cloud, file_path, field_labels_list ):
                           + "%. Breaking loop. There still are "
                           + str (len (list_of_point_indices) - index)
                           + " normal vectors left to compute."))
+            break
 
         # you can't estimate a cloud with less than three neighbors
         if (len (point_neighbor_indices) < 3 ):
@@ -89,6 +90,11 @@ def compute_normals (numpy_cloud, file_path, field_labels_list ):
 
         # join the normal_vector and sigma value to a 4x1 array and write them to the corresponding position
         additional_values[index, :] = np.append (normal_vector, sigma )
+
+    # delete normals if already computed # refactor
+    if ('Nx' in field_labels_list ):
+        field_labels_list = field_labels_list[:-4]
+        numpy_cloud = numpy_cloud[:, :-4]
 
     # add the newly computed values to the cloud
     numpy_cloud = np.concatenate ((numpy_cloud, additional_values ), axis=1 )
@@ -168,7 +174,7 @@ def process_clouds (file_extension, reduce_clouds=False, do_normal_calculation=F
     # crawl path
     path = "clouds/Regions/"
     full_paths = get_all_files_in_subfolders (path, file_extension )
-    print ("full_paths: " + str (full_paths ))
+    print ("full_paths: " + str (full_paths[17:] ))
 
     # # just print paths and quit, if no task was selected
     # if (not reduce_clouds and not do_normal_calculation and not apply_icp_algorithm ):
@@ -191,7 +197,7 @@ def process_clouds (file_extension, reduce_clouds=False, do_normal_calculation=F
     icp_reference_cloud = None
 
     # process clouds
-    for file_path in full_paths[4:8]:
+    for file_path in full_paths:
         print ("\n\n-------------------------------------------------------")
 
         # # split path and extension
@@ -202,10 +208,12 @@ def process_clouds (file_extension, reduce_clouds=False, do_normal_calculation=F
 
         field_labels_list = ['X', 'Y', 'Z']
 
+        # if ("ALS" in file_path):
+        #     continue    # normals only on ALS
+
         # # load the file
         if (file_extension == '.las'):
             if ("DSM_Cloud" in file_path):
-
                 # Load DIM cloud
                 numpy_cloud = input_output.load_las_file (file_path, dtype="dim" )
                 field_labels_list.append ('Rf ' 'Gf ' 'Bf ' 'Classification')
@@ -273,14 +281,14 @@ def process_clouds (file_extension, reduce_clouds=False, do_normal_calculation=F
 
         # # compute normals on cloud
         # skip files already processed
-        if ("_normals" not in file_path and do_normal_calculation):
-            numpy_cloud, field_labels_list = compute_normals (numpy_cloud, file_path, field_labels_list )
+        if ("_normals" in file_path and do_normal_calculation):
+            numpy_cloud, field_labels_list = compute_normals (numpy_cloud, file_path, field_labels_list, 2.5 )
             cloud_altered = True
 
         # save the cloud again
         if (cloud_altered):
-            input_output.save_ascii_file (numpy_cloud, field_labels_list, file_name + "_cleared.asc" )
-            #input_output.save_ascii_file (numpy_cloud, field_labels_list, "clouds/tmp/classification_test.asc" )
+            input_output.save_ascii_file (numpy_cloud, field_labels_list, file_path )
+            #input_output.save_ascii_file (numpy_cloud, field_labels_list, "clouds/tmp/normals2_test.asc" )
 
     if (apply_icp_algorithm ):
         compare_icp_results (icp_results )
@@ -290,7 +298,7 @@ def process_clouds (file_extension, reduce_clouds=False, do_normal_calculation=F
 
 
 if __name__ == '__main__':
-    if (process_clouds ('.asc', apply_icp_algorithm=True) ):
+    if (process_clouds ('.asc', do_normal_calculation=True )):
         print ("\n\nAll Clouds successfully processed.")
     else:
         print ("Error. Not all clouds could be processed.")
