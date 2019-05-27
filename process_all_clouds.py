@@ -351,15 +351,16 @@ def process_clouds_in_folder (path_to_folder,
         # set current to previous folder for folder-specific computations
         previous_folder = current_folder
 
-    if (apply_icp_algorithm ):
-        compare_icp_results (icp_results )
-
     print ("\n\nDone.")
     return True
 
 
 if __name__ == '__main__':
-    if (process_clouds ('.asc', do_normal_calculation=True )):
+    if (process_clouds_in_folder ('clouds/Regions/',
+                                  permitted_file_extension='.asc',
+                                  string_to_ignore='ALS',
+                                  do_normal_calculation=True )):
+
         print ("\n\nAll Clouds successfully processed.")
     else:
         print ("Error. Not all clouds could be processed.")
