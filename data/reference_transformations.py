@@ -5,15 +5,12 @@ Format: (reference_cloud_path, aligned_cloud_path):(translation_x, translation_y
 
 translations = {
 
+    # ### ALS16 -> DIM ##################################
+
     # # Color Houses
-    # ('?reference?',
-    # 'clouds/Regions/Color Houses/ALS16_Cloud_reduced_normals_cleared.asc'):
-    # ((0.0, 0.0, 0.0), 0.0),
-    #
-    # ('?reference?',
-    # 'clouds/Regions/Color Houses/DSM_Cloud_reduced_normals.asc'):
-    # ((0.0, 0.0, 0.0),
-    # 0.0),
+    ('clouds/Regions/Color Houses/ALS16_Cloud_reduced_normals_cleared.asc',
+    'clouds/Regions/Color Houses/DSM_Cloud_reduced_normals.asc'):
+    ((-0.041994094849, 0.044445037842, 0.017503738403), 0.110672),
     #
     # # DIM showcase
     # ('?reference?',
@@ -27,17 +24,9 @@ translations = {
     # 0.0),
 
     # Everything
-    ('clouds/Regions/Everything/ALS14_Cloud_reduced_normals_cleared.asc',
-    'clouds/Regions/Everything/ALS16_Cloud _Scan54_reduced_normals.asc'):
-    ((-0.091762542725, 0.100151062012, -0.009692192078), 0.135153),
-
-    ('clouds/Regions/Everything/ALS14_Cloud_reduced_normals_cleared.asc',
-    'clouds/Regions/Everything/ALS16_Cloud _Scan55_reduced_normals.asc'):
-    ((-0.043861389160, 0.001186370850, -0.032357215881), 0.0969821),
-
-    ('clouds/Regions/Everything/ALS14_Cloud_reduced_normals_cleared.asc',
-    'clouds/Regions/Everything/DSM_Cloud_reduced_normals.asc'):
-    ((0.015129089355, -0.034282684326, 0.209009647369), 0.0862935),
+    # ('clouds/Regions/Everything/ALS16_Cloud_reduced_normals_cleared.asc',
+    # 'clouds/Regions/Everything/DSM_Cloud_reduced_normals.asc'):
+    # ((0.0, 0.0, 0.0), 0.0),   # too hard
 
     # # Field
     # ('?reference?',
@@ -153,6 +142,33 @@ translations = {
     # ('?reference?',
     # 'clouds/Regions/Yz Street/DSM_Cloud_reduced_normals.asc'):
     # ((0.0, 0.0, 0.0),
-    # 0.0)
+    # 0.0
+
+    # ### ALS14 -> ALS16 ##################################
+
+    # Everything
+
+
+    # Missing Building
+
+
+    # ### ALS14 -> DIM ##################################
+
+    # Everything
+    ('clouds/Regions/Everything/ALS14_Cloud_reduced_normals_cleared.asc',
+    'clouds/Regions/Everything/DSM_Cloud_reduced_normals.asc'):
+    ((0.015129089355, -0.034282684326, 0.209009647369), 0.0862935),
+
+    # Missing Building
+    ('clouds/Regions/Missing Building/ALS14_Cloud_reduced_normals_cleared.asc',
+    'clouds/Regions/Missing Building/DSM_Cloud_reduced_normals.asc'):
+    ((-0.039558410645, -0.025497436523, 0.008216857910), 0.282216),
+
+    # ### ALS16_Scan -> ALS16_Scan ##################################
+
+    # Everything
+    ('clouds/Regions/Everything/ALS16_Cloud _Scan54_reduced_normals.asc',
+    'clouds/Regions/Everything/ALS16_Cloud _Scan55_reduced_normals.asc'):
+    ((0.005805969238, -0.011207580566, -0.018814086914), 0.0452853),   # not yet done
 
 }
