@@ -4,6 +4,7 @@ from modules import icp
 from data import reference_transformations
 from os import listdir, walk
 from os.path import isfile, join, splitext
+from collections import OrderedDict
 import sklearn.neighbors    # kdtree
 import numpy as np
 import random
@@ -106,47 +107,6 @@ def compute_normals (numpy_cloud, file_path, field_labels_list, query_radius ):
     return numpy_cloud, field_labels_list, success
 
 
-def do_icp (numpy_reference_cloud, numpy_aligned_cloud, full_path ):
-
-    translation, mean_squared_error = icp.icp (numpy_reference_cloud, numpy_aligned_cloud, verbose=True )
-    dictionary_line = {full_path: (translation, mean_squared_error)}
-
-    return dictionary_line
-
-
-def compare_icp_results (icp_results ):
-
-    reference_dict = reference_transformations.translations
-
-    for key in icp_results:
-
-        # find the computed results in the reference data
-        if (key in reference_dict ):
-
-            # mash up the string
-            folder = str(key.split ('/')[-2])
-            list_of_filename_attributes = key.split ('/')[-1].split ('_')[0:3]
-            list_of_filename_attributes = ['{0}_'.format(element) for element in list_of_filename_attributes]
-
-            # unpack values
-            ref_translation, ref_mse = reference_dict [key]
-            icp_translation, icp_mse = icp_results [key]
-
-            # print comparison
-            print ('\n' + folder + "/"
-                   + ''.join(list_of_filename_attributes)
-                   + "\n\treference:\t" + '({: .8f}, '.format(ref_translation[0])
-                                        + '{: .8f}, '.format(ref_translation[1])
-                                        + '{: .8f}), '.format(ref_translation[2])
-                                        + ' {: .8f}, '.format(ref_mse)
-                   + "\n\ticp result:\t" + '({: .8f}, '.format(icp_translation[0])
-                                         + '{: .8f}, '.format(icp_translation[1])
-                                         + '{: .8f}), '.format(icp_translation[2])
-                                         + '({: .8f}, '.format(icp_mse[0])
-                                         + '{: .8f}, '.format(icp_mse[1])
-                                         + '{: .8f}) '.format(icp_mse[2]))
-
-
 def sample_cloud (numpy_cloud, sample_factor, deterministic_sampling=False ):
     '''
     Samples a cloud by a given factor.
@@ -171,56 +131,157 @@ def sample_cloud (numpy_cloud, sample_factor, deterministic_sampling=False ):
     return numpy_cloud
 
 
+def do_icp (full_path_of_reference_cloud, full_path_of_aligned_cloud ):
+
+    # load reference cloud
+    reference_cloud = input_output.load_ascii_file (full_path_of_reference_cloud )
+
+    if ("DSM_Cloud" in full_path_of_reference_cloud):
+        reference_cloud = sample_cloud (reference_cloud, 6, deterministic_sampling=False )
+
+    # load aligned clouds
+    aligned_cloud = input_output.load_ascii_file (full_path_of_aligned_cloud )
+
+    # sample DIM Clouds
+    if ("DSM_Cloud" in full_path_of_aligned_cloud):
+        aligned_cloud = sample_cloud (aligned_cloud, 6, deterministic_sampling=False )
+
+    translation, mean_squared_error = icp.icp (reference_cloud, aligned_cloud, verbose=False )
+
+    dictionary_line = {(full_path_of_reference_cloud, full_path_of_aligned_cloud): (translation, mean_squared_error)}
+
+    return dictionary_line
+
+
+def get_folder_and_file_name (path ):
+
+    # mash up the string
+    folder = str(path.split ('/')[-2])
+    list_of_filename_attributes = path.split ('/')[-1].split ('_')[0:3]
+    list_of_filename_attributes = ['{0}_'.format(element) for element in list_of_filename_attributes]
+    file_name = ''.join(list_of_filename_attributes)
+
+    return folder, file_name
+
+
+def compare_icp_results (icp_results ):
+
+    reference_dict = reference_transformations.translations
+
+    # go through the path for aligned clouds from the icp results
+    for results_key in icp_results:
+
+        # find the computed results in the reference data
+        if (results_key in reference_dict ):
+
+            # disassemble the key
+            reference_path, aligned_path = results_key
+
+            folder, reference_file_name = get_folder_and_file_name (reference_path)
+            folder, aligned_file_name = get_folder_and_file_name (aligned_path)     # folder should be the the same
+
+            # unpack values
+            ref_translation, ref_mse = reference_dict [results_key]
+            icp_translation, icp_mse = icp_results [results_key]
+
+            # print comparison
+            print ('\n' + folder + "/:"
+                   + "\nreference cloud:\t" + reference_file_name
+                   + "\naligned cloud:\t\t" + aligned_file_name
+                   + "\n\tdata alignment:\t" + '({: .8f}, '.format(ref_translation[0])
+                                             + '{: .8f}, '.format(ref_translation[1])
+                                             + '{: .8f}), '.format(ref_translation[2])
+                                             + ' {: .8f}, '.format(ref_mse)
+                   + "\n\ticp alignment:\t" + '({: .8f}, '.format(icp_translation[0])
+                                            + '{: .8f}, '.format(icp_translation[1])
+                                            + '{: .8f}), '.format(icp_translation[2])
+                                            + '({: .8f}, '.format(icp_mse[0])
+                                            + '{: .8f}, '.format(icp_mse[1])
+                                            + '{: .8f}) '.format(icp_mse[2]))
+
+
+def use_icp_on_dictionary (icp_paths_dictionary ):
+    '''
+    Uses a dictionary of reference cloud file_paths as keys
+    and a list of corresponding aligned cloud file_paths as values
+    '''
+
+    # before start, check if files exist
+    for key in icp_paths_dictionary:
+        if (input_output.check_for_file (key ) is False):
+            print ("File " + key + " was not found. Aborting.")
+            return False
+        for aligned_cloud_path in icp_paths_dictionary[key]:
+            if (input_output.check_for_file (aligned_cloud_path ) is False):
+                print ("File " + aligned_cloud_path + " was not found. Aborting.")
+                return False
+
+    icp_results = {}
+    for reference_file_path in icp_paths_dictionary:
+
+        for aligned_cloud_path in icp_paths_dictionary[reference_file_path]:
+
+            # do the icp
+            icp_results.update (do_icp (reference_file_path, aligned_cloud_path ))
+
+    compare_icp_results (icp_results )
+
+    return True
+
+
 def use_icp_on_folder (path_to_folder,
-                       reference_file_tag="reference",
+                       reference_file_tag,
                        aligned_file_tag=None,
                        permitted_file_extension=None ):
 
-    # # variables
-    # icp_results = {}        # dictionary to hold icp results
-    #
-    # # crawl path
-    # full_paths = get_all_files_in_subfolders (path_to_folder, permitted_file_extension )
-    # print ("full_paths: " + str (full_paths ))
-    #
-    # # before start, check if files exist
-    # for file_path in full_paths:
-    #     if (input_output.check_for_file (file_path ) is False ):
-    #         print ("File " + file_path + " was not found. Aborting.")
-    #         return False
-    #
-    # # only use files containing string_to_validate
-    # if (reference_file_tag not in reference_file_path):
-    #     continue
-    #
-    # # # treat clouds folder-specific
-    # # find folder name
-    # if (len(complete_file_path.split ('/')) == 1):
-    #     current_folder = ""     # no folder
-    # else:
-    #     current_folder = complete_file_path.split ('/')[-2]
-    #
-    # # check if the folder changed
-    # if (current_folder != previous_folder and reduce_clouds):
-    #
-    #     # all clouds in one folder should get the same trafo
-    #     if ("_reference" in file_path): ?
-    #         # apply icp to all clouds in a folder, use the cloud marked "_reference" as reference
-    #         icp_reference_cloud = numpy_cloud
-    #
-    #     else:
-    #         # the folder is the same -> this is the second file in this folder
-    #
-    #         # sample DIM Clouds
-    #         if ("DSM_Cloud" in file_path):
-    #             aligned_cloud = sample_cloud (aligned_cloud, sample_factor )
-    #
-    #         icp_results.update (do_icp (icp_reference_cloud, numpy_cloud, file_path ))
-    #
-    # numpy_cloud = input_output.load_ascii_file (file_path )
-    # compare_icp_results (icp_results )
+    print ("WARNING: use_icp_on_folder() function currently not working. Use use_icp_on_dictionary() instead.")
 
-    return 1
+    # crawl path
+    full_paths = get_all_files_in_subfolders (path_to_folder, permitted_file_extension )
+    print ("full_paths: " + str (full_paths ))
+
+    # before start, check if files exist
+    for file_path in full_paths:
+        if (input_output.check_for_file (file_path ) is False ):
+            print ("File " + file_path + " was not found. Aborting.")
+            return False
+
+    # filter full paths for reference and aligned paths (leading to the clouds used as reference and aligned in icp)
+    full_paths_reference = [path for path in full_paths if (reference_file_tag in path)]
+    full_paths_aligned = [path for path in full_paths if (aligned_file_tag in path or aligned_file_tag is None)]
+
+    # check if there are files containing reference_file_tag
+    if len(full_paths_reference) == 0:
+        print ("No files containing "
+               + str (reference_file_tag )
+               + " were found. No reference clouds could be selected. Aborting.")
+        return False
+
+    # build a dictionary of reference cloud paths as key
+    # and a list of corresponding aligned cloud paths as values
+    icp_paths_dictionary = {}
+
+    # read all reference cloud paths and accumulate the corresponding align cloud paths in the same folder
+    for reference_file_path in full_paths_reference:
+
+        # # treat clouds folder-specific
+        # find folder name
+        if (len(reference_file_path.split ('/')) == 1):
+            current_folder = "no folder"     # no folder
+        else:
+            current_folder = reference_file_path.split ('/')[-2]
+
+        # read all aligned cloud paths and find the ones in the same folder
+        corresponding_align_paths = [path for path in full_paths_aligned
+                              if (current_folder in path
+                              or len(path.split ('/')) == 1)]
+
+        # write a new entry in the dictionary
+        icp_paths_dictionary.update ({reference_file_path: corresponding_align_paths})
+
+    print ("icp_paths_dictionary:\n" + str (icp_paths_dictionary ).replace (',', ',\n'))
+
+    return use_icp_on_dictionary (icp_paths_dictionary )
 
 
 def get_reduction (numpy_cloud ):
@@ -356,12 +417,75 @@ def process_clouds_in_folder (path_to_folder,
     return True
 
 
-if __name__ == '__main__':
-    if (process_clouds_in_folder ('clouds/Regions/',
-                                  permitted_file_extension='.asc',
-                                  string_to_ignore='ALS',
-                                  do_normal_calculation=True )):
+# refactor
+def print_files_dict_of_folder (folder, permitted_file_extension=None ):
+    full_paths = get_all_files_in_subfolders (folder, permitted_file_extension )
 
-        print ("\n\nAll Clouds successfully processed.")
-    else:
-        print ("Error. Not all clouds could be processed.")
+    dict = OrderedDict ()
+    for path in full_paths:
+        dict.update ({('?reference?', path): ((0.0, 0.0, 0.0), 0.0)} )
+
+    print ("Paths in Folder "
+           + folder
+           + ':\n\n'
+           + str (dict.replace ('\', ', '\',\n').replace (': ', ':\n').replace ('), ', '),\n' )))
+
+    return dict
+
+    # + str (full_paths ).replace (', ', '\n' ).replace ('\'', '' ).strip ('[' ).strip (']' ).replace
+    #  ('\n', ':\n((0.0, 0.0, 0.0), 0.0),\n' ))
+
+
+def get_icp_data_paths ():
+    '''
+    Reads reference_transformations.translations to get all transformations currently saved and returns them in a
+    dictionary that can be directly used with use_icp_on_dictionary()
+    '''
+    dict = {}
+    for key in reference_transformations.translations:
+
+        reference_path, aligned_path = key
+
+        if (dict.__contains__ (reference_path )):
+            dict[reference_path].append (aligned_path )
+        else:
+            dict.update ({reference_path: [aligned_path]} )
+
+    return dict
+
+
+if __name__ == '__main__':
+    # # normals / reducing clouds
+    # if (process_clouds_in_folder ('clouds/Regions/',
+    #                               permitted_file_extension='.asc',
+    #                               string_to_ignore='ALS',
+    #                               do_normal_calculation=True )):
+    #
+    #     print ("\n\nAll Clouds successfully processed.")
+    # else:
+    #     print ("Error. Not all clouds could be processed.")
+
+    # # icp
+    print ("\n\nComputing ICP for each cloud pair in reference_transformations.translations returns: "
+           + str(use_icp_on_dictionary (get_icp_data_paths () )))
+
+    # compare_icp_results (do_icp ('clouds/Regions/Everything/ALS14_Cloud_reduced_normals_cleared.asc',
+    #                              'clouds/Regions/Everything/ALS16_Cloud _Scan54_reduced_normals.asc' ))
+
+    # # tests
+
+    # print_files_dict_of_folder(folder)
+
+    # print (get_icp_data_paths ())
+
+    # if (use_icp_on_folder ('clouds/Regions/',
+    #                        reference_file_tag='ALS16',
+    #                        aligned_file_tag='DIM_Cloud',
+    #                        permitted_file_extension='.asc' )
+    #    and use_icp_on_dictionary ({})
+    #    and use_icp_on_dictionary ({})
+    #    and use_icp_on_dictionary ({}) ):
+    #
+    #     print ("\n\nAll Clouds successfully processed.")
+    # else:
+    #     print ("Error. Not all clouds could be processed.")
