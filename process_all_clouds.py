@@ -4,6 +4,7 @@ from modules import icp
 from data import reference_transformations
 from os import listdir, walk
 from os.path import isfile, join, splitext
+from collections import OrderedDict
 import sklearn.neighbors    # kdtree
 import numpy as np
 import random
@@ -60,21 +61,30 @@ def compute_normals (numpy_cloud, file_path, field_labels_list, query_radius ):
         #query_radius = 0.8  # m
         query_radius = 1.5  # m
 
-    # kdtree radius search
-    list_of_point_indices = tree.query_radius(numpy_cloud, r=query_radius )
+    # kdtree radius search (RAM intesive version)
+    #list_of_point_indices = tree.query_radius(numpy_cloud, r=query_radius )
     additional_values = np.zeros ((numpy_cloud.shape[0], 4 ))
 
+    success = True
+
     # compute normals for each point
-    for index, point_neighbor_indices in enumerate (list_of_point_indices ):
+    for index, point in enumerate (numpy_cloud ):
 
         # check memory usage
         if (psutil.virtual_memory().percent > 95.0):
             print (print ("!!! Memory Usage too high: "
                           + str(psutil.virtual_memory().percent)
-                          + "%. Breaking loop. There still are "
-                          + str (len (list_of_point_indices) - index)
-                          + " normal vectors left to compute."))
+                          + "%. Skipping cloud. There still are "
+                          + str (numpy_cloud.shape[0] - index)
+                          + " normal vectors left to compute. Reduction process might be lost."))
+            success = False
             break
+
+        if (index % int(numpy_cloud.shape[0] / 10) == 0):
+            print ("Progress: " + "{:.1f}".format ((index / numpy_cloud.shape[0]) * 100.0 ) + " %" )
+
+        # kdtree radius search
+        point_neighbor_indices = tree.query_radius(point.reshape (1, -1), r=query_radius )
 
         # you can't estimate a cloud with less than three neighbors
         if (len (point_neighbor_indices) < 3 ):
@@ -92,7 +102,7 @@ def compute_normals (numpy_cloud, file_path, field_labels_list, query_radius ):
         additional_values[index, :] = np.append (normal_vector, sigma )
 
     # delete normals if already computed # refactor
-    if ('Nx' in field_labels_list ):
+    if ('Nx' in field_labels_list and success ):
         field_labels_list = field_labels_list[:-4]
         numpy_cloud = numpy_cloud[:, :-4]
 
@@ -100,48 +110,184 @@ def compute_normals (numpy_cloud, file_path, field_labels_list, query_radius ):
     numpy_cloud = np.concatenate ((numpy_cloud, additional_values ), axis=1 )
     field_labels_list.append('Nx ' 'Ny ' 'Nz ' 'Sigma' )
 
-    return numpy_cloud, field_labels_list
+    return numpy_cloud, field_labels_list, success
 
 
-def do_icp (numpy_reference_cloud, numpy_aligned_cloud, full_path ):
+def sample_cloud (numpy_cloud, sample_factor, deterministic_sampling=False ):
+    '''
+    Samples a cloud by a given factor.
+    '''
+    previous_length = numpy_cloud.shape[0]
 
-    translation, mean_squared_error = icp.icp (numpy_reference_cloud, numpy_aligned_cloud, verbose=True )
-    dictionary_line = {full_path: (translation, mean_squared_error)}
+    # deterministic sampling
+    if (deterministic_sampling ):
+        numpy_cloud = numpy_cloud[::sample_factor]
+    # random sampling
+    else:
+        indices = random.sample(range(0, numpy_cloud.shape[0] ), int (numpy_cloud.shape[0] / sample_factor ))
+        numpy_cloud = numpy_cloud[indices, :]
+
+    print ("DIM Cloud sampled, factor: "
+           + str(sample_factor )
+           + ". Cloud size / previous cloud size: "
+           + str(numpy_cloud.shape[0] )
+           + "/"
+           + str (previous_length))
+
+    return numpy_cloud
+
+
+def do_icp (full_path_of_reference_cloud, full_path_of_aligned_cloud ):
+
+    # load reference cloud
+    reference_cloud = input_output.load_ascii_file (full_path_of_reference_cloud )
+
+    if ("DSM_Cloud" in full_path_of_reference_cloud):
+        reference_cloud = sample_cloud (reference_cloud, 6, deterministic_sampling=False )
+
+    # load aligned clouds
+    aligned_cloud = input_output.load_ascii_file (full_path_of_aligned_cloud )
+
+    # sample DIM Clouds
+    if ("DSM_Cloud" in full_path_of_aligned_cloud):
+        aligned_cloud = sample_cloud (aligned_cloud, 6, deterministic_sampling=False )
+
+    translation, mean_squared_error = icp.icp (reference_cloud, aligned_cloud, verbose=False )
+
+    dictionary_line = {(full_path_of_reference_cloud, full_path_of_aligned_cloud): (translation, mean_squared_error)}
 
     return dictionary_line
+
+
+def get_folder_and_file_name (path ):
+
+    # mash up the string
+    folder = str(path.split ('/')[-2])
+    list_of_filename_attributes = path.split ('/')[-1].split ('_')[0:3]
+    list_of_filename_attributes = ['{0}_'.format(element) for element in list_of_filename_attributes]
+    file_name = ''.join(list_of_filename_attributes)
+
+    return folder, file_name
 
 
 def compare_icp_results (icp_results ):
 
     reference_dict = reference_transformations.translations
 
-    for key in icp_results:
+    # go through the path for aligned clouds from the icp results
+    for results_key in icp_results:
 
         # find the computed results in the reference data
-        if (key in reference_dict ):
+        if (results_key in reference_dict ):
 
-            # mash up the string
-            folder = str(key.split ('/')[-2])
-            list_of_filename_attributes = key.split ('/')[-1].split ('_')[0:3]
-            list_of_filename_attributes = ['{0}_'.format(element) for element in list_of_filename_attributes]
+            # disassemble the key
+            reference_path, aligned_path = results_key
+
+            folder, reference_file_name = get_folder_and_file_name (reference_path)
+            folder, aligned_file_name = get_folder_and_file_name (aligned_path)     # folder should be the the same
 
             # unpack values
-            ref_translation, ref_mse = reference_dict [key]
-            icp_translation, icp_mse = icp_results [key]
+            ref_translation, ref_mse = reference_dict [results_key]
+            icp_translation, icp_mse = icp_results [results_key]
 
             # print comparison
-            print ('\n' + folder + "/"
-                   + ''.join(list_of_filename_attributes)
-                   + "\n\treference:\t" + '({: .8f}, '.format(ref_translation[0])
-                                        + '{: .8f}, '.format(ref_translation[1])
-                                        + '{: .8f}), '.format(ref_translation[2])
-                                        + ' {: .8f}, '.format(ref_mse)
-                   + "\n\ticp result:\t" + '({: .8f}, '.format(icp_translation[0])
-                                         + '{: .8f}, '.format(icp_translation[1])
-                                         + '{: .8f}), '.format(icp_translation[2])
-                                         + '({: .8f}, '.format(icp_mse[0])
-                                         + '{: .8f}, '.format(icp_mse[1])
-                                         + '{: .8f}) '.format(icp_mse[2]))
+            print ('\n' + folder + "/:"
+                   + "\nreference cloud:\t" + reference_file_name
+                   + "\naligned cloud:\t\t" + aligned_file_name
+                   + "\n\tdata alignment:\t" + '({: .8f}, '.format(ref_translation[0])
+                                             + '{: .8f}, '.format(ref_translation[1])
+                                             + '{: .8f}), '.format(ref_translation[2])
+                                             + ' {: .8f}, '.format(ref_mse)
+                   + "\n\ticp alignment:\t" + '({: .8f}, '.format(icp_translation[0])
+                                            + '{: .8f}, '.format(icp_translation[1])
+                                            + '{: .8f}), '.format(icp_translation[2])
+                                            + '({: .8f}, '.format(icp_mse[0])
+                                            + '{: .8f}, '.format(icp_mse[1])
+                                            + '{: .8f}) '.format(icp_mse[2]))
+
+
+def use_icp_on_dictionary (icp_paths_dictionary ):
+    '''
+    Uses a dictionary of reference cloud file_paths as keys
+    and a list of corresponding aligned cloud file_paths as values
+    '''
+
+    # before start, check if files exist
+    for key in icp_paths_dictionary:
+        if (input_output.check_for_file (key ) is False):
+            print ("File " + key + " was not found. Aborting.")
+            return False
+        for aligned_cloud_path in icp_paths_dictionary[key]:
+            if (input_output.check_for_file (aligned_cloud_path ) is False):
+                print ("File " + aligned_cloud_path + " was not found. Aborting.")
+                return False
+
+    icp_results = {}
+    for reference_file_path in icp_paths_dictionary:
+
+        for aligned_cloud_path in icp_paths_dictionary[reference_file_path]:
+
+            # do the icp
+            icp_results.update (do_icp (reference_file_path, aligned_cloud_path ))
+
+    compare_icp_results (icp_results )
+
+    return True
+
+
+def use_icp_on_folder (path_to_folder,
+                       reference_file_tag,
+                       aligned_file_tag=None,
+                       permitted_file_extension=None ):
+
+    print ("WARNING: use_icp_on_folder() function currently not working. Use use_icp_on_dictionary() instead.")
+
+    # crawl path
+    full_paths = get_all_files_in_subfolders (path_to_folder, permitted_file_extension )
+    print ("full_paths: " + str (full_paths ))
+
+    # before start, check if files exist
+    for file_path in full_paths:
+        if (input_output.check_for_file (file_path ) is False ):
+            print ("File " + file_path + " was not found. Aborting.")
+            return False
+
+    # filter full paths for reference and aligned paths (leading to the clouds used as reference and aligned in icp)
+    full_paths_reference = [path for path in full_paths if (reference_file_tag in path)]
+    full_paths_aligned = [path for path in full_paths if (aligned_file_tag in path or aligned_file_tag is None)]
+
+    # check if there are files containing reference_file_tag
+    if len(full_paths_reference) == 0:
+        print ("No files containing "
+               + str (reference_file_tag )
+               + " were found. No reference clouds could be selected. Aborting.")
+        return False
+
+    # build a dictionary of reference cloud paths as key
+    # and a list of corresponding aligned cloud paths as values
+    icp_paths_dictionary = {}
+
+    # read all reference cloud paths and accumulate the corresponding align cloud paths in the same folder
+    for reference_file_path in full_paths_reference:
+
+        # # treat clouds folder-specific
+        # find folder name
+        if (len(reference_file_path.split ('/')) == 1):
+            current_folder = "no folder"     # no folder
+        else:
+            current_folder = reference_file_path.split ('/')[-2]
+
+        # read all aligned cloud paths and find the ones in the same folder
+        corresponding_align_paths = [path for path in full_paths_aligned
+                              if (current_folder in path
+                              or len(path.split ('/')) == 1)]
+
+        # write a new entry in the dictionary
+        icp_paths_dictionary.update ({reference_file_path: corresponding_align_paths})
+
+    print ("icp_paths_dictionary:\n" + str (icp_paths_dictionary ).replace (',', ',\n'))
+
+    return use_icp_on_dictionary (icp_paths_dictionary )
 
 
 def get_reduction (numpy_cloud ):
@@ -164,7 +310,39 @@ def apply_reduction (numpy_cloud, min_x_coordinate, min_y_coordinate ):
     return numpy_cloud
 
 
-def process_clouds (file_extension, reduce_clouds=False, do_normal_calculation=False, apply_icp_algorithm=False):
+def conditionalized_load (file_path ):
+
+    field_labels_list = ['X', 'Y', 'Z']
+    file_name, file_extension = splitext(file_path )
+
+    # # load the file
+    if (file_extension == '.las'):
+        if ("DSM_Cloud" in file_path):
+            # Load DIM cloud
+            numpy_cloud = input_output.load_las_file (file_path, dtype="dim" )
+            field_labels_list.append ('Rf ' 'Gf ' 'Bf ' 'Classification')
+        else:
+            # Load ALS cloud
+            numpy_cloud = input_output.load_las_file (file_path, dtype="als")
+            field_labels_list.append('Intensity '
+                                     'Number_of_Returns '
+                                     'Return_Number '
+                                     'Point_Source_ID '
+                                     'Classification')
+    elif (file_extension == '.asc'):
+        # load ASCII cloud
+        numpy_cloud = input_output.load_ascii_file (file_path )
+        with open(file_path) as f:
+            field_labels_list = f.readline().strip ('//').split ()
+
+    return numpy_cloud, field_labels_list
+
+
+def process_clouds_in_folder (path_to_folder,
+                              permitted_file_extension=None,
+                              string_to_ignore="",
+                              reduce_clouds=False,
+                              do_normal_calculation=False ):
     '''
     Loads all .las files in a given folder. At the users choice, this function also reduces their points so they are
     closer to zero, computes normals for all points and then saves them again with a different name, or applies an icp
@@ -172,18 +350,12 @@ def process_clouds (file_extension, reduce_clouds=False, do_normal_calculation=F
     '''
 
     # crawl path
-    path = "clouds/Regions/"
-    full_paths = get_all_files_in_subfolders (path, file_extension )
-    print ("full_paths: " + str (full_paths[17:] ))
+    full_paths = get_all_files_in_subfolders (path_to_folder, permitted_file_extension )
+    print ("full_paths: " + str (full_paths ))
 
     # # just print paths and quit, if no task was selected
-    # if (not reduce_clouds and not do_normal_calculation and not apply_icp_algorithm ):
+    # if (not reduce_clouds and not do_normal_calculation ):
     #     return True
-
-    # logic check
-    if (apply_icp_algorithm and (reduce_clouds or do_normal_calculation )):
-        print ("Don't reduce clouds or compute their normals while applying icp.\nPlease separate these steps.")
-        return True
 
     # before start, check if files exist
     for file_path in full_paths:
@@ -193,112 +365,133 @@ def process_clouds (file_extension, reduce_clouds=False, do_normal_calculation=F
 
     # set process variables
     previous_folder = ""    # for folder comparison
-    icp_results = {}        # dictionary to hold icp results
-    icp_reference_cloud = None
 
     # process clouds
-    for file_path in full_paths:
+    for complete_file_path in full_paths:
         print ("\n\n-------------------------------------------------------")
 
         # # split path and extension
-        file_name, file_extension = splitext(file_path )
-        # check if it's a .las file, else skip it
-        # if (file_extension != ".las" ):
-        #     continue
+        #file_name, file_extension = splitext(complete_file_path )
 
-        field_labels_list = ['X', 'Y', 'Z']
+        # skip files containing string_to_ignore
+        if (string_to_ignore in complete_file_path):
+            continue
 
-        # if ("ALS" in file_path):
-        #     continue    # normals only on ALS
-
-        # # load the file
-        if (file_extension == '.las'):
-            if ("DSM_Cloud" in file_path):
-                # Load DIM cloud
-                numpy_cloud = input_output.load_las_file (file_path, dtype="dim" )
-                field_labels_list.append ('Rf ' 'Gf ' 'Bf ' 'Classification')
-            else:
-                # Load ALS cloud
-                numpy_cloud = input_output.load_las_file (file_path, dtype="als")
-                field_labels_list.append('Intensity '
-                                         'Number_of_Returns '
-                                         'Return_Number '
-                                         'Point_Source_ID '
-                                         'Classification')
-        elif (file_extension == '.asc'):
-            # load ASCII cloud
-            numpy_cloud = input_output.load_ascii_file (file_path )
-            with open(file_path) as f:
-                field_labels_list = f.readline().strip ('//').split ()
+        # # load
+        numpy_cloud, field_labels_list = conditionalized_load (complete_file_path )
 
         # # treat clouds folder-specific
         # find folder name
-        if (len(file_path.split ('/')) == 1):
-            current_folder = file_path
+        if (len(complete_file_path.split ('/')) == 1):
+            current_folder = ""     # no folder
         else:
-            current_folder = file_path.split ('/')[-2]
+            current_folder = complete_file_path.split ('/')[-2]
 
         # check if the folder changed
-        if (current_folder != previous_folder):
+        if (current_folder != previous_folder and reduce_clouds):
 
-            if ("_reduced" not in file_path and reduce_clouds):
-                # all clouds in one folder should get the same trafo
-                min_x, min_y = get_reduction (numpy_cloud )
-
-            if (apply_icp_algorithm and "_reference" in file_path):
-                # apply icp to all clouds in a folder, use the cloud marked "_reference" as reference
-                icp_reference_cloud = numpy_cloud
-
-        elif (apply_icp_algorithm ):
-            # the folder is the same -> this is the second file in this folder
-
-            # sample DIM Clouds
-            if ("DSM_Cloud" in file_path):
-
-                sample_factor = 6
-
-                # deterministic sampling
-                #numpy_cloud = numpy_cloud[::sample_factor]
-
-                # random sampling
-                indices = random.sample(range(0, numpy_cloud.shape[0] ), int (numpy_cloud.shape[0] / sample_factor ))
-                numpy_cloud = numpy_cloud[indices, :]
-
-                print ("DIM Cloud sampled, factor: " + str(sample_factor ))
-
-            icp_results.update (do_icp (icp_reference_cloud, numpy_cloud, file_path ))
-
-        previous_folder = current_folder
+            # all clouds in one folder should get the same trafo
+            min_x, min_y = get_reduction (numpy_cloud )
 
         # # # alter cloud
         cloud_altered = False
 
         # # reduce cloud
-        # skip files already processed
-        if ("_reduced" not in file_path and reduce_clouds):
+        if (reduce_clouds ):
             numpy_cloud = apply_reduction (numpy_cloud, min_x, min_y )
             cloud_altered = True
 
         # # compute normals on cloud
-        # skip files already processed
-        if ("_normals" in file_path and do_normal_calculation):
-            numpy_cloud, field_labels_list = compute_normals (numpy_cloud, file_path, field_labels_list, 2.5 )
-            cloud_altered = True
+        if (do_normal_calculation ):
+            numpy_cloud, field_labels_list, success = compute_normals (numpy_cloud,
+                                                                       complete_file_path,
+                                                                       field_labels_list,
+                                                                       2.5 )
+
+            # don't change the cloud unless all normals have been computed
+            cloud_altered = success
 
         # save the cloud again
         if (cloud_altered):
-            input_output.save_ascii_file (numpy_cloud, field_labels_list, file_path )
-            #input_output.save_ascii_file (numpy_cloud, field_labels_list, "clouds/tmp/normals2_test.asc" )
+            #input_output.save_ascii_file (numpy_cloud, field_labels_list, complete_file_path )
+            input_output.save_ascii_file (numpy_cloud, field_labels_list, "clouds/tmp/normals_ram_test.asc" )
 
-    if (apply_icp_algorithm ):
-        compare_icp_results (icp_results )
+        # set current to previous folder for folder-specific computations
+        previous_folder = current_folder
 
     print ("\n\nDone.")
     return True
 
 
+# refactor
+def print_files_dict_of_folder (folder, permitted_file_extension=None ):
+    full_paths = get_all_files_in_subfolders (folder, permitted_file_extension )
+
+    dict = OrderedDict ()
+    for path in full_paths:
+        dict.update ({('?reference?', path): ((0.0, 0.0, 0.0), 0.0)} )
+
+    print ("Paths in Folder "
+           + folder
+           + ':\n\n'
+           + str (dict.replace ('\', ', '\',\n').replace (': ', ':\n').replace ('), ', '),\n' )))
+
+    return dict
+
+    # + str (full_paths ).replace (', ', '\n' ).replace ('\'', '' ).strip ('[' ).strip (']' ).replace
+    #  ('\n', ':\n((0.0, 0.0, 0.0), 0.0),\n' ))
+
+
+def get_icp_data_paths ():
+    '''
+    Reads reference_transformations.translations to get all transformations currently saved and returns them in a
+    dictionary that can be directly used with use_icp_on_dictionary()
+    '''
+    dict = {}
+    for key in reference_transformations.translations:
+
+        reference_path, aligned_path = key
+
+        if (dict.__contains__ (reference_path )):
+            dict[reference_path].append (aligned_path )
+        else:
+            dict.update ({reference_path: [aligned_path]} )
+
+    return dict
+
+
 if __name__ == '__main__':
-    if (process_clouds ('.asc', do_normal_calculation=True )):
+    # normals / reducing clouds
+    if (process_clouds_in_folder ('clouds/Regions/',
+                                  permitted_file_extension='.asc',
+                                  string_to_ignore='ALS',
+                                  do_normal_calculation=True )):
+
         print ("\n\nAll Clouds successfully processed.")
     else:
         print ("Error. Not all clouds could be processed.")
+
+    # # icp
+    # print ("\n\nComputing ICP for each cloud pair in reference_transformations.translations returns: "
+    #        + str(use_icp_on_dictionary (get_icp_data_paths () )))
+
+    # compare_icp_results (do_icp ('clouds/Regions/Everything/ALS14_Cloud_reduced_normals_cleared.asc',
+    #                              'clouds/Regions/Everything/ALS16_Cloud _Scan54_reduced_normals.asc' ))
+
+    # # tests
+
+    # print_files_dict_of_folder(folder)
+
+    # print (get_icp_data_paths ())
+
+    # if (use_icp_on_folder ('clouds/Regions/',
+    #                        reference_file_tag='ALS16',
+    #                        aligned_file_tag='DIM_Cloud',
+    #                        permitted_file_extension='.asc' )
+    #    and use_icp_on_dictionary ({})
+    #    and use_icp_on_dictionary ({})
+    #    and use_icp_on_dictionary ({}) ):
+    #
+    #     print ("\n\nAll Clouds successfully processed.")
+    # else:
+    #     print ("Error. Not all clouds could be processed.")
