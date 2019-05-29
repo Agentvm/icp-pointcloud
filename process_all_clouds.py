@@ -80,6 +80,9 @@ def compute_normals (numpy_cloud, file_path, field_labels_list, query_radius ):
             success = False
             break
 
+        if (index % int(numpy_cloud.shape[0] / 10) == 0):
+            print ("Progress: " + "{:.1f}".format ((index / numpy_cloud.shape[0]) * 100.0 ) + " %" )
+
         # kdtree radius search
         point_neighbor_indices = tree.query_radius(point.reshape (1, -1), r=query_radius )
 
