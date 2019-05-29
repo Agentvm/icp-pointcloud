@@ -19,7 +19,7 @@ def save_ascii_file (numpy_cloud, field_labels_list, path ):
         path (str):                         The path to the file to save
     '''
 
-    print('Saving file ' + path )
+    print('\nSaving file ' + path )
 
     # "%.2f %.2f %.2f %.8f %.8f %.8f %.0f %.0f"
     # "%.8f %.8f %.8f %.2f %.2f %.2f"
@@ -40,7 +40,7 @@ def save_ascii_file (numpy_cloud, field_labels_list, path ):
 def load_ascii_file (path, return_custom_cloud=False ):
 
     start_time = time.time()    # measure time
-    print('Loading file ' + path + ' ...')
+    print('\nLoading file ' + path + ' ...')
     numpy_cloud = np.loadtxt (path, comments='//')
 
     if (return_custom_cloud ):
@@ -52,7 +52,7 @@ def load_ascii_file (path, return_custom_cloud=False ):
         return custom_cloud
 
     print ('Cloud loaded in ' + str(time.time() - start_time) + ' seconds.\nNumber of points: '
-           + str(numpy_cloud.shape[0] ) + '\n')
+           + str(numpy_cloud.shape[0] ))
 
     return numpy_cloud
 
@@ -75,7 +75,7 @@ def load_ply_file (dir_in, file_name ):
 
     # Load a file
     start_time = time.time()    # measure time
-    print('Loading file ' + file_name + ' ...')
+    print('\nLoading file ' + file_name + ' ...')
 
     # Set Debug log to Error, so it doesn't print a messy loading bar, then read the file content
     set_verbosity_level(VerbosityLevel.Error)
@@ -85,7 +85,7 @@ def load_ply_file (dir_in, file_name ):
     points = np.asarray(open3d_point_cloud.points )
 
     print ('Cloud loaded in ' + str(time.time() - start_time) + ' seconds.\nNumber of points: '
-           + str(points.shape[0] ) + '\n')
+           + str(points.shape[0] ))
 
     return points
 
@@ -101,7 +101,7 @@ def save_ply_file (numpy_cloud, file_name ):
     '''
 
     # Save a file
-    print('Saving file ' + file_name )
+    print('\nSaving file ' + file_name )
     if (numpy_cloud.shape[0] == 0):
         print ("This Cloud has no points. Aborting")
         return
@@ -134,7 +134,7 @@ def load_las_file (file_path, dtype=None, return_custom_cloud=False ):
 
     # Load a file
     start_time = time.time()    # measure time
-    print('Loading file ' + file_path + ' ...')
+    print('\nLoading file ' + file_path + ' ...')
 
     with File(file_path, mode = 'r') as inFile:
         # add points by adding xyz channels. Reshape to create colums
@@ -180,7 +180,7 @@ def load_las_file (file_path, dtype=None, return_custom_cloud=False ):
                 points = CustomCloud (points, ['x', 'y', 'z', 'raw_class'])
 
     print ('Cloud loaded in ' + str(time.time() - start_time) + ' seconds.\nNumber of points: '
-           + str(points.shape[0] ) + '\n')
+           + str(points.shape[0] ))
 
     return points
 
@@ -200,12 +200,12 @@ def pcl_load (dir_in, file_name, format = None):
 
     # Load a file
     start_time = time.time()    # measure time
-    print('Loading file ' + file_name + ' ...')
+    print('\nLoading file ' + file_name + ' ...')
 
     #points = pcl.load(dir_in + file_name, format)
     pcl_cloud = pcl.load (dir_in + file_name, format)
 
     print ('Cloud loaded in ' + str(time.time() - start_time) + ' seconds.\nNumber of points: '
-           + str(pcl_cloud.size ) + '\n')
+           + str(pcl_cloud.size ))
 
     return pcl_cloud
