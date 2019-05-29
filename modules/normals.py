@@ -183,7 +183,7 @@ def PCA (input_numpy_cloud ):
     return normal_vector, sigma, mass_center
 
 
-def random_plane_estimation (numpy_cloud ):
+def random_plane_estimation (numpy_cloud, fixed_point=None ):
     '''
     Uses 3 random points to estimate Plane Parameters. Used for RANSAC.
 
@@ -198,7 +198,10 @@ def random_plane_estimation (numpy_cloud ):
     # get 3 random indices
     idx_1, idx_2, idx_3 = random.sample(range(0, numpy_cloud.shape[0] ), 3 )
 
-    point_1 = numpy_cloud [idx_1, :]
+    if (fixed_point is None):
+        point_1 = numpy_cloud [idx_1, :]
+    else:
+        point_1 = fixed_point[:3]
     point_2 = numpy_cloud [idx_2, :]
     point_3 = numpy_cloud [idx_3, :]
 
@@ -215,6 +218,7 @@ def random_plane_estimation (numpy_cloud ):
 
 def plane_consensus (numpy_cloud, normal_vector, d, threshold ):
     '''
+    Counts points that have a smaller distance than threshold from a given plane
 
     Input:
         numpy_cloud ([n, 3] np.array):
@@ -248,21 +252,22 @@ def plane_consensus (numpy_cloud, normal_vector, d, threshold ):
     return consensus_count, consensus_points
 
 
-def ransac_plane_estimation (input_numpy_cloud, threshold, w = .9, z = 0.95 ):
-    '''
+def ransac_plane_estimation (input_numpy_cloud, threshold, fixed_point=None, w = .9, z = 0.95 ):
+    """
     Uses Ransac with the probability parameters w and z to estimate a valid plane in given cloud.
     Uses distance from plane compared to given threshold to determine the consensus set.
     Returns points and point indices of the detected plane.
 
     Input:
         input_numpy_cloud (np.array):   Input cloud
-        treshold (float, in m):         Points closer to the plane than this value are counted as inliers
+        threshold (float, in m):        Points closer to the plane than this value are counted as inliers
+        fixed_point (int):              This point will be used as one of three points for every plane estimation
         w (float between 0 and 1):      probability that any observation belongs to the model
         z (float between 0 and 1):      desired probability that the model is found
     Output:
         consensus_normal_vector ([1, 3] np.array):  The normal_vector computed
         consensus_points (np.array):                All points used for plane estimation
-    '''
+    """
 
     # measure time
     start_time = time.time ()
@@ -284,7 +289,7 @@ def ransac_plane_estimation (input_numpy_cloud, threshold, w = .9, z = 0.95 ):
     for i in range (1, k):
 
         # estimate a plane with 3 random points
-        [normal_vector, d] = random_plane_estimation (numpy_cloud )
+        [normal_vector, d] = random_plane_estimation (numpy_cloud, fixed_point )
 
         # this happens if three points are the same or on a line
         if (np.sum (normal_vector ) == 0 ):

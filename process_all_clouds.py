@@ -68,6 +68,7 @@ def compute_normals (numpy_cloud, file_path, field_labels_list, query_radius ):
     success = True
 
     # compute normals for each point
+    #for index, point_neighbor_indices in enumerate (list_of_point_indices ):
     for index, point in enumerate (numpy_cloud ):
 
         # check memory usage
@@ -86,6 +87,9 @@ def compute_normals (numpy_cloud, file_path, field_labels_list, query_radius ):
         # kdtree radius search
         point_neighbor_indices = tree.query_radius(point.reshape (1, -1), r=query_radius )
 
+        # thank you very much indeed for this wicked output, sklearn.neighbors.kd_tree :'D
+        point_neighbor_indices = [nested_value for value in point_neighbor_indices for nested_value in value]
+
         # you can't estimate a cloud with less than three neighbors
         if (len (point_neighbor_indices) < 3 ):
             continue
@@ -94,6 +98,7 @@ def compute_normals (numpy_cloud, file_path, field_labels_list, query_radius ):
         normal_vector, sigma, mass_center = normals.PCA (
                     normals.ransac_plane_estimation (numpy_cloud[point_neighbor_indices, :],   # point neighbors
                                                      threshold=0.3,  # max point distance from the plane
+                                                     fixed_point=numpy_cloud[index, :],
                                                      w=0.6,         # probability for the point to be an inlier
                                                      z=0.90)        # desired probability that plane is found
                                                      [1] )          # only use the second return value, the points
@@ -342,7 +347,8 @@ def process_clouds_in_folder (path_to_folder,
                               permitted_file_extension=None,
                               string_to_ignore="",
                               reduce_clouds=False,
-                              do_normal_calculation=False ):
+                              do_normal_calculation=False,
+                              normals_computation_radius=2.5 ):
     '''
     Loads all .las files in a given folder. At the users choice, this function also reduces their points so they are
     closer to zero, computes normals for all points and then saves them again with a different name, or applies an icp
@@ -406,7 +412,7 @@ def process_clouds_in_folder (path_to_folder,
             numpy_cloud, field_labels_list, success = compute_normals (numpy_cloud,
                                                                        complete_file_path,
                                                                        field_labels_list,
-                                                                       2.5 )
+                                                                       normals_computation_radius )
 
             # don't change the cloud unless all normals have been computed
             cloud_altered = success
@@ -414,7 +420,7 @@ def process_clouds_in_folder (path_to_folder,
         # save the cloud again
         if (cloud_altered):
             #input_output.save_ascii_file (numpy_cloud, field_labels_list, complete_file_path )
-            input_output.save_ascii_file (numpy_cloud, field_labels_list, "clouds/tmp/normals_ram_test.asc" )
+            input_output.save_ascii_file (numpy_cloud, field_labels_list, "clouds/tmp/normals_fixpoint_test.asc" )
 
         # set current to previous folder for folder-specific computations
         previous_folder = current_folder
@@ -464,8 +470,9 @@ if __name__ == '__main__':
     # normals / reducing clouds
     if (process_clouds_in_folder ('clouds/Regions/',
                                   permitted_file_extension='.asc',
-                                  string_to_ignore='ALS',
-                                  do_normal_calculation=True )):
+                                  string_to_ignore='DIM_Cloud',
+                                  do_normal_calculation=True,
+                                  normals_computation_radius=2.5 )):
 
         print ("\n\nAll Clouds successfully processed.")
     else:

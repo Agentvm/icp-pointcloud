@@ -8,9 +8,31 @@ numpy_cloud = np.array([[1.1, 2.1, 3.1],
                         [1.5, 2.5, 3.5],
                         [1.6, 2.6, 3.6]] )
 
-list = [0, 1, 2, 3, 4, 5]
+#
 
-print (list[3:4])
+
+# # clear up the wicked output of
+# import sklearn.neighbors.kd_tree
+#
+#
+# numpy_cloud = np.array([[1.1, 0, 0],
+#                         [1.2, 0, 0],
+#                         [1.3, 0, 0],
+#                         [1.4, 0, 0],
+#                         [1.5, 0, 0],
+#                         [1.6, 0, 0]] )
+#
+# # build a kdtree
+# tree = sklearn.neighbors.kd_tree.KDTree (numpy_cloud, leaf_size=40, metric='euclidean')
+# query_radius = 0.3  # m
+#
+# for index, point in enumerate (numpy_cloud ):
+#
+#     thing = tree.query_radius(point.reshape (1, -1), r=query_radius )
+#     thing = [value2 for value in thing for value2 in value]
+#
+#     print (thing)
+
 
 # import random
 #
