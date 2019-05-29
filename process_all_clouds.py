@@ -61,24 +61,27 @@ def compute_normals (numpy_cloud, file_path, field_labels_list, query_radius ):
         #query_radius = 0.8  # m
         query_radius = 1.5  # m
 
-    # kdtree radius search
-    list_of_point_indices = tree.query_radius(numpy_cloud, r=query_radius )
+    # kdtree radius search (RAM intesive version)
+    #list_of_point_indices = tree.query_radius(numpy_cloud, r=query_radius )
     additional_values = np.zeros ((numpy_cloud.shape[0], 4 ))
 
     success = True
 
     # compute normals for each point
-    for index, point_neighbor_indices in enumerate (list_of_point_indices ):
+    for index, point in enumerate (numpy_cloud ):
 
         # check memory usage
         if (psutil.virtual_memory().percent > 95.0):
             print (print ("!!! Memory Usage too high: "
                           + str(psutil.virtual_memory().percent)
                           + "%. Skipping cloud. There still are "
-                          + str (len (list_of_point_indices) - index)
+                          + str (numpy_cloud.shape[0] - index)
                           + " normal vectors left to compute. Reduction process might be lost."))
             success = False
             break
+
+        # kdtree radius search
+        point_neighbor_indices = tree.query_radius(point.reshape (1, -1), r=query_radius )
 
         # you can't estimate a cloud with less than three neighbors
         if (len (point_neighbor_indices) < 3 ):
@@ -372,7 +375,7 @@ def process_clouds_in_folder (path_to_folder,
             continue
 
         # # load
-        numpy_cloud, field_labels_list = conditionalized_load ()
+        numpy_cloud, field_labels_list = conditionalized_load (complete_file_path )
 
         # # treat clouds folder-specific
         # find folder name
@@ -407,8 +410,8 @@ def process_clouds_in_folder (path_to_folder,
 
         # save the cloud again
         if (cloud_altered):
-            input_output.save_ascii_file (numpy_cloud, field_labels_list, complete_file_path )
-            #input_output.save_ascii_file (numpy_cloud, field_labels_list, "clouds/tmp/normals2_test.asc" )
+            #input_output.save_ascii_file (numpy_cloud, field_labels_list, complete_file_path )
+            input_output.save_ascii_file (numpy_cloud, field_labels_list, "clouds/tmp/normals_ram_test.asc" )
 
         # set current to previous folder for folder-specific computations
         previous_folder = current_folder
@@ -455,19 +458,19 @@ def get_icp_data_paths ():
 
 
 if __name__ == '__main__':
-    # # normals / reducing clouds
-    # if (process_clouds_in_folder ('clouds/Regions/',
-    #                               permitted_file_extension='.asc',
-    #                               string_to_ignore='ALS',
-    #                               do_normal_calculation=True )):
-    #
-    #     print ("\n\nAll Clouds successfully processed.")
-    # else:
-    #     print ("Error. Not all clouds could be processed.")
+    # normals / reducing clouds
+    if (process_clouds_in_folder ('clouds/Regions/',
+                                  permitted_file_extension='.asc',
+                                  string_to_ignore='ALS',
+                                  do_normal_calculation=True )):
+
+        print ("\n\nAll Clouds successfully processed.")
+    else:
+        print ("Error. Not all clouds could be processed.")
 
     # # icp
-    print ("\n\nComputing ICP for each cloud pair in reference_transformations.translations returns: "
-           + str(use_icp_on_dictionary (get_icp_data_paths () )))
+    # print ("\n\nComputing ICP for each cloud pair in reference_transformations.translations returns: "
+    #        + str(use_icp_on_dictionary (get_icp_data_paths () )))
 
     # compare_icp_results (do_icp ('clouds/Regions/Everything/ALS14_Cloud_reduced_normals_cleared.asc',
     #                              'clouds/Regions/Everything/ALS16_Cloud _Scan54_reduced_normals.asc' ))
