@@ -1,5 +1,5 @@
 import numpy as np
-
+from process_all_clouds import conditionalized_load
 
 numpy_cloud = np.array([[1.1, 2.1, 3.1],
                         [1.2, 2.2, 3.2],
@@ -10,6 +10,33 @@ numpy_cloud = np.array([[1.1, 2.1, 3.1],
 
 #
 
+numpy_cloud, field_labels_list = conditionalized_load (
+                                    'clouds/Regions/Yz Street/ALS16_Cloud_reduced_normals_cleared.asc')
+
+field_labels_list = ['X', 'Y', 'Z', 'Intensity', 'Number_of_Returns', 'Return_Number', 'Point_Source_ID', 'Classification', 'Nx', 'Ny', 'Nz', 'Sigma']
+
+print (field_labels_list)
+print (numpy_cloud.shape)
+print (numpy_cloud[:, -3:])
+
+# delete normals if already computed # refactor
+if ('Nx' in field_labels_list
+   and 'Ny' in field_labels_list
+   and 'Nz' in field_labels_list
+   and 'Sigma' in field_labels_list ):
+    indices = []
+    indices.append (field_labels_list.index('Sigma' ))
+    indices.append (field_labels_list.index('Nz' ))
+    indices.append (field_labels_list.index('Ny' ))
+    indices.append (field_labels_list.index('Nx' ))
+
+    field_labels_list = [label for label in field_labels_list if field_labels_list.index(label) not in indices]
+    numpy_cloud = np.delete (numpy_cloud, indices, axis=1 )
+
+print (field_labels_list)
+
+print (numpy_cloud.shape)
+print (numpy_cloud[:, -3:])
 
 # # clear up the wicked output of
 # import sklearn.neighbors.kd_tree

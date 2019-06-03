@@ -106,10 +106,21 @@ def compute_normals (numpy_cloud, file_path, field_labels_list, query_radius ):
         # join the normal_vector and sigma value to a 4x1 array and write them to the corresponding position
         additional_values[index, :] = np.append (normal_vector, sigma )
 
-    # delete normals if already computed # refactor
-    if ('Nx' in field_labels_list and success ):
-        field_labels_list = field_labels_list[:-4]
-        numpy_cloud = numpy_cloud[:, :-4]
+    # delete normals if already computed
+    if ('Nx' in field_labels_list
+       and 'Ny' in field_labels_list
+       and 'Nz' in field_labels_list
+       and 'Sigma' in field_labels_list ):
+        indices = []
+        indices.append (field_labels_list.index('Sigma' ))
+        indices.append (field_labels_list.index('Nz' ))
+        indices.append (field_labels_list.index('Ny' ))
+        indices.append (field_labels_list.index('Nx' ))
+
+        print ("Found previously computed normals. Removing the following fields: Nx, Ny, Nz and Sigma")
+
+        field_labels_list = [label for label in field_labels_list if field_labels_list.index(label) not in indices]
+        numpy_cloud = np.delete (numpy_cloud, indices, axis=1 )
 
     # add the newly computed values to the cloud
     numpy_cloud = np.concatenate ((numpy_cloud, additional_values ), axis=1 )
@@ -148,14 +159,14 @@ def do_icp (full_path_of_reference_cloud, full_path_of_aligned_cloud ):
     reference_cloud = input_output.load_ascii_file (full_path_of_reference_cloud )
 
     if ("DSM_Cloud" in full_path_of_reference_cloud):
-        reference_cloud = sample_cloud (reference_cloud, 6, deterministic_sampling=False )
+        reference_cloud = sample_cloud (reference_cloud, 5, deterministic_sampling=False )
 
     # load aligned clouds
     aligned_cloud = input_output.load_ascii_file (full_path_of_aligned_cloud )
 
     # sample DIM Clouds
     if ("DSM_Cloud" in full_path_of_aligned_cloud):
-        aligned_cloud = sample_cloud (aligned_cloud, 6, deterministic_sampling=False )
+        aligned_cloud = sample_cloud (aligned_cloud, 5, deterministic_sampling=False )
 
     translation, mean_squared_error = icp.icp (reference_cloud, aligned_cloud, verbose=False )
 
@@ -316,6 +327,16 @@ def apply_reduction (numpy_cloud, min_x_coordinate, min_y_coordinate ):
 
 
 def conditionalized_load (file_path ):
+    '''
+    Loads .las and .asc files.
+
+    Input:
+        file_path (string):     The path to the file to load. Include file extension.
+
+    Output:
+        numpy_cloud (np.array): The cloud values, fitted in a numpy nd array
+        field_labels_list:      The header of the file, containing the labels of the cloud fields (column titles)
+    '''
 
     field_labels_list = ['X', 'Y', 'Z']
     file_name, file_extension = splitext(file_path )
@@ -468,19 +489,19 @@ def get_icp_data_paths ():
 
 if __name__ == '__main__':
     # normals / reducing clouds
-    if (process_clouds_in_folder ('clouds/Regions/',
-                                  permitted_file_extension='.asc',
-                                  string_to_ignore='DIM_Cloud',
-                                  do_normal_calculation=True,
-                                  normals_computation_radius=2.5 )):
+    # if (process_clouds_in_folder ('clouds/Regions/',
+    #                               permitted_file_extension='.asc',
+    #                               string_to_ignore='DIM_Cloud',
+    #                               do_normal_calculation=True,
+    #                               normals_computation_radius=2.5 )):
+    #
+    #     print ("\n\nAll Clouds successfully processed.")
+    # else:
+    #     print ("Error. Not all clouds could be processed.")
 
-        print ("\n\nAll Clouds successfully processed.")
-    else:
-        print ("Error. Not all clouds could be processed.")
-
-    # # icp
-    # print ("\n\nComputing ICP for each cloud pair in reference_transformations.translations returns: "
-    #        + str(use_icp_on_dictionary (get_icp_data_paths () )))
+    # icp
+    print ("\n\nComputing ICP for each cloud pair in reference_transformations.translations returns: "
+           + str(use_icp_on_dictionary (get_icp_data_paths () )))
 
     # compare_icp_results (do_icp ('clouds/Regions/Everything/ALS14_Cloud_reduced_normals_cleared.asc',
     #                              'clouds/Regions/Everything/ALS16_Cloud _Scan54_reduced_normals.asc' ))
