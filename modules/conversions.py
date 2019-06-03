@@ -4,7 +4,7 @@ import numpy as np
 
 def reduce_cloud (input_cloud_numpy, copy=True, return_transformation=False, return_as_float32=False ):
 
-    # copy to avoid refernce disaster
+    # copy to avoid reference disaster
     if (copy ):
         numpy_cloud = input_cloud_numpy.copy ()
     else:
