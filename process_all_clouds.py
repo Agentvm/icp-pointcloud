@@ -50,25 +50,16 @@ def get_all_files_in_subfolders (path_to_folder, permitted_file_extension=None )
 
 def compute_normals (numpy_cloud, file_path, field_labels_list, query_radius ):
     '''
-    Computes Normals for a Cloud an concatenates the newly computed colums with the Cloud.
+    Computes Normals for a Cloud and concatenates the newly computed colums with the Cloud.
     '''
 
     # build a kdtree
     tree = sklearn.neighbors.kd_tree.KDTree (numpy_cloud, leaf_size=40, metric='euclidean')
 
-    # set radius for neighbor search
-    if ("DSM_Cloud" in file_path):  # DIM clouds are roughly 6 times more dense than ALS clouds
-        #query_radius = 0.8  # m
-        query_radius = 1.5  # m
-
-    # kdtree radius search (RAM intesive version)
-    #list_of_point_indices = tree.query_radius(numpy_cloud, r=query_radius )
     additional_values = np.zeros ((numpy_cloud.shape[0], 4 ))
-
     success = True
 
     # compute normals for each point
-    #for index, point_neighbor_indices in enumerate (list_of_point_indices ):
     for index, point in enumerate (numpy_cloud ):
 
         # check memory usage
@@ -401,7 +392,7 @@ def process_clouds_in_folder (path_to_folder,
         #file_name, file_extension = splitext(complete_file_path )
 
         # skip files containing string_to_ignore
-        if (string_to_ignore in complete_file_path):
+        if (string_to_ignore is not None and string_to_ignore in complete_file_path):
             continue
 
         # # load
@@ -440,8 +431,8 @@ def process_clouds_in_folder (path_to_folder,
 
         # save the cloud again
         if (cloud_altered):
-            #input_output.save_ascii_file (numpy_cloud, field_labels_list, complete_file_path )
-            input_output.save_ascii_file (numpy_cloud, field_labels_list, "clouds/tmp/normals_fixpoint_test.asc" )
+            input_output.save_ascii_file (numpy_cloud, field_labels_list, complete_file_path )
+            #input_output.save_ascii_file (numpy_cloud, field_labels_list, "clouds/tmp/normals_fixpoint_test.asc" )
 
         # set current to previous folder for folder-specific computations
         previous_folder = current_folder
@@ -488,20 +479,20 @@ def get_icp_data_paths ():
 
 
 if __name__ == '__main__':
-    # normals / reducing clouds
-    # if (process_clouds_in_folder ('clouds/Regions/',
-    #                               permitted_file_extension='.asc',
-    #                               string_to_ignore='DIM_Cloud',
-    #                               do_normal_calculation=True,
-    #                               normals_computation_radius=2.5 )):
-    #
-    #     print ("\n\nAll Clouds successfully processed.")
-    # else:
-    #     print ("Error. Not all clouds could be processed.")
+    # # normals / reducing clouds
+    if (process_clouds_in_folder ('clouds/Regions/',
+                                  permitted_file_extension='.asc',
+                                  string_to_ignore=None,
+                                  do_normal_calculation=True,
+                                  normals_computation_radius=2.5 )):
 
-    # icp
-    print ("\n\nComputing ICP for each cloud pair in reference_transformations.translations returns: "
-           + str(use_icp_on_dictionary (get_icp_data_paths () )))
+        print ("\n\nAll Clouds successfully processed.")
+    else:
+        print ("Error. Not all clouds could be processed.")
+
+    # # icp
+    # print ("\n\nComputing ICP for each cloud pair in reference_transformations.translations returns: "
+    #        + str(use_icp_on_dictionary (get_icp_data_paths () )))
 
     # compare_icp_results (do_icp ('clouds/Regions/Everything/ALS14_Cloud_reduced_normals_cleared.asc',
     #                              'clouds/Regions/Everything/ALS16_Cloud _Scan54_reduced_normals.asc' ))
