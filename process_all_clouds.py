@@ -369,14 +369,16 @@ def process_clouds_in_folder (path_to_folder,
 
     # crawl path
     full_paths = get_all_files_in_subfolders (path_to_folder, permitted_file_extension )
-    print ("full_paths: " + str (full_paths ))
+    #print ("full_paths: " + str (full_paths ))
 
     # # just print paths and quit, if no task was selected
     # if (not reduce_clouds and not do_normal_calculation ):
     #     return True
 
     # before start, check if files exist
+    print ("The following files will be processed:\n" )
     for file_path in full_paths:
+        #print (str (file_path ))
         if (input_output.check_for_file (file_path ) is False ):
             print ("File " + file_path + " was not found. Aborting.")
             return False
@@ -384,8 +386,13 @@ def process_clouds_in_folder (path_to_folder,
     # set process variables
     previous_folder = ""    # for folder comparison
 
+    steps = 3
+    steps = 11 * steps
+
+    print (full_paths[(-3 - steps):(-steps)])
+
     # process clouds
-    for complete_file_path in full_paths:
+    for complete_file_path in full_paths[(-3 - steps):(-steps)]:
         print ("\n\n-------------------------------------------------------")
 
         # # split path and extension
