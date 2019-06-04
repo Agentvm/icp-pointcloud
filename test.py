@@ -9,6 +9,16 @@ numpy_cloud = np.array([[1.1, 2.1, 3.1],
 
 #
 
+
+# # sort a list of tuples
+# list = [('folder/folder/a', 'folder/folder/b'),
+#         ('folder/folder/b', 'folder/folder/a'),
+#         ('folder/folder/a', 'folder/folder/c'),
+#         ('folder/folder/c', 'folder/folder/a')]
+#
+# print (sorted (list))
+
+
 # # clear up the wicked output of
 # import sklearn.neighbors.kd_tree
 #

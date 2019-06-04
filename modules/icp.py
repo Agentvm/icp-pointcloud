@@ -6,18 +6,17 @@ import time                 # measure time
 import itertools            # speed improvement when making a [list] out of a [list of [lists]]
 
 
-def icp (numpy_reference_cloud, numpy_aligned_cloud, verbose = False ):
+def icp (numpy_reference_cloud, numpy_aligned_cloud, accuracy=0.05, verbose=False ):
     '''
-    Iterative closest point algorithm that computes the translation from input_aligned_cloud to input_reference_cloud.
+    Iterative closest point algorithm that computes the translation from numpy_aligned_cloud to numpy_reference_cloud.
 
     Input:
-        input_aligned_cloud (np.array):                 Input Cloud. This Cloud will be moved to match cloud_2.
-        input_reference_cloud (np.array):                 Input Cloud. This Cloud will stay fixed in place.
-        kd_tree_of_cloud_2 (sklearn.neighbors.KDTree):  A kd search tree build with the sklern library.
+        input_reference_cloud (np.array):       Input Cloud. This Cloud will stay fixed in place.
+        input_aligned_cloud (np.array):         Input Cloud. This Cloud will be moved to match the reference cloud.
+        accuracy (float):                       The desired accuracy of alignment in meters
 
     Output:
-        translation ((x, y, z) tuple):          The estimated translation between input_aligned_cloud
-                                                and input_reference_cloud.
+        translation ((x, y, z) tuple):          The estimated translation between aligned_cloud and reference_cloud.
         mean_squared_error ((x, y, z) tuple):   The remaining MSE in x, y and z direction
     '''
 
@@ -41,7 +40,7 @@ def icp (numpy_reference_cloud, numpy_aligned_cloud, verbose = False ):
     clouds_delta_previous_iteration = np.array([0, 0, 0])
 
     # iterate while there is a change in the position of the shifted cloud
-    while (np.linalg.norm (clouds_delta - clouds_delta_previous_iteration) > 1*10**(-12 ) and iterations < 3000):
+    while (np.linalg.norm (clouds_delta - clouds_delta_previous_iteration) > accuracy and iterations < 3000):
         if (verbose):
             print ('\n----------------------------------------------')
             print ('iteration nb.: ' + str(iterations) + ', diff: '

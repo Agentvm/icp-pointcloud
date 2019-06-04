@@ -308,3 +308,8 @@ def ransac_plane_estimation (input_numpy_cloud, threshold, fixed_point=None, w =
     #print('RANSAC completed in ' + str(time.time() - start_time) + ' seconds.\n' )
 
     return np.array (consensus_normal_vector), np.array (consensus_points).copy ()
+
+
+if (random.seed != 1337):
+    random.seed = 1337
+    print ("Random Seed set to: " + str(random.seed ))

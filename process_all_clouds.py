@@ -181,24 +181,30 @@ def compare_icp_results (icp_results ):
 
     reference_dict = reference_transformations.translations
 
-    # go through the path for aligned clouds from the icp results
-    for results_key in icp_results:
+    # # sort the results
+    # create a list of tuples from reference and aligned cloud file paths
+    unssorted_results = []
+    for paths in icp_results:
+        unssorted_results.append ((paths, icp_results[paths]) )
 
-        # find the computed results in the reference data
-        if (results_key in reference_dict ):
+    sorted_results = sorted(unssorted_results )
+
+    for paths, translation_value in sorted_results:
+
+        if (paths in reference_dict ):
 
             # disassemble the key
-            reference_path, aligned_path = results_key
+            reference_path, aligned_path = paths
 
             folder, reference_file_name = get_folder_and_file_name (reference_path)
             folder, aligned_file_name = get_folder_and_file_name (aligned_path)     # folder should be the the same
 
             # unpack values
-            ref_translation, ref_mse = reference_dict [results_key]
-            icp_translation, icp_mse = icp_results [results_key]
+            ref_translation, ref_mse = reference_dict [paths]
+            icp_translation, icp_mse = translation_value
 
             # print comparison
-            print ('\n' + folder + "/:"
+            print ('\n' + folder + "/"
                    + "\nreference cloud:\t" + reference_file_name
                    + "\naligned cloud:\t\t" + aligned_file_name
                    + "\n\tdata alignment:\t" + '({: .8f}, '.format(ref_translation[0])
@@ -229,14 +235,15 @@ def use_icp_on_dictionary (icp_paths_dictionary ):
                 print ("File " + aligned_cloud_path + " was not found. Aborting.")
                 return False
 
-    icp_results = {}
-    for reference_file_path in icp_paths_dictionary:
+    icp_results = {}    # dictionary
 
-        for aligned_cloud_path in icp_paths_dictionary[reference_file_path]:
-
+    # create a list of tuples from reference and aligned cloud file paths
+    for reference_cloud_path in icp_paths_dictionary:
+        for aligned_cloud_path in icp_paths_dictionary[reference_cloud_path]:   # multiple aligned clouds possible
             # do the icp
-            icp_results.update (do_icp (reference_file_path, aligned_cloud_path ))
+            icp_results.update (do_icp (reference_cloud_path, aligned_cloud_path ))
 
+    # prints the values computed along with the ground truth in the dictionary
     compare_icp_results (icp_results )
 
     return True
@@ -485,7 +492,16 @@ def get_icp_data_paths ():
     return dict
 
 
+if (random.seed != 1337):
+    random.seed = 1337
+    print ("Random Seed set to: " + str(random.seed ))
+
 if __name__ == '__main__':
+
+    if (random.seed != 1337):
+        random.seed = 1337
+        print ("Random Seed set to: " + str(random.seed ))
+
     # # normals / reducing clouds
     if (process_clouds_in_folder ('clouds/Regions/',
                                   permitted_file_extension='.asc',
