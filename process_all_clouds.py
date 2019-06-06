@@ -505,7 +505,7 @@ if __name__ == '__main__':
     # # normals / reducing clouds
     if (process_clouds_in_folder ('clouds/Regions/',
                                   permitted_file_extension='.asc',
-                                  string_to_ignore=None,
+                                  string_to_ignore='Results',
                                   do_normal_calculation=True,
                                   normals_computation_radius=2.5 )):
 
