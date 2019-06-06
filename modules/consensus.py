@@ -4,6 +4,7 @@ from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 import sklearn.neighbors    # kdtree
 import input_output
+import time
 
 
 def vector_array_distance (xyz_array, compared_xyz_array=None ):
@@ -36,16 +37,26 @@ def cloud_consensus (numpy_cloud, corresponding_cloud, threshold ):
         consensus_count (int):                  Number of points with neighbors in suitable range
         consensus_vector ([n, 1] np.array):     Contains 1 if the point had a neighbor in threshold range, else 0
     '''
+    start_time = time.time ()
 
+    part_time_1 = time.time ()
     numpy_cloud = numpy_cloud[:, 0:3]
     corresponding_cloud = corresponding_cloud[:, 0:3]
+    part_time_1 = time.time () - part_time_1
 
+    part_time_2 = time.time ()
     tree = sklearn.neighbors.kd_tree.KDTree (corresponding_cloud, leaf_size=40, metric='euclidean')
+    part_time_2 = time.time () - part_time_2
 
+    part_time_3 = time.time ()
     list_consensus_counts = tree.query_radius (numpy_cloud, threshold, return_distance=False, count_only=True)
-    consensus_vector = np.array([1 if count > 0 else 0 for count in list_consensus_counts ])
+    part_time_3 = time.time () - part_time_3
 
-    return np.sum(consensus_vector), consensus_vector
+    part_time_4 = time.time ()
+    consensus_vector = np.array([1 if count > 0 else 0 for count in list_consensus_counts ])
+    part_time_4 = time.time () - part_time_4
+
+    return np.sum(consensus_vector), consensus_vector, (time.time () - start_time, part_time_1, part_time_2, part_time_3, part_time_4)
 
 
 def cubic_cloud_consensus (numpy_cloud, compared_cloud, threshold, cubus_length, step, return_consensus_cloud=False ):
@@ -65,6 +76,13 @@ def cubic_cloud_consensus (numpy_cloud, compared_cloud, threshold, cubus_length,
         best_alignment_consensus_count (int):
         consensus_cube ((n, 4) numpy array):
     '''
+
+    consensus_round_time = 0
+    consensus_part_time_1 = 0
+    consensus_part_time_2 = 0
+    consensus_part_time_3 = 0
+    consensus_part_time_4 = 0
+    start_time = time.time ()
 
     numpy_cloud = numpy_cloud[:, 0:3]
     compared_cloud = compared_cloud[:, 0:3]
@@ -91,9 +109,15 @@ def cubic_cloud_consensus (numpy_cloud, compared_cloud, threshold, cubus_length,
                                z_iterator * step )
 
                 # find consenting points in the translated compared_cloud
-                consensus_count, consensus_vector = cloud_consensus (numpy_cloud,
+                consensus_count, consensus_vector, consensus_time = cloud_consensus (numpy_cloud,
                                                                      compared_cloud + translation,
                                                                      threshold )
+
+                consensus_round_time = consensus_round_time + consensus_time[0]
+                consensus_part_time_1 = consensus_part_time_1 + consensus_time[1]
+                consensus_part_time_2 = consensus_part_time_2 + consensus_time[2]
+                consensus_part_time_3 = consensus_part_time_3 + consensus_time[3]
+                consensus_part_time_4 = consensus_part_time_4 + consensus_time[4]
 
                 if (consensus_count > best_consensus_count ):
                     best_alignment = translation
@@ -107,6 +131,13 @@ def cubic_cloud_consensus (numpy_cloud, compared_cloud, threshold, cubus_length,
                                                            consensus_count)
 
                 iteration_count = iteration_count + 1
+
+    print ("cloud_consensus Time: " + str (consensus_round_time / cubus_size ))
+    print ("cloud_consensus Time Part 1: " + str (consensus_part_time_1 / cubus_size ))
+    print ("cloud_consensus Time Part 2: " + str (consensus_part_time_2 / cubus_size ))
+    print ("cloud_consensus Time Part 3: " + str (consensus_part_time_3 / cubus_size ))
+    print ("cloud_consensus Time Part 4: " + str (consensus_part_time_4 / cubus_size ))
+    print ("Overall Time: " + str (time.time () - start_time ))
 
     if (return_consensus_cloud ):
         return best_alignment, best_consensus_count, best_alignment_consensus_vector, consensus_cloud
@@ -129,12 +160,12 @@ def show_consensus_cube (consensus_cube ):
     # normalize consensus row
     normalized_consensus_counts = consensus_cube[:, 3] / np.max(consensus_cube[:, 3])
 
-    print ("normalized_consensus_counts: " + str (normalized_consensus_counts ))
+    #print ("normalized_consensus_counts: " + str (normalized_consensus_counts ))
 
     # # color the plot
     rgba_colors = np.zeros((normalized_consensus_counts.size, 4 ))
 
-    print ("consensus_cube:\n" + str (consensus_cube ))
+    #print ("consensus_cube:\n" + str (consensus_cube ))
 
     # fill the colors
     rgba_colors[:, 0] = 0.1
@@ -155,22 +186,20 @@ def show_consensus_cube (consensus_cube ):
 
 
 # small cloud
-numpy_cloud = np.array([[1, 0, 0],
-                        [2, 0, 0],
-                        [3, 0, 0],
-                        [4, 0, 0],
-                        [5, 0, 0],
-                        [6, 0, 0]] )
-random1 = np.random.uniform ((-0.5, -0.5, -0.5), (0.5, 0.5, 0.5))
+numpy_cloud = np.random.uniform (-1000, 1000, (100, 3 ))
+
+print ('numpy_cloud.shape: ' + str (numpy_cloud.shape ))
+
+random1 = np.random.uniform ((-1, -1, -1), (1, 1, 1))
 print ("random1: " + str(random1 ))
 corresponding_cloud = numpy_cloud + random1
 
 # # big cloud
 # missing_building_als = input_output.load_ascii_file (
-#     'clouds/Regions/Missing Building/ALS16_Cloud_reduced_normals_cleared.asc' )
+#     'clouds/Regions/Xy Tower/ALS16_Cloud_reduced_normals_cleared.asc' )
 #
 # missing_building_dim = input_output.load_ascii_file (
-#     'clouds/Regions/Missing Building/DSM_Cloud_reduced_normals.asc' )
+#     'clouds/Regions/Xy Tower/DSM_Cloud_reduced_normals.asc' )
 
 best_alignment, best_consensus_count, best_alignment_consensus_vector, consensus_cloud = \
     cubic_cloud_consensus (numpy_cloud,
