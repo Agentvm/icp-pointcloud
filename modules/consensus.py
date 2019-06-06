@@ -97,9 +97,11 @@ def cubic_cloud_consensus (numpy_cloud, compared_cloud, threshold, cubus_length,
     best_consensus_count = 0  #
 
     iteration_count = 0
-    for x_iterator in range (-math.floor (steps_number / 2), math.ceil (steps_number / 2 )):
-        for y_iterator in range (-math.floor (steps_number / 2), math.ceil (steps_number / 2 )):
-            for z_iterator in range (-math.floor (steps_number / 2), math.ceil (steps_number / 2 )):
+    min = -math.floor (steps_number / 2)
+    max = math.ceil (steps_number / 2 )
+    for x_iterator in range (min, max ):
+        for y_iterator in range (min, max ):
+            for z_iterator in range (min, max ):
 
                 if (iteration_count % int(cubus_size / 10) == 0):
                     print ("Progress: " + "{:.1f}".format ((iteration_count / cubus_size) * 100.0 ) + " %" )
@@ -137,6 +139,7 @@ def cubic_cloud_consensus (numpy_cloud, compared_cloud, threshold, cubus_length,
     print ("cloud_consensus Time Part 2: " + str (consensus_part_time_2 / cubus_size ))
     print ("cloud_consensus Time Part 3: " + str (consensus_part_time_3 / cubus_size ))
     print ("cloud_consensus Time Part 4: " + str (consensus_part_time_4 / cubus_size ))
+    print ("Overall Time - Consensus Time: " + str (time.time () - start_time - consensus_round_time))
     print ("Overall Time: " + str (time.time () - start_time ))
 
     if (return_consensus_cloud ):
@@ -190,7 +193,7 @@ numpy_cloud = np.random.uniform (-1000, 1000, (100, 3 ))
 
 print ('numpy_cloud.shape: ' + str (numpy_cloud.shape ))
 
-random1 = np.random.uniform ((-1, -1, -1), (1, 1, 1))
+random1 = np.random.uniform ((-1, -1, -1), (1, 1, 1 ))
 print ("random1: " + str(random1 ))
 corresponding_cloud = numpy_cloud + random1
 
