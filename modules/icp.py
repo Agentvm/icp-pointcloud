@@ -6,7 +6,7 @@ import time                 # measure time
 import itertools            # speed improvement when making a [list] out of a [list of [lists]]
 
 
-def icp (numpy_reference_cloud, numpy_aligned_cloud, accuracy=0.05, verbose=False ):
+def icp (numpy_reference_cloud, numpy_aligned_cloud, accuracy=0.000001, verbose=False ):
     '''
     Iterative closest point algorithm that computes the translation from numpy_aligned_cloud to numpy_reference_cloud.
 
