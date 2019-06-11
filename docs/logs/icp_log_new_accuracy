@@ -1,0 +1,290 @@
+Random Seed set to: 1337
+
+Loading file clouds/Regions/DIM showcase/ALS16_Cloud_reduced_normals_cleared.asc ...
+Cloud loaded in 0.9909934997558594 seconds.
+Number of points: 65716
+
+Loading file clouds/Regions/DIM showcase/DSM_Cloud_reduced_normals.asc ...
+Cloud loaded in 3.8404409885406494 seconds.
+Number of points: 288338
+Cloud sampled, divisor: 5. Cloud size / previous cloud size: 57667/288338
+
+ICP finished in 19.60809874534607 seconds
+
+Loading file clouds/Regions/Everything/ALS16_Cloud_reduced_normals_cleared.asc ...
+Cloud loaded in 3.422372579574585 seconds.
+Number of points: 273124
+
+Loading file clouds/Regions/Everything/DSM_Cloud_reduced_normals.asc ...
+Cloud loaded in 14.711179256439209 seconds.
+Number of points: 1074381
+Cloud sampled, divisor: 5. Cloud size / previous cloud size: 214876/1074381
+
+ICP finished in 76.4036717414856 seconds
+
+Loading file clouds/Regions/Forest/ALS16_Cloud_reduced_normals_cleared.asc ...
+Cloud loaded in 0.18996167182922363 seconds.
+Number of points: 19606
+
+Loading file clouds/Regions/Forest/DSM_Cloud_reduced_normals.asc ...
+Cloud loaded in 7.412149667739868 seconds.
+Number of points: 748247
+Cloud sampled, divisor: 5. Cloud size / previous cloud size: 149649/748247
+
+ICP finished in 48.83299160003662 seconds
+
+Loading file clouds/Regions/Yz Houses/ALS16_Cloud_reduced_normals_cleared.asc ...
+Cloud loaded in 2.7412497997283936 seconds.
+Number of points: 262001
+
+Loading file clouds/Regions/Yz Houses/DSM_Cloud_reduced_normals.asc ...
+Cloud loaded in 14.835469245910645 seconds.
+Number of points: 1485847
+Cloud sampled, divisor: 5. Cloud size / previous cloud size: 297169/1485847
+
+ICP finished in 103.59443402290344 seconds
+
+Loading file clouds/Regions/Road/ALS16_Cloud_reduced_normals_cleared.asc ...
+Cloud loaded in 0.6541550159454346 seconds.
+Number of points: 64707
+
+Loading file clouds/Regions/Road/DSM_Cloud_reduced_normals.asc ...
+Cloud loaded in 4.14269757270813 seconds.
+Number of points: 417002
+Cloud sampled, divisor: 5. Cloud size / previous cloud size: 83400/417002
+
+ICP finished in 62.979873180389404 seconds
+
+Loading file clouds/Regions/Xz Hall/ALS16_Cloud_reduced_normals_cleared.asc ...
+Cloud loaded in 1.3665556907653809 seconds.
+Number of points: 133495
+
+Loading file clouds/Regions/Xz Hall/DSM_Cloud_reduced_normals.asc ...
+Cloud loaded in 5.007962465286255 seconds.
+Number of points: 511890
+Cloud sampled, divisor: 5. Cloud size / previous cloud size: 102378/511890
+
+ICP finished in 58.91481590270996 seconds
+
+Loading file clouds/Regions/Missing Building/ALS16_Cloud_reduced_normals_cleared.asc ...
+Cloud loaded in 4.92892050743103 seconds.
+Number of points: 337593
+
+Loading file clouds/Regions/Missing Building/DSM_Cloud_reduced_normals.asc ...
+Cloud loaded in 25.993317127227783 seconds.
+Number of points: 2285280
+Cloud sampled, divisor: 5. Cloud size / previous cloud size: 457056/2285280
+
+ICP finished in 274.3425991535187 seconds
+
+Loading file clouds/Regions/Xyz Square/ALS16_Cloud_reduced_normals_cleared.asc ...
+Cloud loaded in 0.5243957042694092 seconds.
+Number of points: 43884
+
+Loading file clouds/Regions/Xyz Square/DSM_Cloud_reduced_normals.asc ...
+Cloud loaded in 3.819765567779541 seconds.
+Number of points: 329613
+Cloud sampled, divisor: 5. Cloud size / previous cloud size: 65922/329613
+
+ICP finished in 30.7940456867218 seconds
+
+Loading file clouds/Regions/Field/ALS16_Cloud_reduced_normals_cleared.asc ...
+Cloud loaded in 3.198889970779419 seconds.
+Number of points: 204312
+
+Loading file clouds/Regions/Field/DSM_Cloud_reduced_normals.asc ...
+Cloud loaded in 12.742570877075195 seconds.
+Number of points: 1039086
+Cloud sampled, divisor: 5. Cloud size / previous cloud size: 207817/1039086
+
+ICP finished in 151.24274253845215 seconds
+
+Loading file clouds/Regions/Missing Building/ALS14_Cloud_reduced_normals_cleared.asc ...
+Cloud loaded in 1.635638952255249 seconds.
+Number of points: 106500
+
+Loading file clouds/Regions/Missing Building/DSM_Cloud_reduced_normals.asc ...
+Cloud loaded in 28.00548481941223 seconds.
+Number of points: 2285280
+Cloud sampled, divisor: 5. Cloud size / previous cloud size: 457056/2285280
+
+ICP finished in 565.7941422462463 seconds
+
+Loading file clouds/Regions/Missing Building/ALS14_Cloud_reduced_normals_cleared.asc ...
+Cloud loaded in 1.5591979026794434 seconds.
+Number of points: 106500
+
+Loading file clouds/Regions/Missing Building/ALS16_Cloud_reduced_normals_cleared.asc ...
+Cloud loaded in 3.9834587574005127 seconds.
+Number of points: 337593
+
+ICP finished in 663.837717294693 seconds
+
+Loading file clouds/Regions/Xy Tower/ALS16_Cloud_reduced_normals_cleared.asc ...
+Cloud loaded in 0.06842947006225586 seconds.
+Number of points: 5959
+
+Loading file clouds/Regions/Xy Tower/DSM_Cloud_reduced_normals.asc ...
+Cloud loaded in 0.4163322448730469 seconds.
+Number of points: 41974
+Cloud sampled, divisor: 5. Cloud size / previous cloud size: 8394/41974
+
+ICP finished in 0.9213054180145264 seconds
+
+Loading file clouds/Regions/Everything/ALS14_Cloud_reduced_normals_cleared.asc ...
+Cloud loaded in 0.4463183879852295 seconds.
+Number of points: 42029
+
+Loading file clouds/Regions/Everything/ALS16_Cloud_reduced_normals_cleared.asc ...
+Cloud loaded in 2.6642866134643555 seconds.
+Number of points: 273124
+
+ICP finished in 421.498069524765 seconds
+
+Loading file clouds/Regions/Everything/ALS14_Cloud_reduced_normals_cleared.asc ...
+Cloud loaded in 0.48494768142700195 seconds.
+Number of points: 42029
+
+Loading file clouds/Regions/Everything/DSM_Cloud_reduced_normals.asc ...
+Cloud loaded in 14.126503944396973 seconds.
+Number of points: 1074381
+Cloud sampled, divisor: 5. Cloud size / previous cloud size: 214876/1074381
+
+ICP finished in 244.79519367218018 seconds
+
+Loading file clouds/Regions/Color Houses/ALS16_Cloud_reduced_normals_cleared.asc ...
+Cloud loaded in 0.3556509017944336 seconds.
+Number of points: 29837
+
+Loading file clouds/Regions/Color Houses/DSM_Cloud_reduced_normals.asc ...
+Cloud loaded in 7.72701621055603 seconds.
+Number of points: 557801
+Cloud sampled, divisor: 5. Cloud size / previous cloud size: 111560/557801
+
+ICP finished in 25.0414080619812 seconds
+
+Loading file clouds/Regions/Yz Street/ALS16_Cloud_reduced_normals_cleared.asc ...
+Cloud loaded in 3.7946319580078125 seconds.
+Number of points: 293127
+
+Loading file clouds/Regions/Yz Street/DSM_Cloud_reduced_normals.asc ...
+Cloud loaded in 12.129834651947021 seconds.
+Number of points: 1016207
+Cloud sampled, divisor: 5. Cloud size / previous cloud size: 203241/1016207
+
+ICP finished in 122.34954452514648 seconds
+
+Loading file clouds/Regions/Everything/ALS16_Cloud _Scan54_reduced_normals.asc ...
+Cloud loaded in 4.171434640884399 seconds.
+Number of points: 294254
+
+Loading file clouds/Regions/Everything/ALS16_Cloud _Scan55_reduced_normals.asc ...
+Cloud loaded in 2.2218873500823975 seconds.
+Number of points: 212255
+
+ICP finished in 109.7273964881897 seconds
+
+Color Houses/
+reference cloud:	ALS16_Cloud_reduced_
+aligned cloud:		DSM_Cloud_reduced_
+	data alignment:	(-0.04199409,  0.04444504,  0.01750374),   0.11067200, 
+	icp alignment:	( 0.09864286,  0.03564401, -0.23459308), ( 0.00000000,  0.00000000,  0.00000000) 
+
+DIM showcase/
+reference cloud:	ALS16_Cloud_reduced_
+aligned cloud:		DSM_Cloud_reduced_
+	data alignment:	(-0.00337791,  0.09384155, -0.13357544),   0.10708100, 
+	icp alignment:	( 0.12792622, -0.24462657, -0.14004812), ( 0.00000000,  0.00000000,  0.00000000) 
+
+Everything/
+reference cloud:	ALS14_Cloud_reduced_
+aligned cloud:		ALS16_Cloud_reduced_
+	data alignment:	( 0.01512909, -0.03428268,  0.20900965),   0.08629350, 
+	icp alignment:	(-8.11195657,  2.92718860, -0.31691730), ( 0.00000000,  0.00000986,  0.00000000) 
+
+Everything/
+reference cloud:	ALS14_Cloud_reduced_
+aligned cloud:		DSM_Cloud_reduced_
+	data alignment:	( 0.01512909, -0.03428268,  0.20900965),   0.08629350, 
+	icp alignment:	(-8.47712255,  1.58571202, -0.61282978), ( 0.00000000,  0.00000000,  0.00000000) 
+
+Everything/
+reference cloud:	ALS16_Cloud _Scan54_
+aligned cloud:		ALS16_Cloud _Scan55_
+	data alignment:	( 0.00580597, -0.01120758, -0.01881409),   0.04528530, 
+	icp alignment:	( 0.34429442, -0.05473916, -0.00426233), ( 0.00001362,  0.00009669,  0.00000006) 
+
+Everything/
+reference cloud:	ALS16_Cloud_reduced_
+aligned cloud:		DSM_Cloud_reduced_
+	data alignment:	( 0.05788040,  0.04698181, -0.01528549),   0.09530880, 
+	icp alignment:	(-0.01512663,  0.11508806, -0.09307337), ( 0.00000000,  0.00000000,  0.00000000) 
+
+Field/
+reference cloud:	ALS16_Cloud_reduced_
+aligned cloud:		DSM_Cloud_reduced_
+	data alignment:	( 0.00234985, -0.05726624,  0.24056770),   0.13996900, 
+	icp alignment:	(-0.02999802,  0.00536467, -0.14919334), ( 0.00000851,  0.00000106,  0.00000002) 
+
+Forest/
+reference cloud:	ALS16_Cloud_reduced_
+aligned cloud:		DSM_Cloud_reduced_
+	data alignment:	( 0.00000000,  0.00000000,  0.00000000),   0.00000000, 
+	icp alignment:	(-2.25365287, -3.36473759, -0.11304421), ( 0.00000000,  0.00000000,  0.00000000) 
+
+Missing Building/
+reference cloud:	ALS14_Cloud_reduced_
+aligned cloud:		ALS16_Cloud_reduced_
+	data alignment:	(-0.03955841, -0.02549744,  0.00821686),   0.28221600, 
+	icp alignment:	(-0.01119095, -0.18303436,  0.80700484), ( 0.00002504,  0.00000002,  0.00000003) 
+
+Missing Building/
+reference cloud:	ALS14_Cloud_reduced_
+aligned cloud:		DSM_Cloud_reduced_
+	data alignment:	(-0.03955841, -0.02549744,  0.00821686),   0.28221600, 
+	icp alignment:	( 0.48469832, -0.56654584,  0.66713481), ( 0.00000000,  0.00000000,  0.00000000) 
+
+Missing Building/
+reference cloud:	ALS16_Cloud_reduced_
+aligned cloud:		DSM_Cloud_reduced_
+	data alignment:	(-0.00115967,  0.03004456,  0.01741219),   0.13160100, 
+	icp alignment:	(-0.05861624, -0.19376078, -0.13757500), ( 0.00013530,  0.00003464,  0.00000002) 
+
+Road/
+reference cloud:	ALS16_Cloud_reduced_
+aligned cloud:		DSM_Cloud_reduced_
+	data alignment:	( 0.02311707,  0.00819778,  0.01312923),   0.12238800, 
+	icp alignment:	(-1.04372880,  0.35911112, -0.13534037), ( 0.00000000,  0.00000000,  0.00000000) 
+
+Xy Tower/
+reference cloud:	ALS16_Cloud_reduced_
+aligned cloud:		DSM_Cloud_reduced_
+	data alignment:	(-0.82777023,  0.16250610,  0.19129372),   0.11620700, 
+	icp alignment:	( 0.01669736, -0.00830808,  0.03436319), ( 0.00000000,  0.00000000,  0.00000000) 
+
+Xyz Square/
+reference cloud:	ALS16_Cloud_reduced_
+aligned cloud:		DSM_Cloud_reduced_
+	data alignment:	(-0.00502396,  0.00120544,  0.08315659),   0.09530000, 
+	icp alignment:	(-0.08984794,  0.17435764,  0.01461246), ( 0.00000000,  0.00000000,  0.00000000) 
+
+Xz Hall/
+reference cloud:	ALS16_Cloud_reduced_
+aligned cloud:		DSM_Cloud_reduced_
+	data alignment:	(-0.07741356,  0.12177658,  0.03017044),   0.11026600, 
+	icp alignment:	(-0.04716166, -0.03807418, -0.03992708), ( 0.00000000,  0.00000000,  0.00000000) 
+
+Yz Houses/
+reference cloud:	ALS16_Cloud_reduced_
+aligned cloud:		DSM_Cloud_reduced_
+	data alignment:	( 0.31462097, -0.01929474, -0.03573704),   0.25271400, 
+	icp alignment:	( 0.35897160,  0.01135238, -0.10182163), ( 0.00000068,  0.00000009,  0.00000000) 
+
+Yz Street/
+reference cloud:	ALS16_Cloud_reduced_
+aligned cloud:		DSM_Cloud_reduced_
+	data alignment:	( 0.05511093, -0.00445557, -0.09546852),   0.03810340, 
+	icp alignment:	(-0.17405900,  0.14075322, -0.16364951), ( 0.00000000,  0.00000000,  0.00000000) 
+
+
+Computing ICP for each cloud pair in reference_transformations.translations returns: True
