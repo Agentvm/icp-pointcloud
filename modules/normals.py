@@ -40,6 +40,19 @@ def pcl_compute_normals (pcl_cloud):
     return normals
 
 
+def vector_magnitude (vector):
+
+    if (np.sum (vector ) == 0):
+        print ("In vector_magnitude: Vector is 0. Returning input vector.")
+        return vector
+
+    vector_magnitude = 0
+    for value in vector:
+        vector_magnitude = vector_magnitude + np.float_power (value, 2 )
+
+    return sqrt (vector_magnitude )
+
+
 def normalize_vector (vector ):
     '''
     Takes a vector and returns it's unit vector

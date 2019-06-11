@@ -79,7 +79,7 @@ def compute_normals (numpy_cloud, file_path, field_labels_list, query_radius ):
         # kdtree radius search
         point_neighbor_indices = tree.query_radius(point.reshape (1, -1), r=query_radius )
 
-        # thank you very much indeed for this wicked output, sklearn.neighbors.kd_tree :'D
+        # just get all indices in the point radius
         point_neighbor_indices = [nested_value for value in point_neighbor_indices for nested_value in value]
 
         # make kdtree smaller in DSM clouds to avoid too many matches slowing the process down

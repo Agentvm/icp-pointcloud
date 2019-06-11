@@ -6,9 +6,20 @@ numpy_cloud = np.array([[1.1, 2.1, 3.1],
                         [1.4, 2.4, 3.4],
                         [1.5, 2.5, 3.5],
                         [1.6, 2.6, 3.6]] )
-
 #
 
+
+# # reshape arrays to concat them
+#import math
+#
+#
+# an_array = np.array ((1, 2, 3)).reshape (1, 3)
+#
+# print ("numpy_cloud.shape: " + str(numpy_cloud.shape ))
+# print ("an_array.shape: " + str(an_array.shape ))
+# print (
+#     np.concatenate (  (numpy_cloud, an_array, an_array), axis=0 )
+# )
 
 # # sort a list of tuples
 # list = [('folder/folder/a', 'folder/folder/b'),
