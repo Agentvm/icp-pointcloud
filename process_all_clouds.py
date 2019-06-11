@@ -17,6 +17,7 @@ def get_all_files_in_subfolders (path_to_folder, permitted_file_extension=None )
     '''
 
     # find all directories below path_to_folder
+    dirnames = []
     f = []
     for (dirpath, dirnames, file_names) in walk(path_to_folder):
         f.extend(file_names)
@@ -54,13 +55,13 @@ def compute_normals (numpy_cloud, file_path, field_labels_list, query_radius ):
     '''
 
     # build a kdtree
-    tree = sklearn.neighbors.kd_tree.KDTree (numpy_cloud, leaf_size=40, metric='euclidean')
+    tree = sklearn.neighbors.kd_tree.KDTree (numpy_cloud[:, 0:3], leaf_size=40, metric='euclidean')
 
     additional_values = np.zeros ((numpy_cloud.shape[0], 4 ))
     success = True
 
     # compute normals for each point
-    for index, point in enumerate (numpy_cloud ):
+    for index, point in enumerate (numpy_cloud[:, 0:3] ):
 
         # check memory usage
         if (psutil.virtual_memory().percent > 95.0):
@@ -80,6 +81,11 @@ def compute_normals (numpy_cloud, file_path, field_labels_list, query_radius ):
 
         # thank you very much indeed for this wicked output, sklearn.neighbors.kd_tree :'D
         point_neighbor_indices = [nested_value for value in point_neighbor_indices for nested_value in value]
+
+        # make kdtree smaller in DSM clouds to avoid too many matches slowing the process down
+        if (len (point_neighbor_indices ) > 500):
+            indices = random.sample(range(0, len (point_neighbor_indices ) ), int (len (point_neighbor_indices ) / 5 ))
+            point_neighbor_indices = [point_neighbor_indices[i] for i in indices]
 
         # you can't estimate a cloud with less than three neighbors
         if (len (point_neighbor_indices) < 3 ):
@@ -115,27 +121,27 @@ def compute_normals (numpy_cloud, file_path, field_labels_list, query_radius ):
 
     # add the newly computed values to the cloud
     numpy_cloud = np.concatenate ((numpy_cloud, additional_values ), axis=1 )
-    field_labels_list.append('Nx ' 'Ny ' 'Nz ' 'Sigma' )
+    field_labels_list = field_labels_list + ['Nx ', 'Ny ', 'Nz ', 'Sigma']
 
     return numpy_cloud, field_labels_list, success
 
 
-def sample_cloud (numpy_cloud, sample_factor, deterministic_sampling=False ):
+def sample_cloud (numpy_cloud, sample_divisor, deterministic_sampling=False ):
     '''
-    Samples a cloud by a given factor.
+    Samples a cloud by a given divisor. If sample_divisor=4, cloud is 4 times as small after sampling.
     '''
     previous_length = numpy_cloud.shape[0]
 
     # deterministic sampling
     if (deterministic_sampling ):
-        numpy_cloud = numpy_cloud[::sample_factor]
+        numpy_cloud = numpy_cloud[::sample_divisor]
     # random sampling
     else:
-        indices = random.sample(range(0, numpy_cloud.shape[0] ), int (numpy_cloud.shape[0] / sample_factor ))
+        indices = random.sample(range(0, numpy_cloud.shape[0] ), int (numpy_cloud.shape[0] / sample_divisor ))
         numpy_cloud = numpy_cloud[indices, :]
 
-    print ("DIM Cloud sampled, factor: "
-           + str(sample_factor )
+    print ("Cloud sampled, divisor: "
+           + str(sample_divisor )
            + ". Cloud size / previous cloud size: "
            + str(numpy_cloud.shape[0] )
            + "/"
@@ -364,7 +370,7 @@ def conditionalized_load (file_path ):
 
 def process_clouds_in_folder (path_to_folder,
                               permitted_file_extension=None,
-                              string_to_ignore="",
+                              string_list_to_ignore="",
                               reduce_clouds=False,
                               do_normal_calculation=False,
                               normals_computation_radius=2.5 ):
@@ -385,7 +391,10 @@ def process_clouds_in_folder (path_to_folder,
     # before start, check if files exist
     print ("The following files will be processed:\n" )
     for file_path in full_paths:
-        #print (str (file_path ))
+
+        if (string_list_to_ignore is None
+           or not any(ignore_string in file_path for ignore_string in string_list_to_ignore ) ):
+            print (str (file_path ))
         if (input_output.check_for_file (file_path ) is False ):
             print ("File " + file_path + " was not found. Aborting.")
             return False
@@ -393,20 +402,17 @@ def process_clouds_in_folder (path_to_folder,
     # set process variables
     previous_folder = ""    # for folder comparison
 
-    steps = 3
-    steps = 11 * steps
-
-    print (full_paths[(-3 - steps):(-steps)])
-
     # process clouds
-    for complete_file_path in full_paths[(-3 - steps):(-steps)]:
+    #for complete_file_path in full_paths[(-6 - steps):(-steps)]:
+    for complete_file_path in full_paths:
         print ("\n\n-------------------------------------------------------")
 
         # # split path and extension
         #file_name, file_extension = splitext(complete_file_path )
 
-        # skip files containing string_to_ignore
-        if (string_to_ignore is not None and string_to_ignore in complete_file_path):
+        # skip files containing string_list_to_ignore
+        if (string_list_to_ignore is not None
+           and any(ignore_string in complete_file_path for ignore_string in string_list_to_ignore ) ):
             continue
 
         # # load
@@ -503,11 +509,16 @@ if __name__ == '__main__':
         print ("Random Seed set to: " + str(random.seed ))
 
     # # normals / reducing clouds
-    if (process_clouds_in_folder ('clouds/Regions/',
+    if (process_clouds_in_folder ('clouds/Regions/Test Xy/',
                                   permitted_file_extension='.asc',
-                                  string_to_ignore=None,
+                                  string_list_to_ignore=['ALS', 'original_clouds'],
                                   do_normal_calculation=True,
                                   normals_computation_radius=2.5 )):
+    # if (process_clouds_in_folder ('clouds/Regions/',
+    #                               permitted_file_extension='.asc',
+    #                               string_list_to_ignore='original_clouds',
+    #                               do_normal_calculation=True,
+    #                               normals_computation_radius=2.5 )):
 
         print ("\n\nAll Clouds successfully processed.")
     else:
