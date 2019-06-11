@@ -49,81 +49,15 @@ def get_all_files_in_subfolders (path_to_folder, permitted_file_extension=None )
     return full_paths
 
 
-def compute_normals (numpy_cloud, file_path, field_labels_list, query_radius ):
-    '''
-    Computes Normals for a Cloud and concatenates the newly computed colums with the Cloud.
-    '''
+def get_folder_and_file_name (path ):
 
-    # build a kdtree
-    tree = sklearn.neighbors.kd_tree.KDTree (numpy_cloud[:, 0:3], leaf_size=40, metric='euclidean')
+    # mash up the string
+    folder = str(path.split ('/')[-2])
+    list_of_filename_attributes = path.split ('/')[-1].split ('_')[0:3]
+    list_of_filename_attributes = ['{0}_'.format(element) for element in list_of_filename_attributes]
+    file_name = ''.join(list_of_filename_attributes)
 
-    additional_values = np.zeros ((numpy_cloud.shape[0], 4 ))
-    success = True
-
-    # compute normals for each point
-    for index, point in enumerate (numpy_cloud[:, 0:3] ):
-
-        # check memory usage
-        if (psutil.virtual_memory().percent > 95.0):
-            print (print ("!!! Memory Usage too high: "
-                          + str(psutil.virtual_memory().percent)
-                          + "%. Skipping cloud. There still are "
-                          + str (numpy_cloud.shape[0] - index)
-                          + " normal vectors left to compute. Reduction process might be lost."))
-            success = False
-            break
-
-        if (index % int(numpy_cloud.shape[0] / 10) == 0):
-            print ("Progress: " + "{:.1f}".format ((index / numpy_cloud.shape[0]) * 100.0 ) + " %" )
-
-        # kdtree radius search
-        point_neighbor_indices = tree.query_radius(point.reshape (1, -1), r=query_radius )
-
-        # just get all indices in the point radius
-        point_neighbor_indices = [nested_value for value in point_neighbor_indices for nested_value in value]
-
-        # make kdtree smaller in DSM clouds to avoid too many matches slowing the process down
-        if (len (point_neighbor_indices ) > 500):
-            indices = random.sample(range(0, len (point_neighbor_indices ) ), int (len (point_neighbor_indices ) / 5 ))
-            point_neighbor_indices = [point_neighbor_indices[i] for i in indices]
-
-        # you can't estimate a cloud with less than three neighbors
-        if (len (point_neighbor_indices) < 3 ):
-            continue
-
-        # do a Principal Component Analysis with the plane points obtained by a RANSAC plane estimation
-        normal_vector, sigma, mass_center = normals.PCA (
-                    normals.ransac_plane_estimation (numpy_cloud[point_neighbor_indices, :],   # point neighbors
-                                                     threshold=0.3,  # max point distance from the plane
-                                                     fixed_point=numpy_cloud[index, :],
-                                                     w=0.6,         # probability for the point to be an inlier
-                                                     z=0.90)        # desired probability that plane is found
-                                                     [1] )          # only use the second return value, the points
-
-        # join the normal_vector and sigma value to a 4x1 array and write them to the corresponding position
-        additional_values[index, :] = np.append (normal_vector, sigma )
-
-    # delete normals if already computed
-    if ('Nx' in field_labels_list
-       and 'Ny' in field_labels_list
-       and 'Nz' in field_labels_list
-       and 'Sigma' in field_labels_list ):
-        indices = []
-        indices.append (field_labels_list.index('Sigma' ))
-        indices.append (field_labels_list.index('Nz' ))
-        indices.append (field_labels_list.index('Ny' ))
-        indices.append (field_labels_list.index('Nx' ))
-
-        print ("Found previously computed normals. Removing the following fields: Nx, Ny, Nz and Sigma")
-
-        field_labels_list = [label for label in field_labels_list if field_labels_list.index(label) not in indices]
-        numpy_cloud = np.delete (numpy_cloud, indices, axis=1 )
-
-    # add the newly computed values to the cloud
-    numpy_cloud = np.concatenate ((numpy_cloud, additional_values ), axis=1 )
-    field_labels_list = field_labels_list + ['Nx ', 'Ny ', 'Nz ', 'Sigma']
-
-    return numpy_cloud, field_labels_list, success
+    return folder, file_name
 
 
 def sample_cloud (numpy_cloud, sample_divisor, deterministic_sampling=False ):
@@ -170,17 +104,6 @@ def do_icp (full_path_of_reference_cloud, full_path_of_aligned_cloud ):
     dictionary_line = {(full_path_of_reference_cloud, full_path_of_aligned_cloud): (translation, mean_squared_error)}
 
     return dictionary_line
-
-
-def get_folder_and_file_name (path ):
-
-    # mash up the string
-    folder = str(path.split ('/')[-2])
-    list_of_filename_attributes = path.split ('/')[-1].split ('_')[0:3]
-    list_of_filename_attributes = ['{0}_'.format(element) for element in list_of_filename_attributes]
-    file_name = ''.join(list_of_filename_attributes)
-
-    return folder, file_name
 
 
 def compare_icp_results (icp_results ):
@@ -366,6 +289,83 @@ def conditionalized_load (file_path ):
             field_labels_list = f.readline().strip ('//').split ()
 
     return numpy_cloud, field_labels_list
+
+
+def compute_normals (numpy_cloud, file_path, field_labels_list, query_radius ):
+    '''
+    Computes Normals for a Cloud and concatenates the newly computed colums with the Cloud.
+    '''
+
+    # build a kdtree
+    tree = sklearn.neighbors.kd_tree.KDTree (numpy_cloud[:, 0:3], leaf_size=40, metric='euclidean')
+
+    additional_values = np.zeros ((numpy_cloud.shape[0], 4 ))
+    success = True
+
+    # compute normals for each point
+    for index, point in enumerate (numpy_cloud[:, 0:3] ):
+
+        # check memory usage
+        if (psutil.virtual_memory().percent > 95.0):
+            print (print ("!!! Memory Usage too high: "
+                          + str(psutil.virtual_memory().percent)
+                          + "%. Skipping cloud. There still are "
+                          + str (numpy_cloud.shape[0] - index)
+                          + " normal vectors left to compute. Reduction process might be lost."))
+            success = False
+            break
+
+        if (index % int(numpy_cloud.shape[0] / 10) == 0):
+            print ("Progress: " + "{:.1f}".format ((index / numpy_cloud.shape[0]) * 100.0 ) + " %" )
+
+        # kdtree radius search
+        point_neighbor_indices = tree.query_radius(point.reshape (1, -1), r=query_radius )
+
+        # just get all indices in the point radius
+        point_neighbor_indices = [nested_value for value in point_neighbor_indices for nested_value in value]
+
+        # make kdtree smaller in DSM clouds to avoid too many matches slowing the process down
+        if (len (point_neighbor_indices ) > 500):
+            indices = random.sample(range(0, len (point_neighbor_indices ) ), int (len (point_neighbor_indices ) / 5 ))
+            point_neighbor_indices = [point_neighbor_indices[i] for i in indices]
+
+        # you can't estimate a cloud with less than three neighbors
+        if (len (point_neighbor_indices) < 3 ):
+            continue
+
+        # do a Principal Component Analysis with the plane points obtained by a RANSAC plane estimation
+        normal_vector, sigma, mass_center = normals.PCA (
+                    normals.ransac_plane_estimation (numpy_cloud[point_neighbor_indices, :],   # point neighbors
+                                                     threshold=0.3,  # max point distance from the plane
+                                                     fixed_point=numpy_cloud[index, :],
+                                                     w=0.6,         # probability for the point to be an inlier
+                                                     z=0.90)        # desired probability that plane is found
+                                                     [1] )          # only use the second return value, the points
+
+        # join the normal_vector and sigma value to a 4x1 array and write them to the corresponding position
+        additional_values[index, :] = np.append (normal_vector, sigma )
+
+    # delete normals if already computed
+    if ('Nx' in field_labels_list
+       and 'Ny' in field_labels_list
+       and 'Nz' in field_labels_list
+       and 'Sigma' in field_labels_list ):
+        indices = []
+        indices.append (field_labels_list.index('Sigma' ))
+        indices.append (field_labels_list.index('Nz' ))
+        indices.append (field_labels_list.index('Ny' ))
+        indices.append (field_labels_list.index('Nx' ))
+
+        print ("Found previously computed normals. Removing the following fields: Nx, Ny, Nz and Sigma")
+
+        field_labels_list = [label for label in field_labels_list if field_labels_list.index(label) not in indices]
+        numpy_cloud = np.delete (numpy_cloud, indices, axis=1 )
+
+    # add the newly computed values to the cloud
+    numpy_cloud = np.concatenate ((numpy_cloud, additional_values ), axis=1 )
+    field_labels_list = field_labels_list + ['Nx ', 'Ny ', 'Nz ', 'Sigma']
+
+    return numpy_cloud, field_labels_list, success
 
 
 def process_clouds_in_folder (path_to_folder,
