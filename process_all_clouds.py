@@ -112,18 +112,14 @@ def compare_icp_results (icp_results, print_csv=False ):
             if (print_csv):
                 # print comparison
                 print ('\n' + folder + "/"
-                       + "\nreference cloud:\t" + reference_file_name
-                       + "\naligned cloud:\t\t" + aligned_file_name
-                       + "\n\tdata alignment:\t" + '({: .8f}, '.format(ref_translation[0])
-                                                 + '{: .8f}, '.format(ref_translation[1])
-                                                 + '{: .8f}), '.format(ref_translation[2])
-                                                 + ' {: .8f}, '.format(ref_mse)
-                       + "\n\ticp alignment:\t" + '({: .8f}, '.format(icp_translation[0])
-                                                + '{: .8f}, '.format(icp_translation[1])
-                                                + '{: .8f}), '.format(icp_translation[2])
-                                                + '({: .8f}, '.format(icp_mse[0])
-                                                + '{: .8f}, '.format(icp_mse[1])
-                                                + '{: .8f}) '.format(icp_mse[2]))
+                       + " " + reference_file_name
+                       + " " + aligned_file_name
+                             + ';{: .8f}'.format(ref_translation[0]) + ';{: .8f}'.format(icp_translation[0])
+                       + '\n;{: .8f}'.format(ref_translation[1]) + ';{: .8f}'.format(icp_translation[1])
+                       + '\n;{: .8f}'.format(ref_translation[2]) + ';{: .8f}'.format(icp_translation[2])
+                       + '\n;{: .8f}'.format(ref_mse) + ';=MAX({: .8f}'.format(icp_mse[0])
+                            + ',{: .8f}'.format(icp_mse[1])
+                            + ',{: .8f}) '.format(icp_mse[2]))
             else:
                 # print comparison
                 print ('\n' + folder + "/"
@@ -521,8 +517,8 @@ if __name__ == '__main__':
     # print ("\n\nComputing ICP for each cloud pair in reference_transformations.translations returns: "
     #        + str(use_icp_on_dictionary (get_icp_data_paths () )))
 
-    compare_icp_results (do_icp ('clouds/Regions/Everything/ALS14_Cloud_reduced_normals_cleared.asc',
-                                 'clouds/Regions/Everything/DSM_Cloud_reduced_normals.asc' ))
+    compare_icp_results (do_icp ('clouds/Regions/Xy Tower/ALS16_Cloud_reduced_normals_cleared.asc',
+                                 'clouds/Regions/Xy Tower/DSM_Cloud_reduced_normals.asc' ), print_csv=True)
 
     # # tests
 
