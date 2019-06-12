@@ -1,11 +1,11 @@
 # load
+from modules.custom_clouds import CustomCloud
 from laspy.file import File
 import numpy as np
 import pcl
 import time
 from os.path import isfile
 from open3d import io, PointCloud, Vector3dVector, read_point_cloud, set_verbosity_level, VerbosityLevel
-from custom_clouds import CustomCloud
 
 
 def save_ascii_file (numpy_cloud, field_labels_list, path ):
