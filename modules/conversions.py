@@ -1,5 +1,30 @@
 import pcl
 import numpy as np
+import random
+
+
+def sample_cloud (numpy_cloud, sample_divisor, deterministic_sampling=False ):
+    '''
+    Samples a cloud by a given divisor. If sample_divisor=4, cloud is 4 times as small after sampling.
+    '''
+    previous_length = numpy_cloud.shape[0]
+
+    # deterministic sampling
+    if (deterministic_sampling ):
+        numpy_cloud = numpy_cloud[::sample_divisor].copy ()
+    # random sampling
+    else:
+        indices = random.sample(range(0, numpy_cloud.shape[0] ), int (numpy_cloud.shape[0] / sample_divisor ))
+        numpy_cloud = numpy_cloud[indices, :].copy ()
+
+    print ("Cloud sampled, divisor: "
+           + str(sample_divisor )
+           + ". Cloud size / previous cloud size: "
+           + str(numpy_cloud.shape[0] )
+           + "/"
+           + str (previous_length))
+
+    return numpy_cloud
 
 
 def reduce_cloud (input_cloud_numpy, copy=True, return_transformation=False, return_as_float32=False ):
@@ -74,3 +99,8 @@ def pcl_to_numpy (pcl_cloud ):
     Wraps PCL's to_array function to return an np.array.
     """
     return pcl_cloud.to_array (pcl_cloud)
+
+
+if (random.seed != 1337):
+    random.seed = 1337
+    print ("Random Seed set to: " + str(random.seed ))

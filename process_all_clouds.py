@@ -1,6 +1,7 @@
 from modules import input_output
 from modules import normals
 from modules import icp
+from modules import conversions
 from data import reference_transformations
 from os import listdir, walk
 from os.path import isfile, join, splitext
@@ -60,44 +61,20 @@ def get_folder_and_file_name (path ):
     return folder, file_name
 
 
-def sample_cloud (numpy_cloud, sample_divisor, deterministic_sampling=False ):
-    '''
-    Samples a cloud by a given divisor. If sample_divisor=4, cloud is 4 times as small after sampling.
-    '''
-    previous_length = numpy_cloud.shape[0]
-
-    # deterministic sampling
-    if (deterministic_sampling ):
-        numpy_cloud = numpy_cloud[::sample_divisor]
-    # random sampling
-    else:
-        indices = random.sample(range(0, numpy_cloud.shape[0] ), int (numpy_cloud.shape[0] / sample_divisor ))
-        numpy_cloud = numpy_cloud[indices, :]
-
-    print ("Cloud sampled, divisor: "
-           + str(sample_divisor )
-           + ". Cloud size / previous cloud size: "
-           + str(numpy_cloud.shape[0] )
-           + "/"
-           + str (previous_length))
-
-    return numpy_cloud
-
-
 def do_icp (full_path_of_reference_cloud, full_path_of_aligned_cloud ):
 
     # load reference cloud
     reference_cloud = input_output.load_ascii_file (full_path_of_reference_cloud )
 
     if ("DSM_Cloud" in full_path_of_reference_cloud):
-        reference_cloud = sample_cloud (reference_cloud, 5, deterministic_sampling=False )
+        reference_cloud = conversions.sample_cloud (reference_cloud, 6, deterministic_sampling=False )
 
     # load aligned clouds
     aligned_cloud = input_output.load_ascii_file (full_path_of_aligned_cloud )
 
     # sample DIM Clouds
     if ("DSM_Cloud" in full_path_of_aligned_cloud):
-        aligned_cloud = sample_cloud (aligned_cloud, 5, deterministic_sampling=False )
+        aligned_cloud = conversions.sample_cloud (aligned_cloud, 6, deterministic_sampling=False )
 
     translation, mean_squared_error = icp.icp (reference_cloud, aligned_cloud, verbose=False )
 
@@ -106,7 +83,7 @@ def do_icp (full_path_of_reference_cloud, full_path_of_aligned_cloud ):
     return dictionary_line
 
 
-def compare_icp_results (icp_results ):
+def compare_icp_results (icp_results, print_csv=False ):
 
     reference_dict = reference_transformations.translations
 
@@ -132,20 +109,36 @@ def compare_icp_results (icp_results ):
             ref_translation, ref_mse = reference_dict [paths]
             icp_translation, icp_mse = translation_value
 
-            # print comparison
-            print ('\n' + folder + "/"
-                   + "\nreference cloud:\t" + reference_file_name
-                   + "\naligned cloud:\t\t" + aligned_file_name
-                   + "\n\tdata alignment:\t" + '({: .8f}, '.format(ref_translation[0])
-                                             + '{: .8f}, '.format(ref_translation[1])
-                                             + '{: .8f}), '.format(ref_translation[2])
-                                             + ' {: .8f}, '.format(ref_mse)
-                   + "\n\ticp alignment:\t" + '({: .8f}, '.format(icp_translation[0])
-                                            + '{: .8f}, '.format(icp_translation[1])
-                                            + '{: .8f}), '.format(icp_translation[2])
-                                            + '({: .8f}, '.format(icp_mse[0])
-                                            + '{: .8f}, '.format(icp_mse[1])
-                                            + '{: .8f}) '.format(icp_mse[2]))
+            if (print_csv):
+                # print comparison
+                print ('\n' + folder + "/"
+                       + "\nreference cloud:\t" + reference_file_name
+                       + "\naligned cloud:\t\t" + aligned_file_name
+                       + "\n\tdata alignment:\t" + '({: .8f}, '.format(ref_translation[0])
+                                                 + '{: .8f}, '.format(ref_translation[1])
+                                                 + '{: .8f}), '.format(ref_translation[2])
+                                                 + ' {: .8f}, '.format(ref_mse)
+                       + "\n\ticp alignment:\t" + '({: .8f}, '.format(icp_translation[0])
+                                                + '{: .8f}, '.format(icp_translation[1])
+                                                + '{: .8f}), '.format(icp_translation[2])
+                                                + '({: .8f}, '.format(icp_mse[0])
+                                                + '{: .8f}, '.format(icp_mse[1])
+                                                + '{: .8f}) '.format(icp_mse[2]))
+            else:
+                # print comparison
+                print ('\n' + folder + "/"
+                       + "\nreference cloud:\t" + reference_file_name
+                       + "\naligned cloud:\t\t" + aligned_file_name
+                       + "\n\tdata alignment:\t" + '({: .8f}, '.format(ref_translation[0])
+                                                 + '{: .8f}, '.format(ref_translation[1])
+                                                 + '{: .8f}), '.format(ref_translation[2])
+                                                 + ' {: .8f}, '.format(ref_mse)
+                       + "\n\ticp alignment:\t" + '({: .8f}, '.format(icp_translation[0])
+                                                + '{: .8f}, '.format(icp_translation[1])
+                                                + '{: .8f}), '.format(icp_translation[2])
+                                                + '({: .8f}, '.format(icp_mse[0])
+                                                + '{: .8f}, '.format(icp_mse[1])
+                                                + '{: .8f}) '.format(icp_mse[2]))
 
 
 def use_icp_on_dictionary (icp_paths_dictionary ):
@@ -508,28 +501,28 @@ if __name__ == '__main__':
         random.seed = 1337
         print ("Random Seed set to: " + str(random.seed ))
 
-    # # normals / reducing clouds
-    if (process_clouds_in_folder ('clouds/Regions/Test Xy/',
-                                  permitted_file_extension='.asc',
-                                  string_list_to_ignore=['ALS', 'original_clouds'],
-                                  do_normal_calculation=True,
-                                  normals_computation_radius=2.5 )):
-    # if (process_clouds_in_folder ('clouds/Regions/',
+    # # # normals / reducing clouds
+    # if (process_clouds_in_folder ('clouds/Regions/Test Xy/',
     #                               permitted_file_extension='.asc',
-    #                               string_list_to_ignore='original_clouds',
+    #                               string_list_to_ignore=['ALS', 'original_clouds'],
     #                               do_normal_calculation=True,
     #                               normals_computation_radius=2.5 )):
-
-        print ("\n\nAll Clouds successfully processed.")
-    else:
-        print ("Error. Not all clouds could be processed.")
+    # # if (process_clouds_in_folder ('clouds/Regions/',
+    # #                               permitted_file_extension='.asc',
+    # #                               string_list_to_ignore='original_clouds',
+    # #                               do_normal_calculation=True,
+    # #                               normals_computation_radius=2.5 )):
+    #
+    #     print ("\n\nAll Clouds successfully processed.")
+    # else:
+    #     print ("Error. Not all clouds could be processed.")
 
     # # icp
     # print ("\n\nComputing ICP for each cloud pair in reference_transformations.translations returns: "
     #        + str(use_icp_on_dictionary (get_icp_data_paths () )))
 
-    # compare_icp_results (do_icp ('clouds/Regions/Everything/ALS14_Cloud_reduced_normals_cleared.asc',
-    #                              'clouds/Regions/Everything/ALS16_Cloud _Scan54_reduced_normals.asc' ))
+    compare_icp_results (do_icp ('clouds/Regions/Everything/ALS14_Cloud_reduced_normals_cleared.asc',
+                                 'clouds/Regions/Everything/DSM_Cloud_reduced_normals.asc' ))
 
     # # tests
 
