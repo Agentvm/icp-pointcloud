@@ -1,6 +1,5 @@
 from modules import input_output
 from modules import normals
-from os.path import splitext
 import sklearn.neighbors    # kdtree
 import numpy as np
 import random
@@ -152,7 +151,7 @@ def process_clouds_in_folder (path_to_folder,
             continue
 
         # # load
-        numpy_cloud, field_labels_list = conditionalized_load (complete_file_path )
+        numpy_cloud, field_labels_list = input_output.conditionalized_load (complete_file_path )
 
         # # treat clouds folder-specific
         # find folder name

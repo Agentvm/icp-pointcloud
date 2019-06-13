@@ -327,6 +327,7 @@ def conditionalized_load (file_path ):
         field_labels_list:      The header of the file, containing the labels of the cloud fields (column titles)
     '''
 
+    numpy_cloud = None
     field_labels_list = ['X', 'Y', 'Z']
     file_name, file_extension = splitext(file_path )
 
