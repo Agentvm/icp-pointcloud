@@ -26,7 +26,8 @@ def vector_array_distance (xyz_array, compared_xyz_array=None ):
     return output.reshape ((xyz_array.shape[0], 1 ))
 
 
-def display_consensus_cube (consensus_cube, corresponding_cloud_size, relative_color_scale=False ):
+def display_consensus_cube (consensus_cube, corresponding_cloud_size, plot_title="ConsensusCube (TM)",
+                            relative_color_scale=False ):
 
     # normalize consensus row
     consensus_cube[:, 3] = consensus_cube[:, 3] / corresponding_cloud_size
@@ -77,7 +78,10 @@ def display_consensus_cube (consensus_cube, corresponding_cloud_size, relative_c
     ax.set_xlabel('X Label')
     ax.set_ylabel('Y Label')
     ax.set_zlabel('Z Label')
-    plt.show()
+    plt.title (plot_title)
+    #plt.show()
+    #plt.ion ()
+    plt.draw ()
 
 
 def cloud_consensus (numpy_cloud, corresponding_cloud, threshold ):
@@ -115,7 +119,7 @@ def cloud_consensus (numpy_cloud, corresponding_cloud, threshold ):
     return np.sum(consensus_vector), consensus_vector, (time.time () - start_time, part_time_1, part_time_2, part_time_3, part_time_4)
 
 
-def cubic_cloud_consensus (numpy_cloud, compared_cloud, threshold, cubus_length, step, show_consensus_cube=True ):
+def cubic_cloud_consensus (numpy_cloud, compared_cloud, threshold, cubus_length, step, plot_title=None ):
     '''
     Translates compared_cloud in lenghts of step inside a cubus-shaped space and, for every step, checks how many points
     of cloud numpy_cloud have a neighbor within threshold range in compared_cloud.
@@ -187,7 +191,7 @@ def cubic_cloud_consensus (numpy_cloud, compared_cloud, threshold, cubus_length,
                     best_consensus_count = consensus_count
                     best_alignment_consensus_vector = consensus_vector
 
-                if (show_consensus_cube):
+                if (plot_title is not None):
                     consensus_cloud[iteration_count, :] = (translation[0],
                                                            translation[1],
                                                            translation[2],
@@ -206,7 +210,7 @@ def cubic_cloud_consensus (numpy_cloud, compared_cloud, threshold, cubus_length,
     print ("best_alignment: " + str(best_alignment ))
     print ("best_consensus_count: " + str(best_consensus_count ))
 
-    if (show_consensus_cube ):
-        display_consensus_cube (consensus_cloud, compared_cloud.shape[0] )
+    if (plot_title is not None ):
+        display_consensus_cube (consensus_cloud, compared_cloud.shape[0], plot_title )
 
     return best_alignment, best_consensus_count, best_alignment_consensus_vector

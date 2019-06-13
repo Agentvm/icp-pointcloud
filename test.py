@@ -1,8 +1,4 @@
 import numpy as np
-from modules import input_output
-from modules import conversions
-from modules import consensus
-import random
 
 
 numpy_cloud = np.array([[1.1, 2.1, 3.1],
@@ -12,6 +8,13 @@ numpy_cloud = np.array([[1.1, 2.1, 3.1],
                         [1.5, 2.5, 3.5],
                         [1.6, 2.6, 3.6]] )
 #
+
+
+# # test consensus
+# from modules import input_output
+# from modules import conversions
+# from modules import consensus
+# import random
 # small cloud
 # numpy_cloud = np.random.uniform (-10, 10, (100, 3 ))
 #
@@ -20,30 +23,41 @@ numpy_cloud = np.array([[1.1, 2.1, 3.1],
 # random1 = np.random.uniform ((-1, -1, -1), (1, 1, 1 ))
 # corresponding_cloud = numpy_cloud + random1
 
-# big cloud
-numpy_cloud = input_output.load_ascii_file (
-    'clouds/Regions/Xy Tower/ALS16_Cloud_reduced_normals_cleared.asc' )
-
-corresponding_cloud = conversions.sample_cloud (input_output.load_ascii_file (
-    'clouds/Regions/Xy Tower/DSM_Cloud_reduced_normals.asc' ), 1 )
-
-best_alignment, best_consensus_count, best_alignment_consensus_vector = \
-    consensus.cubic_cloud_consensus (numpy_cloud,
-                           corresponding_cloud,
-                           threshold=.009,
-                           cubus_length=2,
-                           step=.2 )
-
-print (random.seed)
+# # big cloud
+# numpy_cloud = input_output.load_ascii_file (
+#     'clouds/Regions/Xy Tower/ALS16_Cloud_reduced_normals_cleared.asc' )
+#
+# corresponding_cloud = conversions.sample_cloud (input_output.load_ascii_file (
+#     'clouds/Regions/Xy Tower/DSM_Cloud_reduced_normals.asc' ), 1 )
+#
+# best_alignment, best_consensus_count, best_alignment_consensus_vector = \
+#     consensus.cubic_cloud_consensus (numpy_cloud,
+#                            corresponding_cloud,
+#                            threshold=.009,
+#                            cubus_length=2,
+#                            step=.2 )
+#
+# print (random.seed)
 #print ("random offset: " + str(random1 ))
 #print ("best_alignment_consensus_vector: " + str(best_alignment_consensus_vector ))
-
 
 # Xy Tower/
 # reference cloud:	ALS16_Cloud_reduced_
 # aligned cloud:		DSM_Cloud_reduced_
 # 	data alignment:	(-0.82777023,  0.16250610,  0.19129372),   0.11620700,
 # 	icp alignment:	( 0.01669736, -0.00830808,  0.03436319), ( 0.00000000,  0.00000000,  0.00000000)
+
+
+# # function as argument
+# def something ():
+#     return "Something"
+#
+#
+# def function_taking_function (some_python_function ):
+#     print (str(some_python_function ()))
+#
+#
+# function_taking_function (something )
 
 
 # # test normal calculation
