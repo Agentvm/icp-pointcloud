@@ -3,7 +3,9 @@ import math
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 import sklearn.neighbors    # kdtree
-import input_output
+#import input_output
+#import conversions
+#from modules import conversions
 import time
 
 
@@ -24,7 +26,7 @@ def vector_array_distance (xyz_array, compared_xyz_array=None ):
     return output.reshape ((xyz_array.shape[0], 1 ))
 
 
-def display_consensus_cube (consensus_cube, corresponding_cloud_size ):
+def display_consensus_cube (consensus_cube, corresponding_cloud_size, relative_color_scale=False ):
 
     # normalize consensus row
     consensus_cube[:, 3] = consensus_cube[:, 3] / corresponding_cloud_size
@@ -55,6 +57,9 @@ def display_consensus_cube (consensus_cube, corresponding_cloud_size ):
 
     #print ("consensus_cube:\n" + str (consensus_cube ))
 
+    if (relative_color_scale):
+        consensus_cube[:, 3] = consensus_cube[:, 3] / np.max (consensus_cube[:, 3] )
+
     # fill the colors
     rgba_colors[:, 0] = 1 - consensus_cube[:, 3]
     rgba_colors[:, 1] = consensus_cube[:, 3]
@@ -62,6 +67,8 @@ def display_consensus_cube (consensus_cube, corresponding_cloud_size ):
 
     # the fourth column are the alpha values
     rgba_colors[:, 3] = np.ones ((consensus_cube.shape[0]))     # consensus_cube[:, 3]
+    rgba_colors[0, 3] = 0
+    rgba_colors[-1, 3] = 0
 
     # # plot
     fig = plt.figure()
@@ -125,6 +132,11 @@ def cubic_cloud_consensus (numpy_cloud, compared_cloud, threshold, cubus_length,
         best_alignment_consensus_count (int):
         consensus_cube ((n, 4) numpy array):
     '''
+
+    print ("\nStarting Cubic Cloud Consensus" )
+    print ("threshold: " + str(threshold ))
+    print ("cubus_length: " + str(cubus_length ))
+    print ("step: " + str(step ) + '\n' )
 
     consensus_round_time = 0
     consensus_part_time_1 = 0
@@ -195,45 +207,6 @@ def cubic_cloud_consensus (numpy_cloud, compared_cloud, threshold, cubus_length,
     print ("best_consensus_count: " + str(best_consensus_count ))
 
     if (show_consensus_cube ):
-        display_consensus_cube (consensus_cloud, corresponding_cloud.shape[0] )
+        display_consensus_cube (consensus_cloud, compared_cloud.shape[0] )
 
     return best_alignment, best_consensus_count, best_alignment_consensus_vector
-
-
-# small cloud
-# numpy_cloud = np.random.uniform (-10, 10, (100, 3 ))
-#
-# print ('numpy_cloud.shape: ' + str (numpy_cloud.shape ))
-#
-# random1 = np.random.uniform ((-1, -1, -1), (1, 1, 1 ))
-# corresponding_cloud = numpy_cloud + random1
-
-# big cloud
-numpy_cloud = input_output.load_ascii_file (
-    'clouds/Regions/Xy Tower/ALS16_Cloud_reduced_normals_cleared.asc' )
-
-corresponding_cloud = input_output.load_ascii_file (
-    'clouds/Regions/Xy Tower/DSM_Cloud_reduced_normals.asc' )
-
-best_alignment, best_consensus_count, best_alignment_consensus_vector = \
-    cubic_cloud_consensus (numpy_cloud,
-                           corresponding_cloud,
-                           threshold=.11,
-                           cubus_length=2,
-                           step=.2 )
-#print ("random offset: " + str(random1 ))
-#print ("best_alignment_consensus_vector: " + str(best_alignment_consensus_vector ))
-
-
-# corresponding_cloud = np.array([[1.1, 0, 0],
-#                                 [2.2, 0, 0],
-#                                 [3.3, 0, 0],
-#                                 [4.4, 0, 0],
-#                                 [5.5, 0, 0],
-#                                 [6.6, 0, 0]] )
-#
-# consensus_count, consensus_vector = cloud_consensus (numpy_cloud, corresponding_cloud, 0.4 )
-# print ("consensus_count: " + str(consensus_count ))
-# print ("consensus_vector:\n" + str(consensus_vector ))
-
-# print (vector_array_distance (numpy_cloud, corresponding_cloud ))

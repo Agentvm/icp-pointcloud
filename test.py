@@ -1,4 +1,9 @@
 import numpy as np
+from modules import input_output
+from modules import conversions
+from modules import consensus
+import random
+
 
 numpy_cloud = np.array([[1.1, 2.1, 3.1],
                         [1.2, 2.2, 3.2],
@@ -7,6 +12,115 @@ numpy_cloud = np.array([[1.1, 2.1, 3.1],
                         [1.5, 2.5, 3.5],
                         [1.6, 2.6, 3.6]] )
 #
+# small cloud
+# numpy_cloud = np.random.uniform (-10, 10, (100, 3 ))
+#
+# print ('numpy_cloud.shape: ' + str (numpy_cloud.shape ))
+#
+# random1 = np.random.uniform ((-1, -1, -1), (1, 1, 1 ))
+# corresponding_cloud = numpy_cloud + random1
+
+# big cloud
+numpy_cloud = input_output.load_ascii_file (
+    'clouds/Regions/Xy Tower/ALS16_Cloud_reduced_normals_cleared.asc' )
+
+corresponding_cloud = conversions.sample_cloud (input_output.load_ascii_file (
+    'clouds/Regions/Xy Tower/DSM_Cloud_reduced_normals.asc' ), 1 )
+
+best_alignment, best_consensus_count, best_alignment_consensus_vector = \
+    consensus.cubic_cloud_consensus (numpy_cloud,
+                           corresponding_cloud,
+                           threshold=.009,
+                           cubus_length=2,
+                           step=.2 )
+
+print (random.seed)
+#print ("random offset: " + str(random1 ))
+#print ("best_alignment_consensus_vector: " + str(best_alignment_consensus_vector ))
+
+
+# Xy Tower/
+# reference cloud:	ALS16_Cloud_reduced_
+# aligned cloud:		DSM_Cloud_reduced_
+# 	data alignment:	(-0.82777023,  0.16250610,  0.19129372),   0.11620700,
+# 	icp alignment:	( 0.01669736, -0.00830808,  0.03436319), ( 0.00000000,  0.00000000,  0.00000000)
+
+
+# # test normal calculation
+# from modules import normals
+# from modules import input_output
+# import sys
+#
+# # ply files
+# numpy_cloud_1 = input_output.load_ply_file ('clouds/laserscanning/', 'plane1.ply')    # 3806 points
+# #numpy_cloud_2 = input_output.load_ply_file ('clouds/laserscanning/', 'plane2.ply')    # 3806 points
+#
+# # las files
+# #numpy_cloud_1 = input_output.load_las_file ('clouds/laserscanning/plane1.las')    # 3806 points
+# #numpy_cloud_2 = input_output.load_las_file ('clouds/laserscanning/plane2.las')    # 3806 points
+#
+# # # simple plane
+# # numpy_cloud_1 = np.array ([[1, 0, 0],   # +x
+# #                           [2, 1, 0],  # -x
+# #                           [0, 1, 0],
+# #                           [3, 1.5, 0],
+# #                           [-2, 1.5, 0],
+# #                           [3, 1, 0.51]])  # +y
+#
+# # Simple plane OUTPUT
+# # executed with python version 3.5
+# # PCA completed in 0.00033354759216308594 seconds.
+# #
+# # PCA, Cloud 1:
+# # normal_vector: [-0.0400096  -0.10263703  0.99391392]
+# # sigma: 0.17782724826887134
+# # mass_center: [ 1.5   0.5  -0.05]
+# #
+# # index: [2, 3, 1]
+# # index: [0, 2, 1]
+# # RANSAC completed in 0.0004112720489501953 seconds.
+# #
+# # RANSAC, Cloud 1:
+# # normal_vector: [0.18814417 0.28221626 0.94072087]
+# # consensus_points:
+# # [[1.0, 0.0, 0.0], [2.0, 0.0, -0.2], [0.0, 1.0, -0.1], [3.0, 1.0, 0.1]]
+# # OUTPUT END
+#
+# #                                                                 matlab: 7926 points
+#
+# # 1st cloud
+# normal_vector, sigma, mass_center = normals.PCA (numpy_cloud_1 )
+# print ('PCA, Cloud 1:\nnormal_vector: ' + str(normal_vector ))
+# print ('sigma: ' + str(sigma ))
+# print ('mass_center: ' + str(mass_center ) + '\n')
+#
+# normal_vector, consensus_points = normals.ransac_plane_estimation (numpy_cloud_1, 0.5 )
+# print ('RANSAC, Cloud 1:\nnormal_vector: ' + str(normal_vector ))
+# print ('consensus_points:\n' + str(consensus_points ) + '\n')
+#
+# # # 2nd cloud
+# # normal_vector, sigma, mass_center = normals.PCA (numpy_cloud_2 )
+# # print ('PCA, Cloud 2:\nnormal_vector: ' + str(normal_vector ))
+# # print ('sigma: ' + str(sigma ))
+# # print ('mass_center: ' + str(mass_center ))
+# #
+# # normal_vector, consensus_points = normals.ransac_plane_estimation (numpy_cloud_2, 0.5 )
+# # print ('RANSAC, Cloud 2:\nnormal_vector: ' + str(normal_vector ))
+# # print ('consensus_points:\n' + str(consensus_points ) + '\n')
+
+
+# corresponding_cloud = np.array([[1.1, 0, 0],
+#                                 [2.2, 0, 0],
+#                                 [3.3, 0, 0],
+#                                 [4.4, 0, 0],
+#                                 [5.5, 0, 0],
+#                                 [6.6, 0, 0]] )
+#
+# consensus_count, consensus_vector = cloud_consensus (numpy_cloud, corresponding_cloud, 0.4 )
+# print ("consensus_count: " + str(consensus_count ))
+# print ("consensus_vector:\n" + str(consensus_vector ))
+
+# print (vector_array_distance (numpy_cloud, corresponding_cloud ))
 
 
 # # reshape arrays to concat them
