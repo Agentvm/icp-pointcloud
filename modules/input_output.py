@@ -4,8 +4,9 @@ from laspy.file import File
 import numpy as np
 import pcl
 import time
-from os.path import isfile
 from open3d import io, PointCloud, Vector3dVector, read_point_cloud, set_verbosity_level, VerbosityLevel
+from os import listdir, walk
+from os.path import isfile, join, splitext
 
 
 def save_ascii_file (numpy_cloud, field_labels_list, path ):
@@ -91,6 +92,55 @@ def get_matching_filenames(filename):
     s3 = "".join([prep, str(xmean), '_', str(ymin), ending])
     s4 = "".join([prep, str(xmean), '_', str(ymean), ending])
     return [s1, s2, s3, s4]
+
+
+def get_all_files_in_subfolders (path_to_folder, permitted_file_extension=None ):
+    '''
+    Finds all files inside the folders below the given folder (1 level below)
+    '''
+
+    # find all directories below path_to_folder
+    dirnames = []
+    f = []
+    for (dirpath, dirnames, file_names) in walk(path_to_folder):
+        f.extend(file_names)
+        break
+
+    # append the directories to the input directory
+    # add the input directory itself, so files in there will be found
+    full_directories = [path_to_folder.strip ('/')]
+    for dir in dirnames:
+        dir = path_to_folder + dir
+        full_directories.append (dir)
+
+    #for every directory found, find all files inside and append the resulting path to each file to full_paths
+    full_paths = []
+    for dir_count, directory in enumerate (full_directories ):
+        onlyfiles = [f for f in listdir(directory) if isfile(join(directory, f))]
+        for file in onlyfiles:
+            full_paths.append (full_directories[dir_count] + '/' + file )
+
+    # if specified, remove all file extensions that do not match the specified extension
+    paths_to_remove = []
+    if (permitted_file_extension is not None ):
+        for path in full_paths:
+            file_name, file_extension = splitext(path )
+            if (file_extension != permitted_file_extension):
+                paths_to_remove.append (path )
+    full_paths = [path for path in full_paths if path not in paths_to_remove]
+
+    return full_paths
+
+
+def get_folder_and_file_name (path ):
+
+    # mash up the string
+    folder = str(path.split ('/')[-2])
+    list_of_filename_attributes = path.split ('/')[-1].split ('_')[0:3]
+    list_of_filename_attributes = ['{0}_'.format(element) for element in list_of_filename_attributes]
+    file_name = ''.join(list_of_filename_attributes)
+
+    return folder, file_name
 
 
 # y >= 40 ###
@@ -263,3 +313,41 @@ def pcl_load (dir_in, file_name, format = None):
            + str(pcl_cloud.size ))
 
     return pcl_cloud
+
+
+def conditionalized_load (file_path ):
+    '''
+    Loads .las and .asc files.
+
+    Input:
+        file_path (string):     The path to the file to load. Include file extension.
+
+    Output:
+        numpy_cloud (np.array): The cloud values, fitted in a numpy nd array
+        field_labels_list:      The header of the file, containing the labels of the cloud fields (column titles)
+    '''
+
+    field_labels_list = ['X', 'Y', 'Z']
+    file_name, file_extension = splitext(file_path )
+
+    # # load the file
+    if (file_extension == '.las'):
+        if ("DSM_Cloud" in file_path):
+            # Load DIM cloud
+            numpy_cloud = load_las_file (file_path, dtype="dim" )
+            field_labels_list.append ('Rf ' 'Gf ' 'Bf ' 'Classification')
+        else:
+            # Load ALS cloud
+            numpy_cloud = load_las_file (file_path, dtype="als")
+            field_labels_list.append('Intensity '
+                                     'Number_of_Returns '
+                                     'Return_Number '
+                                     'Point_Source_ID '
+                                     'Classification')
+    elif (file_extension == '.asc'):
+        # load ASCII cloud
+        numpy_cloud = load_ascii_file (file_path )
+        with open(file_path) as f:
+            field_labels_list = f.readline().strip ('//').split ()
+
+    return numpy_cloud, field_labels_list
