@@ -2,7 +2,7 @@ from modules import input_output
 from modules import icp
 from modules import conversions
 from modules import consensus
-from data import reference_transformations
+from data import transformations
 from collections import OrderedDict
 import random
 
@@ -69,7 +69,7 @@ def do_icp (full_path_of_reference_cloud, full_path_of_aligned_cloud, dummy_arg 
 
 def compare_results (algorithmus_results, print_csv=True ):
 
-    reference_dict = reference_transformations.translations
+    reference_dict = transformations.reference_translations
 
     # # sort the results
     # create a list of tuples from reference and aligned cloud file paths
@@ -182,11 +182,11 @@ def print_files_dict_of_folder (folder, permitted_file_extension=None ):
 
 def get_reference_data_paths ():
     '''
-    Reads reference_transformations.translations to get all transformations currently saved and returns them in a
+    Reads transformations.reference_translations to get all transformations currently saved and returns them in a
     dictionary that can be directly used with use_algorithmus_on_dictionary()
     '''
     dict = {}
-    for key in reference_transformations.translations:
+    for key in transformations.reference_translations:
 
         reference_path, aligned_path = key
 
@@ -209,7 +209,7 @@ if __name__ == '__main__':
         print ("Random Seed set to: " + str(random.seed ))
 
     # # icp
-    # print ("\n\nComputing ICP for each cloud pair in reference_transformations.translations returns: "
+    # print ("\n\nComputing ICP for each cloud pair in transformations.reference_translations returns: "
     #        + str(use_algorithmus_on_dictionary (get_reference_data_paths (), do_icp )))
     #
     # compare_results (do_icp ('clouds/Regions/Xy Tower/ALS16_Cloud_reduced_normals_cleared.asc',
@@ -219,7 +219,7 @@ if __name__ == '__main__':
     set_consensus_arguments (threshold=0.009, cubus_length=2, step=.2 )
     set_consensus_arguments (threshold=0.009, cubus_length=2, step=0.15 )
 
-    print ("\n\nComputing Consensus for each cloud pair in reference_transformations.translations returns: "
+    print ("\n\nComputing Consensus for each cloud pair in transformations.reference_translations returns: "
            + str(use_algorithmus_on_dictionary (get_reference_data_paths (), reach_a_consensus )))
 
     # compare_results (reach_a_consensus ('clouds/Regions/Xy Tower/ALS16_Cloud_reduced_normals_cleared.asc',
