@@ -1,3 +1,7 @@
+"""
+Loading and saving Point Cloud .las and ASCII (.asc) files
+"""
+
 # load
 from modules.custom_clouds import CustomCloud
 from laspy.file import File
@@ -93,6 +97,27 @@ def get_matching_filenames(filename):
     s4 = "".join([prep, str(xmean), '_', str(ymean), ending])
     return [s1, s2, s3, s4]
 
+# y >= 40 ###
+# x = 30
+#print (get_matching_filenames ("3331359940_1_2016-11-28.las" ))     # Y/YZ (Train)
+#print (get_matching_filenames ("3331359950_1_2016-11-28.las" ))    # Forest
+#print (get_matching_filenames ("3331359960_1_2016-11-28.las" ))
+
+# x = 40
+#print (get_matching_filenames ("3331459940_1_2016-11-28.las" ))
+#print (get_matching_filenames ("3331459950_1_2016-11-28.las" ))    # DIM showcase, missing Building
+#print (get_matching_filenames ("3331459960_1_2016-11-28.las" ))
+
+# x = 50
+#print (get_matching_filenames ("3331559940_1_2016-11-28.las" ))
+#print (get_matching_filenames ("3331559950_1_2016-11-28.las" ))
+#print (get_matching_filenames ("3331559960_1_2016-11-28.las" ))
+
+# x = 60
+#print (get_matching_filenames ("3331659940_1_2016-11-28.las" ))
+#print (get_matching_filenames ("3331659950_1_2016-11-28.las" ))    # XZ, everything, XYZ, Acker, XY, Fahrbahn
+#print (get_matching_filenames ("3331659960_1_2016-11-28.las" ))
+
 
 def get_all_files_in_subfolders (path_to_folder, permitted_file_extension=None ):
     '''
@@ -141,28 +166,6 @@ def get_folder_and_file_name (path ):
     file_name = ''.join(list_of_filename_attributes)
 
     return folder, file_name
-
-
-# y >= 40 ###
-# x = 30
-#print (get_matching_filenames ("3331359940_1_2016-11-28.las" ))     # Y/YZ (Train)
-#print (get_matching_filenames ("3331359950_1_2016-11-28.las" ))    # Forest
-#print (get_matching_filenames ("3331359960_1_2016-11-28.las" ))
-
-# x = 40
-#print (get_matching_filenames ("3331459940_1_2016-11-28.las" ))
-#print (get_matching_filenames ("3331459950_1_2016-11-28.las" ))    # DIM showcase, missing Building
-#print (get_matching_filenames ("3331459960_1_2016-11-28.las" ))
-
-# x = 50
-#print (get_matching_filenames ("3331559940_1_2016-11-28.las" ))
-#print (get_matching_filenames ("3331559950_1_2016-11-28.las" ))
-#print (get_matching_filenames ("3331559960_1_2016-11-28.las" ))
-
-# x = 60
-#print (get_matching_filenames ("3331659940_1_2016-11-28.las" ))
-#print (get_matching_filenames ("3331659950_1_2016-11-28.las" ))    # XZ, everything, XYZ, Acker, XY, Fahrbahn
-#print (get_matching_filenames ("3331659960_1_2016-11-28.las" ))
 
 
 def load_ply_file (dir_in, file_name ):
