@@ -1,6 +1,5 @@
 import numpy as np
 
-
 numpy_cloud = np.array([[1.1, 2.1, 3.1],
                         [1.2, 2.2, 3.2],
                         [1.3, 2.3, 3.3],
@@ -10,42 +9,64 @@ numpy_cloud = np.array([[1.1, 2.1, 3.1],
 #
 
 
-# # test consensus
-# from modules import input_output
-# from modules import conversions
-# from modules import consensus
-# import random
-# small cloud
-# numpy_cloud = np.random.uniform (-10, 10, (100, 3 ))
+# # how to append to a list
+# list1 = [1, 2, 3]
+# list2 = [4, 5, 6]
+# list1.append (list2 )
 #
-# print ('numpy_cloud.shape: ' + str (numpy_cloud.shape ))
+# print (list1)
 #
-# random1 = np.random.uniform ((-1, -1, -1), (1, 1, 1 ))
-# corresponding_cloud = numpy_cloud + random1
+# list1 = [1, 2, 3]
+# list1 = list1 + list2
+#
+# print (list1)
 
-# # big cloud
-# numpy_cloud = input_output.load_ascii_file (
-#     'clouds/Regions/Xy Tower/ALS16_Cloud_reduced_normals_cleared.asc' )
-#
-# corresponding_cloud = conversions.sample_cloud (input_output.load_ascii_file (
-#     'clouds/Regions/Xy Tower/DSM_Cloud_reduced_normals.asc' ), 1 )
-#
-# best_alignment, best_consensus_count, best_alignment_consensus_vector = \
-#     consensus.cubic_cloud_consensus (numpy_cloud,
-#                            corresponding_cloud,
-#                            threshold=.009,
-#                            cubus_length=2,
-#                            step=.2 )
-#
-# print (random.seed)
-#print ("random offset: " + str(random1 ))
-#print ("best_alignment_consensus_vector: " + str(best_alignment_consensus_vector ))
 
-# Xy Tower/
-# reference cloud:	ALS16_Cloud_reduced_
-# aligned cloud:		DSM_Cloud_reduced_
-# 	data alignment:	(-0.82777023,  0.16250610,  0.19129372),   0.11620700,
-# 	icp alignment:	( 0.01669736, -0.00830808,  0.03436319), ( 0.00000000,  0.00000000,  0.00000000)
+# # Speed test of array-wise normla vector angle_between computation
+# from modules import normals
+# import time
+#
+#
+# def normalize_vector_array (vector_array ):
+#     norms = np.apply_along_axis(np.linalg.norm, 1, vector_array )
+#     return vector_array / norms.reshape (-1, 1 )
+#
+#
+# def angle_between(vector_1, vector_2):
+#     """ Returns the angle in radians between vectors 'vector_1' and 'vector_2' """
+#
+#     if (vector_1 is None or vector_2 is None or None in vector_1 or None in vector_2 ):
+#         return None
+#
+#     vector_1 = normals.normalize_vector (vector_1 )
+#     vector_2 = normals.normalize_vector (vector_2 )
+#
+#     return np.arccos(np.clip(np.dot(vector_1, vector_2), -1.0, 1.0))
+#
+#
+# vector_array_1 = np.random.uniform (0, 1, size=(10000, 3 ))
+# vector_array_2 = np.random.uniform (0, 1, size=(10000, 3 ))
+#
+# vector_array_1 = normalize_vector_array (vector_array_1 )
+# vector_array_2 = normalize_vector_array (vector_array_2 )
+#
+# # Pure Numpy Process
+# start = time.time()
+# arccos = np.arccos (vector_array_1.dot (vector_array_2.T)[:, 0] )
+# end1 = time.time() - start
+#
+# # Looped Numpy Process
+# start = time.time()
+# results = len (vector_array_1 ) * [None]
+# for index, (vec1, vec2) in enumerate(zip (vector_array_1, vector_array_2 )):
+#     results[index] = (angle_between (vec1, vec2 ) )
+# end2 = time.time() - start
+#
+# print ("Numpy Time = " + str (end1 ))
+# print ("Standard Time = " + str (end2 ))
+#
+# print ("arccos: " + str (arccos ))
+# print ("results: " + str (results ))
 
 
 # # function as argument
