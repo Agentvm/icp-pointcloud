@@ -107,6 +107,7 @@ def normal_vector_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
     part_time_2 = time.time () - part_time_2
 
     part_time_3 = time.time ()
+    # get distances to nearest neighbor
     correlations = list(itertools.chain(*tree.query (corresponding_cloud, k=1, return_distance=False )))
     angle_differences = get_normal_differences (numpy_cloud[correlations, :], numpy_cloud_field_labels,
                                                 corresponding_cloud, corresponding_cloud_field_labels)
