@@ -77,10 +77,12 @@ def use_c2c_on_dictionary (reference_dictionary, descriptive_name ):
             _, reference_file_name = input_output.get_folder_and_file_name (reference_cloud_path)
             _, aligned_file_name = input_output.get_folder_and_file_name (aligned_cloud_path)
             base_path = os.path.dirname(aligned_cloud_path) + "/Results/"
-            save_path = base_path + aligned_file_name + " to " + reference_file_name + descriptive_name + ".asc"
+            save_path = base_path + aligned_file_name + "to_" + reference_file_name + descriptive_name + ".asc"
 
             # save as result
             input_output.save_ascii_file (updated_aligned_cloud, field_labels_list, save_path )
+
+    return True
 
 
 def get_reference_data_paths (input_dictionary ):
@@ -103,18 +105,21 @@ def get_reference_data_paths (input_dictionary ):
 
 if __name__ == '__main__':
 
-    # dictionary
-    # print ("\n\nComputing C2C_absolute_distances"
-    #        + "for each cloud pair in transformations.reference_translations returns: "
-    #        + str(use_c2c_on_dictionary (transformations.reference_translations, "point_clicking" )))
-    #
-    # print ("\n\nComputing C2C_absolute_distances for each cloud pair in transformations.no_translations returns: "
-    #        + str(use_c2c_on_dictionary (transformations.no_translations, "no_translations" ) ))
+    # no translation, original clouds
+    print ("\n\nComputing C2C_absolute_distances for each cloud pair in transformations.no_translations returns: "
+           + str(use_c2c_on_dictionary (transformations.no_translations, "no_translations" ) ))
 
-    print ("\n\nComputing C2C_absolute_distances"
+    # reference_translations, cloud compare point picking
+    print ("\n\nComputing C2C_absolute_distances "
+           + "for each cloud pair in transformations.reference_translations returns: "
+           + str(use_c2c_on_dictionary (transformations.reference_translations, "point_clicking" )))
+
+    # icp translations
+    print ("\n\nComputing C2C_absolute_distances "
            + "for each cloud pair in transformations.icp_translations returns: "
-           + str(use_c2c_on_dictionary (transformations.icp_translations, "point_clicking" )))
+           + str(use_c2c_on_dictionary (transformations.icp_translations, "icp" )))
 
-    print ("\n\nComputing C2C_absolute_distances"
-           + "for each cloud pair in transformations.distance_consensus_translations returns: "
-           + str(use_c2c_on_dictionary (transformations.distance_consensus_translations, "no_translations" ) ))
+    # best consensus (point distance version) translations
+    # print ("\n\nComputing C2C_absolute_distances "
+    #        + "for each cloud pair in transformations.distance_consensus_translations returns: "
+    #        + str(use_c2c_on_dictionary (transformations.distance_consensus_translations, "distance_consensus" ) ))
