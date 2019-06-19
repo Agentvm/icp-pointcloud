@@ -323,7 +323,7 @@ def cubic_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
                         point_distance_cloud_consensus (numpy_cloud,
                                                        compared_cloud + translation,
                                                        distance_threshold )
-                elif (algorithmus == 'vector'):
+                elif (algorithmus == 'angle'):
 
                     # find consenting points in the translated compared_cloud
                     consensus_count, consensus_vector, consensus_time = \
@@ -348,7 +348,8 @@ def cubic_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
 
                 # check for a new consensus high
                 if (consensus_count > best_consensus_count ):
-                    best_alignment = [element * -1 for element in translation[0:3]]  # don't know why this is inverted
+                    #best_alignment = [element * -1 for element in translation[0:3]]  # don't know why this is inverted
+                    best_alignment = translation[0:3]
                     best_consensus_count = consensus_count
                     best_alignment_consensus_vector = consensus_vector
 
