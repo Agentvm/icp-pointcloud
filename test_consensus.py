@@ -62,14 +62,8 @@ best_alignment, best_consensus_count, best_alignment_consensus_vector = \
                            corresponding_cloud, corresponding_cloud_field_labels,
                            cubus_length=2,
                            step=.2,
-                           distance_threshold=0.01, angle_threshold=15 * (math.pi/180 ),
-                           algorithmus='combined' )
-# best_alignment, best_consensus_count, best_alignment_consensus_vector = \
-#     consensus.cubic_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
-#                            corresponding_cloud, corresponding_cloud_field_labels,
-#                            threshold=0.009,
-#                            cubus_length=2,
-#                            step=.2 )
+                           distance_threshold=None, angle_threshold=5 * (math.pi/180 ),
+                           algorithmus='angle' )
 
 print ("Random Offset: " + str(random1 ))
 print ("Point Picking Offset: (-0.82777023,  0.16250610,  0.19129372)")
@@ -80,7 +74,7 @@ plt.show ()
 
 # Bsp Random
 
-# #1
+# #1 combined
 # Starting Cubic Cloud Consensus
 # distance_threshold: 0.2
 # angle_threshold: 0.6108652381980153
