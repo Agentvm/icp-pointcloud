@@ -56,13 +56,14 @@ corresponding_cloud = corresponding_cloud + np.random.uniform (-0.01, 0.01, size
 # corresponding_cloud, corresponding_cloud_field_labels = input_output.conditionalized_load (
 #     'clouds/Regions/Xy Tower/DSM_Cloud_reduced_normals.asc' )
 
-# reach consenssu
+# reach consensus
 best_alignment, best_consensus_count, best_alignment_consensus_vector = \
     consensus.cubic_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
                            corresponding_cloud, corresponding_cloud_field_labels,
-                           threshold=30 * (math.pi/180 ),
                            cubus_length=2,
-                           step=.2 )
+                           step=.2,
+                           distance_threshold=0.01, angle_threshold=15 * (math.pi/180 ),
+                           algorithmus='combined' )
 # best_alignment, best_consensus_count, best_alignment_consensus_vector = \
 #     consensus.cubic_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
 #                            corresponding_cloud, corresponding_cloud_field_labels,
@@ -73,3 +74,15 @@ best_alignment, best_consensus_count, best_alignment_consensus_vector = \
 print ("Random Offset: " + str(random1 ))
 print ("Point Picking Offset: (-0.82777023,  0.16250610,  0.19129372)")
 plt.show ()
+
+
+# # Gute Werte:
+
+# Bsp Random
+
+# #1
+# Starting Cubic Cloud Consensus
+# distance_threshold: 0.2
+# angle_threshold: 0.6108652381980153
+# cubus_length: 2
+# step: 0.2

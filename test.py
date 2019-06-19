@@ -1,5 +1,4 @@
 import numpy as np
-import os
 
 numpy_cloud = np.array([[1.1, 2.1, 3.1],
                         [1.2, 2.2, 3.2],
@@ -8,8 +7,6 @@ numpy_cloud = np.array([[1.1, 2.1, 3.1],
                         [1.5, 2.5, 3.5],
                         [1.6, 2.6, 3.6]] )
 #
-print ([0] * 5)
-
 
 # # how to append to a list
 # list1 = [1, 2, 3]

@@ -80,6 +80,41 @@ def get_normal_differences (numpy_cloud, numpy_cloud_field_labels,
     return results
 
 
+def combined_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
+                              corresponding_cloud, corresponding_cloud_field_labels,
+                              angle_threshold, distance_threshold):
+
+    # timing DEBUG
+    start_time = time.time ()
+
+    # make a tree an get a list of distances to the nearest neigbor and his index
+    # but only take the x,y,z fields into consideration (reference_cloud[:, 0:3])
+    tree = sklearn.neighbors.kd_tree.KDTree (numpy_cloud[:, 0:3], leaf_size=40, metric='euclidean' )
+
+    part_time_1 = time.time ()
+    # query the three, but only take the x,y,z fields into consideration (compared_cloud[:, 0:3])
+    output = tree.query (corresponding_cloud[:, 0:3], k=1, return_distance=True )
+    part_time_1 = time.time () - part_time_1
+
+    part_time_2 = time.time ()
+    # Make a list out of the values of the respective numpy array
+    distances = list(itertools.chain(*output[0] ))
+    neighbor_indices = list(itertools.chain(*output[1] ))
+    part_time_2 = time.time () - part_time_2
+
+    part_time_3 = time.time ()
+    angle_differences = get_normal_differences (numpy_cloud[neighbor_indices, :], numpy_cloud_field_labels,
+                                                corresponding_cloud, corresponding_cloud_field_labels)
+    part_time_3 = time.time () - part_time_3
+
+    part_time_4 = time.time ()
+    consensus_vector = [1 if (distance < distance_threshold and angle < angle_threshold) else 0
+                        for (distance, angle) in zip (distances, angle_differences)]
+    part_time_4 = time.time () - part_time_4
+
+    return np.sum(consensus_vector ), consensus_vector, (time.time () - start_time, part_time_1, part_time_2, part_time_3, part_time_4)
+
+
 def normal_vector_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
                                    corresponding_cloud, corresponding_cloud_field_labels,
                                    threshold ):
@@ -98,8 +133,6 @@ def normal_vector_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
     start_time = time.time ()
 
     part_time_1 = time.time ()
-    numpy_cloud = numpy_cloud
-    corresponding_cloud = corresponding_cloud
     part_time_1 = time.time () - part_time_1
 
     part_time_2 = time.time ()
@@ -220,7 +253,8 @@ def display_consensus_cube (consensus_cube, corresponding_cloud_size, plot_title
 
 def cubic_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
                            compared_cloud, compared_cloud_field_labels,
-                           threshold, cubus_length, step,
+                           cubus_length, step, distance_threshold=0.009, angle_threshold=0.5,
+                           algorithmus='distance',
                            display_plot=True, plot_title=None ):
     '''
     Translates compared_cloud in lenghts of step inside a cubus-shaped space and, for every step, checks how many points
@@ -240,7 +274,8 @@ def cubic_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
     '''
 
     print ("\nStarting Cubic Cloud Consensus" )
-    print ("threshold: " + str(threshold ))
+    print ("distance_threshold: " + str(distance_threshold ))
+    print ("angle_threshold: " + str(angle_threshold ))
     print ("cubus_length: " + str(cubus_length ))
     print ("step: " + str(step ) + '\n' )
 
@@ -282,15 +317,27 @@ def cubic_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
                                z_iterator * step]
                 translation = translation + [0] * (compared_cloud.shape[1] - 3)
 
-                # find consenting points in the translated compared_cloud
-                consensus_count, consensus_vector, consensus_time = \
-                    normal_vector_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
-                                                   compared_cloud + translation, compared_cloud_field_labels,
-                                                   threshold )
-                consensus_count, consensus_vector, consensus_time = \
-                    point_distance_cloud_consensus (numpy_cloud,
-                                                   compared_cloud + translation,
-                                                   threshold )
+                if (algorithmus == 'distance'):
+
+                    consensus_count, consensus_vector, consensus_time = \
+                        point_distance_cloud_consensus (numpy_cloud,
+                                                       compared_cloud + translation,
+                                                       distance_threshold )
+                elif (algorithmus == 'vector'):
+
+                    # find consenting points in the translated compared_cloud
+                    consensus_count, consensus_vector, consensus_time = \
+                        normal_vector_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
+                                                       compared_cloud + translation, compared_cloud_field_labels,
+                                                       angle_threshold )
+
+                else:
+                    # combined
+                    consensus_count, consensus_vector, consensus_time = \
+                        combined_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
+                                                  compared_cloud + translation, compared_cloud_field_labels,
+                                                  angle_threshold=angle_threshold,
+                                                  distance_threshold=distance_threshold )
 
                 # timing
                 consensus_round_time = consensus_round_time + consensus_time[0]
@@ -301,7 +348,7 @@ def cubic_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
 
                 # check for a new consensus high
                 if (consensus_count > best_consensus_count ):
-                    best_alignment = translation
+                    best_alignment = [element * -1 for element in translation[0:3]]  # don't know why this is inverted
                     best_consensus_count = consensus_count
                     best_alignment_consensus_vector = consensus_vector
 
@@ -322,7 +369,7 @@ def cubic_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
     print ("Overall Time - Consensus Time: " + str (time.time () - start_time - consensus_round_time))
     print ("Overall Time: " + str (time.time () - start_time ))
 
-    print ("best_alignment: " + str(best_alignment ))
+    print ("\nbest_alignment: " + str(best_alignment ))
     print ("best_consensus_count: " + str(best_consensus_count ))
 
     if (display_plot):
