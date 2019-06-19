@@ -5,39 +5,46 @@ from modules import consensus
 from data import transformations
 from collections import OrderedDict
 import random
+import numpy as np
 
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 
 
-def set_consensus_arguments (threshold=.009, cubus_length=2, step=.2):
-    global CONSENSUS_THRESHOLD
+def set_consensus_arguments (distance_threshold=.012, angle_threshold=0.1, cubus_length=2, step=.2):
+    """angle_threshold in rad"""
+    global CONSENSUS_DISTANCE_THRESHOLD
+    global CONSENSUS_ANGLE_THRESHOLD
     global CONSENSUS_CUBUS_LENGHT
     global CONSENSUS_STEP
 
-    CONSENSUS_THRESHOLD = threshold
+    CONSENSUS_DISTANCE_THRESHOLD = distance_threshold
+    CONSENSUS_ANGLE_THRESHOLD = angle_threshold
     CONSENSUS_CUBUS_LENGHT = cubus_length
     CONSENSUS_STEP = step
 
 
 def reach_a_consensus (full_path_of_reference_cloud, full_path_of_aligned_cloud, plot_title ):
 
-    if ('CONSENSUS_THRESHOLD' not in globals()
+    if ('CONSENSUS_DISTANCE_THRESHOLD' not in globals()
+            or 'CONSENSUS_ANGLE_THRESHOLD' not in globals()
             or 'CONSENSUS_CUBUS_LENGHT' not in globals()
             or 'CONSENSUS_STEP' not in globals() ):
         raise NameError("Consensus arguments are not defined. Call set_consensus_arguments() first.")
 
     # load clouds
-    reference_cloud = input_output.load_ascii_file (full_path_of_reference_cloud )
-    aligned_cloud = input_output.load_ascii_file (full_path_of_aligned_cloud )
+    reference_cloud, reference_cloud_field_labels = input_output.conditionalized_load (full_path_of_reference_cloud )
+    aligned_cloud, aligned_cloud_field_labels = input_output.conditionalized_load (full_path_of_aligned_cloud )
 
     best_alignment, best_consensus_count, best_alignment_consensus_vector = \
-        consensus.cubic_cloud_consensus (reference_cloud,
-                                         aligned_cloud,
-                                         CONSENSUS_THRESHOLD,
-                                         CONSENSUS_CUBUS_LENGHT,
-                                         CONSENSUS_STEP,
-                                         plot_title)
+        consensus.cubic_cloud_consensus (reference_cloud, reference_cloud_field_labels,
+                                         aligned_cloud, aligned_cloud_field_labels,
+                                         cubus_length=CONSENSUS_CUBUS_LENGHT,
+                                         step=CONSENSUS_STEP,
+                                         distance_threshold=CONSENSUS_DISTANCE_THRESHOLD,
+                                         angle_threshold=CONSENSUS_ANGLE_THRESHOLD,
+                                         algorithmus='angle',
+                                         plot_title=plot_title)
 
     dictionary_line = {(full_path_of_reference_cloud, full_path_of_aligned_cloud):
                        (best_alignment, (best_consensus_count, 0, 0))}
@@ -216,8 +223,8 @@ if __name__ == '__main__':
     #                          'clouds/Regions/Xy Tower/DSM_Cloud_reduced_normals.asc' ), print_csv=True)
 
     # # consensus
-    set_consensus_arguments (threshold=0.009, cubus_length=2, step=.2 )
-    set_consensus_arguments (threshold=0.009, cubus_length=2, step=0.15 )
+    set_consensus_arguments (distance_threshold=0.009, cubus_length=2, step=.2 )
+    set_consensus_arguments (distance_threshold=None, angle_threshold=5 * (np.pi/180), cubus_length=2, step=0.2 )
 
     print ("\n\nComputing Consensus for each cloud pair in transformations.reference_translations returns: "
            + str(use_algorithmus_on_dictionary (get_reference_data_paths (), reach_a_consensus )))
