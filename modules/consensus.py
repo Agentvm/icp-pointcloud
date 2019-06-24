@@ -87,10 +87,6 @@ def combined_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
     # timing DEBUG
     start_time = time.time ()
 
-    # make a tree an get a list of distances to the nearest neigbor and his index
-    # but only take the x,y,z fields into consideration (reference_cloud[:, 0:3])
-    tree = sklearn.neighbors.kd_tree.KDTree (numpy_cloud[:, 0:3], leaf_size=40, metric='euclidean' )
-
     part_time_1 = time.time ()
     # query the three, but only take the x,y,z fields into consideration (compared_cloud[:, 0:3])
     output = tree.query (corresponding_cloud[:, 0:3], k=1, return_distance=True )
@@ -136,7 +132,7 @@ def normal_vector_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
     part_time_1 = time.time () - part_time_1
 
     part_time_2 = time.time ()
-    tree = sklearn.neighbors.kd_tree.KDTree (numpy_cloud[:, 0:3], leaf_size=40, metric='euclidean')
+
     part_time_2 = time.time () - part_time_2
 
     part_time_3 = time.time ()
@@ -177,7 +173,6 @@ def point_distance_cloud_consensus (numpy_cloud, corresponding_cloud, threshold 
     part_time_1 = time.time () - part_time_1
 
     part_time_2 = time.time ()
-    tree = sklearn.neighbors.kd_tree.KDTree (numpy_cloud, leaf_size=40, metric='euclidean')
     part_time_2 = time.time () - part_time_2
 
     part_time_3 = time.time ()
@@ -316,6 +311,10 @@ def cubic_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
                                y_iterator * step,
                                z_iterator * step]
                 translation = translation + [0] * (compared_cloud.shape[1] - 3)
+
+                # make a tree an get a list of distances to the nearest neigbor and his index
+                # but only take the x,y,z fields into consideration (reference_cloud[:, 0:3])
+                tree = sklearn.neighbors.kd_tree.KDTree (numpy_cloud[:, 0:3], leaf_size=40, metric='euclidean' )
 
                 if (algorithmus == 'distance'):
 
