@@ -30,7 +30,7 @@ def save_ascii_file (numpy_cloud, field_labels_list, path ):
     # "%.8f %.8f %.8f %.2f %.2f %.2f"
     format = "%.8f %.8f %.8f"
     for i in range (numpy_cloud.shape[1] - 3 ):
-        format = format + " %.2f"
+        format = format + " %.6f"
 
     field_names_list = ['{0} '.format(name) for name in field_labels_list]
     leading_line = "//" + ''.join(field_names_list)
