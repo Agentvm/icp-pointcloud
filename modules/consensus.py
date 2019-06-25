@@ -208,9 +208,17 @@ def display_consensus_cube (consensus_cube, corresponding_cloud_size, plot_title
     # normalize consensus row
     consensus_cube[:, 3] = consensus_cube[:, 3] / corresponding_cloud_size
 
+    # get min and max values
+    xmin = np.min (consensus_cube[:, 0] )
+    xmax = np.max (consensus_cube[:, 0] )
+    ymin = np.min (consensus_cube[:, 1] )
+    ymax = np.max (consensus_cube[:, 1] )
+    zmin = np.min (consensus_cube[:, 2] )
+    zmax = np.max (consensus_cube[:, 2] )
+
     # save the highest and lowest value to display the whole cubus
-    lowest_row = consensus_cube[0, :].reshape (1, 4)
-    highest_row = consensus_cube[-1, :].reshape (1, 4)
+    # lowest_row = consensus_cube[0, :].reshape (1, 4)
+    # highest_row = consensus_cube[-1, :].reshape (1, 4)
 
     # # thin out the cloud by removing the lowest 60% of results
     # sort by best consensus and remove the last
@@ -225,7 +233,7 @@ def display_consensus_cube (consensus_cube, corresponding_cloud_size, plot_title
     #consensus_cube = consensus_cube[consensus_cube[:, 3] > 0.01]
 
     # re-append highest and lowest lowest_row
-    consensus_cube = np.concatenate ((lowest_row, consensus_cube, highest_row), axis=0 )
+    #consensus_cube = np.concatenate ((lowest_row, consensus_cube, highest_row), axis=0 )
 
     #print ("normalized_consensus_counts: " + str (normalized_consensus_counts ))
 
@@ -249,11 +257,14 @@ def display_consensus_cube (consensus_cube, corresponding_cloud_size, plot_title
 
     # # plot
     fig = plt.figure()
-    ax = fig.add_subplot(111, projection='3d')
-    ax.scatter(consensus_cube[:, 0], consensus_cube[:, 1], consensus_cube[:, 2], c=rgba_colors, marker='o')
-    ax.set_xlabel('X Label')
-    ax.set_ylabel('Y Label')
-    ax.set_zlabel('Z Label')
+    axes = fig.add_subplot(111, projection='3d')
+    axes.scatter(consensus_cube[:, 0], consensus_cube[:, 1], consensus_cube[:, 2], c=rgba_colors, marker='o')
+    axes.set_xlabel('X Label')
+    axes.set_xlim([xmin, xmax])
+    axes.set_ylabel('Y Label')
+    axes.set_ylim([ymin, ymax])
+    axes.set_zlabel('Z Label')
+    axes.set_zlim([zmin, zmax])
     if (plot_title is None ):
         plot_title = "ConsensusCube (TM)"
     plt.title (plot_title)
@@ -266,7 +277,7 @@ def cubic_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
                            compared_cloud, compared_cloud_field_labels,
                            cubus_length, step, distance_threshold=0.009, angle_threshold=0.5,
                            algorithmus='distance',
-                           display_plot=True, plot_title=None ):
+                           display_plot=True, plot_title="ConsensusCube (TM)" ):
     '''
     Translates compared_cloud in lenghts of step inside a cubus-shaped space and, for every step, checks how many points
     of cloud numpy_cloud have a neighbor within threshold range in compared_cloud.
@@ -277,6 +288,7 @@ def cubic_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
         threshold (float):                  Threshold that defines the range at which a point is counted as neigbor
         cubus_length (float):               Cubus center is (0, 0, 0). Half of cubus_length is backwards, half forwards.
         step (float):
+        algorithmus (string):               'distance', 'angle' or 'combined'
 
     Output:
         best_alignment ((x, y, z) tuple ):
@@ -347,7 +359,7 @@ def cubic_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
                                                        angle_threshold )
 
                 else:
-                    # combined
+                    algorithmus == 'combined'
                     consensus_count, consensus_vector, consensus_time = \
                         combined_cloud_consensus (sklearn_neighbors_kd_tree, numpy_cloud, numpy_cloud_field_labels,
                                                   compared_cloud + translation, compared_cloud_field_labels,
@@ -389,6 +401,18 @@ def cubic_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
     print ("best_consensus_count: " + str(best_consensus_count ))
 
     if (display_plot):
+        # put together the plot tile, including the string given as argument to this function and the other algorithmus
+        # parameters
+        plot_title = str(plot_title
+                + "_" + str(algorithmus ) + "-consensus"
+                + "_cubus_length_" + '{:.1f}'.format (cubus_length )
+                + "_step_" + '{:.2f}'.format (step ))
+        if (algorithmus == 'distance' or algorithmus == 'combined'):
+            plot_title = str(plot_title + "_distance_threshold_" + '{:.3f}'.format (distance_threshold ))
+        if (algorithmus == 'angle' or algorithmus == 'combined'):
+            plot_title = str(plot_title + "_angle_threshold_" + '{:.3f}'.format (angle_threshold))
+
+        # display the plot
         display_consensus_cube (consensus_cloud, compared_cloud.shape[0], plot_title )
 
     return best_alignment, best_consensus_count, best_alignment_consensus_vector
