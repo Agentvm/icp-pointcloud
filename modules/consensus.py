@@ -205,20 +205,19 @@ def point_distance_cloud_consensus (tree, numpy_cloud, corresponding_cloud, thre
 def display_consensus_cube (consensus_cube, corresponding_cloud_size, plot_title="ConsensusCube (TM)",
                             relative_color_scale=True ):
 
-    # normalize consensus row
-    consensus_cube[:, 3] = consensus_cube[:, 3] / corresponding_cloud_size
+    # normalize consensus field
+    if (relative_color_scale):
+        consensus_cube[:, 3] = consensus_cube[:, 3] / np.max (consensus_cube[:, 3] )
+    else:
+        consensus_cube[:, 3] = consensus_cube[:, 3] / corresponding_cloud_size
 
-    # get min and max values
+    # get x, y, z min and max values
     xmin = np.min (consensus_cube[:, 0] )
     xmax = np.max (consensus_cube[:, 0] )
     ymin = np.min (consensus_cube[:, 1] )
     ymax = np.max (consensus_cube[:, 1] )
     zmin = np.min (consensus_cube[:, 2] )
     zmax = np.max (consensus_cube[:, 2] )
-
-    # save the highest and lowest value to display the whole cubus
-    # lowest_row = consensus_cube[0, :].reshape (1, 4)
-    # highest_row = consensus_cube[-1, :].reshape (1, 4)
 
     # # thin out the cloud by removing the lowest 60% of results
     # sort by best consensus and remove the last
@@ -231,29 +230,18 @@ def display_consensus_cube (consensus_cube, corresponding_cloud_size, plot_title
     consensus_cube = consensus_cube[index:-1, :]
     # print ("CUT consensus_cube:\n" + str(consensus_cube) )
     #consensus_cube = consensus_cube[consensus_cube[:, 3] > 0.01]
-
-    # re-append highest and lowest lowest_row
-    #consensus_cube = np.concatenate ((lowest_row, consensus_cube, highest_row), axis=0 )
-
     #print ("normalized_consensus_counts: " + str (normalized_consensus_counts ))
 
     # # color the plot
     rgba_colors = np.zeros((consensus_cube[:, 3].shape[0], 4 ))
-
-    #print ("consensus_cube:\n" + str (consensus_cube ))
-
-    if (relative_color_scale):
-        consensus_cube[:, 3] = consensus_cube[:, 3] / np.max (consensus_cube[:, 3] )
 
     # fill the colors
     rgba_colors[:, 0] = 1 - consensus_cube[:, 3]
     rgba_colors[:, 1] = consensus_cube[:, 3]
     rgba_colors[:, 2] = 0.2
 
-    # the fourth column are the alpha values
+    # fill the alpha values
     rgba_colors[:, 3] = np.ones ((consensus_cube.shape[0]))     # consensus_cube[:, 3]
-    rgba_colors[0, 3] = 0
-    rgba_colors[-1, 3] = 0
 
     # # plot
     fig = plt.figure()
@@ -413,6 +401,6 @@ def cubic_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
             plot_title = str(plot_title + "_angle_threshold_" + '{:.3f}'.format (angle_threshold))
 
         # display the plot
-        display_consensus_cube (consensus_cloud, compared_cloud.shape[0], plot_title )
+        display_consensus_cube (consensus_cloud, compared_cloud.shape[0], plot_title, relative_color_scale=False )
 
     return best_alignment, best_consensus_count, best_alignment_consensus_vector
