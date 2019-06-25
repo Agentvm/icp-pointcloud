@@ -62,8 +62,8 @@ best_alignment, best_consensus_count, best_alignment_consensus_vector = \
                            corresponding_cloud, corresponding_cloud_field_labels,
                            cubus_length=2,
                            step=.2,
-                           distance_threshold=None, angle_threshold=5 * (math.pi/180 ),
-                           algorithmus='angle' )
+                           distance_threshold=0.2, angle_threshold=5 * (math.pi/180 ),
+                           algorithmus='distance' )
 
 print ("Random Offset: " + str(random1 ))
 print ("Point Picking Offset: (-0.82777023,  0.16250610,  0.19129372)")

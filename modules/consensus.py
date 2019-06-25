@@ -80,15 +80,29 @@ def get_normal_differences (numpy_cloud, numpy_cloud_field_labels,
     return results
 
 
-def combined_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
+def combined_cloud_consensus (tree, numpy_cloud, numpy_cloud_field_labels,
                               corresponding_cloud, corresponding_cloud_field_labels,
                               angle_threshold, distance_threshold):
+    '''
+    Counts points of numpy_cloud that have a neighbor of smaller distance than threshold in the corresponding cloud.
+
+    Input:
+        tree (sklearn.neighbors.kd_tree): A kd tree of the reference_cloud
+        numpy_cloud ([n, 3] np.array):
+        corresponding_cloud ([1, 3] np.array):
+        angle_threshold (float):
+        distance_threshold (float):
+
+    Output:
+        consensus_count (int):                  Number of points with neighbors in suitable range
+        consensus_vector ([n, 1] np.array):     Contains 1 if the point had a neighbor in threshold range, else 0
+    '''
 
     # timing DEBUG
     start_time = time.time ()
 
     part_time_1 = time.time ()
-    # query the three, but only take the x,y,z fields into consideration (compared_cloud[:, 0:3])
+    # query the three, but only take the x,y,z fields into consideration (corresponding_cloud[:, 0:3])
     output = tree.query (corresponding_cloud[:, 0:3], k=1, return_distance=True )
     part_time_1 = time.time () - part_time_1
 
@@ -111,13 +125,14 @@ def combined_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
     return np.sum(consensus_vector ), consensus_vector, (time.time () - start_time, part_time_1, part_time_2, part_time_3, part_time_4)
 
 
-def normal_vector_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
+def normal_vector_cloud_consensus (tree, numpy_cloud, numpy_cloud_field_labels,
                                    corresponding_cloud, corresponding_cloud_field_labels,
                                    threshold ):
     '''
     Counts points of numpy_cloud that have a neighbor of smaller distance than threshold in the corresponding cloud.
 
     Input:
+        tree (sklearn.neighbors.kd_tree): A kd tree of the reference_cloud
         numpy_cloud ([n, 3] np.array):
         corresponding_cloud ([1, 3] np.array):
         threshold (float):
@@ -152,11 +167,12 @@ def normal_vector_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
     return np.sum(consensus_vector), consensus_vector, (time.time () - start_time, part_time_1, part_time_2, part_time_3, part_time_4)
 
 
-def point_distance_cloud_consensus (numpy_cloud, corresponding_cloud, threshold ):
+def point_distance_cloud_consensus (tree, numpy_cloud, corresponding_cloud, threshold ):
     '''
     Counts points of numpy_cloud that have a neighbor of smaller distance than threshold in the corresponding cloud.
 
     Input:
+        tree (sklearn.neighbors.kd_tree): A kd tree of the reference_cloud
         numpy_cloud ([n, 3] np.array):
         corresponding_cloud ([1, 3] np.array):
         threshold (float):
@@ -293,6 +309,10 @@ def cubic_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
     best_alignment_consensus_vector = np.zeros ((numpy_cloud.shape[0], 1) )     # field that shows which points consent
     best_consensus_count = 0  #
 
+    # build a kd tree
+    # but only take the x,y,z fields into consideration (numpy_cloud[:, 0:3])
+    sklearn_neighbors_kd_tree = sklearn.neighbors.kd_tree.KDTree (numpy_cloud[:, 0:3], leaf_size=40, metric='euclidean')
+
     # in the complete space of cubus_length * cubus_length * cubus_length, iterate with the interval of step in x, y and
     # z direction
     iteration_count = 0
@@ -312,28 +332,24 @@ def cubic_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
                                z_iterator * step]
                 translation = translation + [0] * (compared_cloud.shape[1] - 3)
 
-                # make a tree an get a list of distances to the nearest neigbor and his index
-                # but only take the x,y,z fields into consideration (reference_cloud[:, 0:3])
-                tree = sklearn.neighbors.kd_tree.KDTree (numpy_cloud[:, 0:3], leaf_size=40, metric='euclidean' )
-
                 if (algorithmus == 'distance'):
 
                     consensus_count, consensus_vector, consensus_time = \
-                        point_distance_cloud_consensus (numpy_cloud,
+                        point_distance_cloud_consensus (sklearn_neighbors_kd_tree, numpy_cloud,
                                                        compared_cloud + translation,
                                                        distance_threshold )
                 elif (algorithmus == 'angle'):
 
                     # find consenting points in the translated compared_cloud
                     consensus_count, consensus_vector, consensus_time = \
-                        normal_vector_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
+                        normal_vector_cloud_consensus (sklearn_neighbors_kd_tree, numpy_cloud, numpy_cloud_field_labels,
                                                        compared_cloud + translation, compared_cloud_field_labels,
                                                        angle_threshold )
 
                 else:
                     # combined
                     consensus_count, consensus_vector, consensus_time = \
-                        combined_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
+                        combined_cloud_consensus (sklearn_neighbors_kd_tree, numpy_cloud, numpy_cloud_field_labels,
                                                   compared_cloud + translation, compared_cloud_field_labels,
                                                   angle_threshold=angle_threshold,
                                                   distance_threshold=distance_threshold )
