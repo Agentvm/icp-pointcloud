@@ -294,7 +294,7 @@ def cubic_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
         consensus_cube ((n, 4) numpy array):
     '''
 
-    print ("\nStarting Cubic Cloud Consensus" )
+    print ("\nStarting " + algorithmus + " Cubic Cloud Consensus" )
     print ("distance_threshold: " + str(distance_threshold ))
     print ("angle_threshold: " + str(angle_threshold ))
     print ("cubus_length: " + str(cubus_length ))
@@ -357,7 +357,7 @@ def cubic_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
                                                        angle_threshold )
 
                 else:
-                    algorithmus == 'combined'
+                    algorithmus = 'combined'
                     consensus_count, consensus_vector, consensus_time = \
                         combined_cloud_consensus (sklearn_neighbors_kd_tree, numpy_cloud, numpy_cloud_field_labels,
                                                   compared_cloud + translation, compared_cloud_field_labels,
