@@ -17,58 +17,64 @@ def normalize_vector_array (vector_array ):
 
 # small cloud
 #numpy_cloud = np.random.uniform (-10, 10, (100, 3 ))
-numpy_cloud = np.array([[1, 0, 0],
-                        [2, 0, 0],
-                        [0, 1, 0],
-                        [0, 2, 0],
-                        [0, 0, 1],
-                        [0, 0, 2]] )
+# numpy_cloud = np.array([[1, 0, 0],
+#                         [2, 0, 0],
+#                         [0, 1, 0],
+#                         [0, 2, 0],
+#                         [0, 0, 1],
+#                         [0, 0, 2]] )
+#
+# numpy_normals = np.array([[1, 0, 0],
+#                     [0, 1, 0],
+#                     [0, 0, 1],
+#                     [1, 0, 1],
+#                     [1, 1, 0],
+#                     [0, 1, 1]] )
 
-numpy_normals = np.array([[1, 0, 0],
-                    [0, 1, 0],
-                    [0, 0, 1],
-                    [1, 0, 1],
-                    [1, 1, 0],
-                    [0, 1, 1]] )
-
-# random values
-numpy_cloud = np.random.uniform (-10, 10, size=(1000, 3 ))
-numpy_normals = normalize_vector_array (np.random.uniform (0, 1, size=(1000, 3 )))
-
-# concat
-field_labels_list = numpy_cloud_field_labels = corresponding_cloud_field_labels = ['X', 'Y', 'Z', 'Nx ', 'Ny ', 'Nz ']
-numpy_cloud = np.concatenate ((numpy_cloud, numpy_normals), axis=1)
-print ('numpy_cloud.shape: ' + str (numpy_cloud.shape ))
-# print ('numpy_cloud:\n' + str (numpy_cloud ))
-
-# displace
-random1 = np.random.uniform ((-1, -1, -1, 0, 0, 0), (1, 1, 1, 0, 0, 0 ))
-corresponding_cloud = numpy_cloud + random1
-
-# noise
-numpy_cloud = numpy_cloud + np.random.uniform (-0.01, 0.01, size=(1, 6 ))
-corresponding_cloud = corresponding_cloud + np.random.uniform (-0.01, 0.01, size=(1, 6 ))
+# # random values
+# numpy_cloud = np.random.uniform (-10, 10, size=(1000, 3 ))
+# numpy_normals = normalize_vector_array (np.random.uniform (0, 1, size=(1000, 3 )))
+#
+# # concat
+# field_labels_list = numpy_cloud_field_labels = corresponding_cloud_field_labels = ['X', 'Y', 'Z', 'Nx ', 'Ny ', 'Nz ']
+# numpy_cloud = np.concatenate ((numpy_cloud, numpy_normals), axis=1)
+# print ('numpy_cloud.shape: ' + str (numpy_cloud.shape ))
+# # print ('numpy_cloud:\n' + str (numpy_cloud ))
+#
+# # displace
+# random1 = np.random.uniform ((-1, -1, -1, 0, 0, 0), (1, 1, 1, 0, 0, 0 ))
+# corresponding_cloud = numpy_cloud + random1
+#
+# # noise
+# numpy_cloud = numpy_cloud + np.random.uniform (-0.01, 0.01, size=(1, 6 ))
+# corresponding_cloud = corresponding_cloud + np.random.uniform (-0.01, 0.01, size=(1, 6 ))
 
 # # big cloud
-# numpy_cloud, numpy_cloud_field_labels = input_output.conditionalized_load(
-#     'clouds/Regions/Xy Tower/ALS16_Cloud_reduced_normals_cleared.asc' )
-#
-# corresponding_cloud, corresponding_cloud_field_labels = input_output.conditionalized_load (
-#     'clouds/Regions/Xy Tower/DSM_Cloud_reduced_normals.asc' )
+numpy_cloud, numpy_cloud_field_labels = input_output.conditionalized_load(
+    'clouds/Regions/Yz Houses/ALS16_Cloud_reduced_normals_cleared.asc' )
+
+corresponding_cloud, corresponding_cloud_field_labels = input_output.conditionalized_load (
+    'clouds/Regions/Yz Houses/DSM_Cloud_reduced_normals.asc' )
 
 # reach consensus
 best_alignment, best_consensus_count, best_alignment_consensus_vector = \
     consensus.cubic_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
                            corresponding_cloud, corresponding_cloud_field_labels,
                            cubus_length=2,
-                           step=.2,
-                           distance_threshold=0.2, angle_threshold=5 * (math.pi/180 ),
+                           step=.15,
+                           distance_threshold=0.30,
+                           angle_threshold=None,  # 5 * (math.pi/180 ),
                            algorithmus='distance',
-                           save_plot=False )
+                           plot_title="Yz_Houses",
+                           save_plot=True )
 
-print ("Random Offset: " + str(random1 ))
-print ("Point Picking Offset: (-0.82777023,  0.16250610,  0.19129372)")
-plt.show ()
+#print ("Random Offset: " + str(random1 ))
+#print ("Point Picking Offset Xy Tower: (-0.82777023,  0.16250610,  0.19129372)")
+print ("Point Picking Offset Yz Houses: (0.31462097, -0.01929474, -0.03573704)")
+
+# show plot
+#plt.show ()
+
 
 
 # # Gute Werte:
@@ -79,5 +85,11 @@ plt.show ()
 # Starting Cubic Cloud Consensus
 # distance_threshold: 0.2
 # angle_threshold: 0.6108652381980153
+# cubus_length: 2
+# step: 0.2
+
+# Starting Cubic Cloud Consensus
+# distance_threshold: 0.2
+# angle_threshold: 0.08726646259971647
 # cubus_length: 2
 # step: 0.2
