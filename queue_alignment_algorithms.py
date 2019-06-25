@@ -47,7 +47,7 @@ def reach_a_consensus (full_path_of_reference_cloud, full_path_of_aligned_cloud,
                                          plot_title=plot_title)
 
     dictionary_line = {(full_path_of_reference_cloud, full_path_of_aligned_cloud):
-                       (best_alignment, (best_consensus_count, 0, 0))}
+                       (best_alignment, (best_consensus_count/aligned_cloud.shape[0], 0, 0))}
 
     return dictionary_line
 
