@@ -63,7 +63,8 @@ best_alignment, best_consensus_count, best_alignment_consensus_vector = \
                            cubus_length=2,
                            step=.2,
                            distance_threshold=0.2, angle_threshold=5 * (math.pi/180 ),
-                           algorithmus='distance' )
+                           algorithmus='distance',
+                           save_plot=False )
 
 print ("Random Offset: " + str(random1 ))
 print ("Point Picking Offset: (-0.82777023,  0.16250610,  0.19129372)")

@@ -1,4 +1,5 @@
 from modules import normals
+from modules import input_output
 import numpy as np
 import math
 from mpl_toolkits.mplot3d import Axes3D
@@ -204,6 +205,11 @@ def point_distance_cloud_consensus (tree, numpy_cloud, corresponding_cloud, thre
 
 def display_consensus_cube (consensus_cube, corresponding_cloud_size, plot_title="ConsensusCube (TM)",
                             relative_color_scale=True ):
+    '''
+    Output:
+        consensus_cube ((n, 4) np.array):   Display-ready consensus_cube
+        matplotlib_figure_object (matplotlib.pyplot): Figure object containing the plot for further use
+    '''
 
     # normalize consensus field
     if (relative_color_scale):
@@ -223,6 +229,7 @@ def display_consensus_cube (consensus_cube, corresponding_cloud_size, plot_title
     # sort by best consensus and remove the last
     index = -math.floor (0.1 * consensus_cube.shape[0] )
 
+    # sort the 4th row, containing the consensus values
     consensus_cube.view('i8,i8,i8,i8').sort(order=['f3'], axis=0 )      # .flip (axis=0 )
     # print ("sorted consensus_cube:\n" + str(consensus_cube) )
     # print ("consensus_cube.shape[0]: " + str(consensus_cube.shape[0]))
@@ -244,8 +251,8 @@ def display_consensus_cube (consensus_cube, corresponding_cloud_size, plot_title
     rgba_colors[:, 3] = np.ones ((consensus_cube.shape[0]))     # consensus_cube[:, 3]
 
     # # plot
-    fig = plt.figure()
-    axes = fig.add_subplot(111, projection='3d')
+    matplotlib_figure_object = plt.figure()
+    axes = matplotlib_figure_object.add_subplot(111, projection='3d')
     axes.scatter(consensus_cube[:, 0], consensus_cube[:, 1], consensus_cube[:, 2], c=rgba_colors, marker='o')
     axes.set_xlabel('X Label')
     axes.set_xlim([xmin, xmax])
@@ -260,12 +267,15 @@ def display_consensus_cube (consensus_cube, corresponding_cloud_size, plot_title
     #plt.ion ()
     plt.draw ()
 
+    return consensus_cube, matplotlib_figure_object
+
 
 def cubic_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
                            compared_cloud, compared_cloud_field_labels,
                            cubus_length, step, distance_threshold=0.009, angle_threshold=0.5,
                            algorithmus='distance',
-                           display_plot=True, plot_title="ConsensusCube (TM)" ):
+                           display_plot=True, relative_color_scale=False,
+                           plot_title="ConsensusCube (TM)", save_plot=False ):
     '''
     Translates compared_cloud in lenghts of step inside a cubus-shaped space and, for every step, checks how many points
     of cloud numpy_cloud have a neighbor within threshold range in compared_cloud.
@@ -401,6 +411,14 @@ def cubic_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
             plot_title = str(plot_title + "_angle_threshold_" + '{:.3f}'.format (angle_threshold))
 
         # display the plot
-        display_consensus_cube (consensus_cloud, compared_cloud.shape[0], plot_title, relative_color_scale=False )
+        display_cube, figure = display_consensus_cube (
+                        consensus_cloud, compared_cloud.shape[0],
+                        plot_title, relative_color_scale=relative_color_scale )
+        if (save_plot):
+            figure.savefig (str("docs/logs/unordered_cube_savefiles/" + plot_title + ".png" ), format='png')
+            np.save (str("docs/logs/unordered_cube_savefiles/" + plot_title ),
+                display_cube, allow_pickle=False )
+            input_output.save_ascii_file (display_cube, ["X", "Y", "Z", "Consensus"],
+                str("docs/logs/unordered_cube_savefiles/" + plot_title + ".asc"))
 
     return best_alignment, best_consensus_count, best_alignment_consensus_vector
