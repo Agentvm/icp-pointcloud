@@ -3,6 +3,8 @@ from modules import input_output
 import numpy as np
 import math
 from mpl_toolkits.mplot3d import Axes3D
+from mpl_toolkits.mplot3d.art3d import Line3D
+from matplotlib.patches import Rectangle    # dummy for legend
 import matplotlib.pyplot as plt
 import sklearn.neighbors    # kdtree
 import itertools            # speed improvement when making a [list] out of a [list of [lists]]
@@ -203,6 +205,15 @@ def point_distance_cloud_consensus (tree, numpy_cloud, corresponding_cloud, thre
     return np.sum(consensus_vector), consensus_vector, (time.time () - start_time, part_time_1, part_time_2, part_time_3, part_time_4)
 
 
+def create_line (point1, point2 ):
+    xs = (point1[0], point2[0])
+    ys = (point1[1], point2[1])
+    zs = (point1[2], point2[2])
+    line = Line3D(xs, ys, zs, alpha=0.6, c='blue', ls='--')
+
+    return line
+
+
 def display_consensus_cube (consensus_cube, corresponding_cloud_size, plot_title="ConsensusCube (TM)",
                             relative_color_scale=True ):
     '''
@@ -234,7 +245,7 @@ def display_consensus_cube (consensus_cube, corresponding_cloud_size, plot_title
     # print ("sorted consensus_cube:\n" + str(consensus_cube) )
     # print ("consensus_cube.shape[0]: " + str(consensus_cube.shape[0]))
     # print ("index: " + str(index))
-    consensus_cube = consensus_cube[index:-1, :]
+    consensus_cube = consensus_cube[index:, :]
     # print ("CUT consensus_cube:\n" + str(consensus_cube) )
     #consensus_cube = consensus_cube[consensus_cube[:, 3] > 0.01]
     #print ("normalized_consensus_counts: " + str (normalized_consensus_counts ))
@@ -263,6 +274,23 @@ def display_consensus_cube (consensus_cube, corresponding_cloud_size, plot_title
     if (plot_title is None ):
         plot_title = "ConsensusCube (TM)"
     plt.title (plot_title)
+
+    # lines
+    line = create_line ((xmin, consensus_cube[-1, 1], consensus_cube[-1, 2] ),
+                        (xmax, consensus_cube[-1, 1], consensus_cube[-1, 2] ))
+    axes.add_line (line)
+
+    axes.add_line (create_line ((consensus_cube[-1, 0], ymin, consensus_cube[-1, 2] ),
+                                (consensus_cube[-1, 0], ymax, consensus_cube[-1, 2] )))
+
+    axes.add_line (create_line ((consensus_cube[-1, 0], consensus_cube[-1, 1], zmin ),
+                                (consensus_cube[-1, 0], consensus_cube[-1, 1], zmax )))
+
+    extra = Rectangle((0, 0), 1, 1, fc="w", fill=False, edgecolor='none', linewidth=0)
+    best_alignment_string = ("{:.4f}".format (consensus_cube[-1, 0])
+                            + ", {:.4f}".format (consensus_cube[-1, 1])
+                            + ", {:.4f}".format (consensus_cube[-1, 1]))
+    plt.legend ([line, extra], ("Maximum Consensus", best_alignment_string), loc=(-0.28, 0) )
     #plt.show()
     #plt.ion ()
     plt.draw ()
@@ -415,7 +443,7 @@ def cubic_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
                         consensus_cloud, compared_cloud.shape[0],
                         plot_title, relative_color_scale=relative_color_scale )
         if (save_plot):
-            figure.savefig (str("docs/logs/unordered_cube_savefiles/" + plot_title + ".png" ), format='png')
+            figure.savefig (str("docs/logs/unordered_cube_savefiles/" + plot_title + ".png" ), format='png', dpi=220, bbox_inches='tight')
             np.save (str("docs/logs/unordered_cube_savefiles/" + plot_title ),
                 display_cube, allow_pickle=False )
             input_output.save_ascii_file (display_cube, ["X", "Y", "Z", "Consensus"],
