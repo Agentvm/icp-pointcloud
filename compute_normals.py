@@ -34,8 +34,13 @@ def compute_normals (numpy_cloud, file_path, field_labels_list, query_radius ):
     # build a kdtree
     tree = sklearn.neighbors.kd_tree.KDTree (numpy_cloud[:, 0:3], leaf_size=40, metric='euclidean')
 
+    # prepare variables
     additional_values = np.zeros ((numpy_cloud.shape[0], 4 ))
     success = True
+
+    # set radius
+    if ("DSM_Cloud" in file_path):
+        query_radius = 0.8
 
     # compute normals for each point
     for index, point in enumerate (numpy_cloud[:, 0:3] ):
