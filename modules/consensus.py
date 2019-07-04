@@ -269,6 +269,8 @@ def display_consensus_cube (consensus_cube, corresponding_cloud_size, best_align
     zmin = np.min (consensus_cube[:, 2] )
     zmax = np.max (consensus_cube[:, 2] )
 
+    original_cube = consensus_cube
+
     # # thin out the cloud by removing the lowest 60% of results
     # sort by best consensus and remove the first 60 % of values
     index = -math.floor (0.1 * consensus_cube.shape[0] )
@@ -356,7 +358,7 @@ def display_consensus_cube (consensus_cube, corresponding_cloud_size, best_align
     #plt.ion ()
     plt.draw ()
 
-    return consensus_cube, matplotlib_figure_object
+    return original_cube, matplotlib_figure_object
 
 
 def cubic_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
