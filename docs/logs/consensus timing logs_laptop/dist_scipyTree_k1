@@ -1,0 +1,32 @@
+numpy_cloud.shape: (1000, 6)
+
+Starting distance Cubic Cloud Consensus
+distance_threshold: 0.3
+angle_threshold: 0.08726646259971647
+cubus_length: 2
+step: 0.15
+
+Progress: 0.0 %
+Progress: 10.0 %
+Progress: 20.0 %
+Progress: 30.0 %
+Progress: 39.9 %
+Progress: 49.9 %
+Progress: 59.9 %
+Progress: 69.9 %
+Progress: 79.9 %
+Progress: 89.9 %
+Progress: 99.9 %
+
+cloud_consensus Time: 0.0010753130736174408
+	Part 1: 0.15 %
+	Part 2: 0.01 %
+	Part 3: 97.86 %
+	Part 4: 1.04 %
+
+Overall Time - Consensus Time: 0.12296557426452637
+Overall Time: 3.752162456512451
+
+best_alignment: [-0.8999999999999999, 0.15, -0.6]
+best_consensus_count: 1000
+Random Offset: [ 0.67614954 -0.21159201  0.52567776
