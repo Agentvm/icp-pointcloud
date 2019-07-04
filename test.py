@@ -66,10 +66,6 @@ numpy_cloud = np.array([[1.1, 2.1, 3.1],
 #     return res
 #
 #
-# def monolith (vector_array_1, vector_array_2 ):
-#     np.arccos (np.diagonal (np.clip (np.dot (vector_array_1, vector_array_2), -1.0, 1.0 )))
-#
-#
 # def alternative_angle_between (vector_array_1, vector_array_2, step=1000 ):
 #
 #     # prepare results vector with lenght of number of points
@@ -138,6 +134,15 @@ numpy_cloud = np.array([[1.1, 2.1, 3.1],
 #     return results
 #
 #
+# def simple_loop_angle (vector_array_1, vector_array_2 ):
+#
+#     results = np.zeros ((vector_array_1.shape[0], 1 ))
+#     for i in range (vector_array_1.shape[0]):
+#         results[i] = vector_array_1[i, :].dot (vector_array_2[i, :] )
+#
+#     return np.arccos (np.clip (results, -1, 1 ))
+#
+#
 # def load_example_cloud ():
 #
 #     # # big cloud
@@ -202,7 +207,8 @@ numpy_cloud = np.array([[1.1, 2.1, 3.1],
 # monolith_nc_time = 0
 # monolith_nan_time = 0
 # loop_time = 0
-# times = 150
+# simple_loop_time = 0
+# times = 15
 # for i in range (times):
 #
 #     measure = time.time ()
@@ -223,11 +229,16 @@ numpy_cloud = np.array([[1.1, 2.1, 3.1],
 #     measure = time.time ()
 #     results_nan_monolith = alternative_angle_between_nan (normals_numpy_cloud, normals_corresponding_cloud[:normals_numpy_cloud.shape[0], :], step )
 #     monolith_nan_time += time.time () - measure
+#
+#     measure = time.time ()
+#     results_simple_loop = simple_loop_angle (normals_numpy_cloud, normals_corresponding_cloud[:normals_numpy_cloud.shape[0], :] )
+#     simple_loop_time += time.time () - measure
 # #
 # monolith_time = monolith_time / times
 # monolith_nc_time = monolith_nc_time / times
 # monolith_nan_time = monolith_nan_time / times
 # loop_time = loop_time / times
+# simple_loop_time = simple_loop_time / times
 #
 #
 # print ("\nStep: " + str(step ))
@@ -235,11 +246,13 @@ numpy_cloud = np.array([[1.1, 2.1, 3.1],
 # print ("Monolith Process Time: " + str(monolith_time ))
 # print ("No Clip Monolith Process Time: " + str(monolith_nc_time ))
 # print ("NAN Monolith Process Time: " + str(monolith_nan_time ))
+# print ("Simple Loop Time: " + str(simple_loop_time ))
 # #
 # print ("\n\nloop:\n" + str(results_loop[:10]))
 # print ("monolith:\n" + str(results_monolith[:10].T))
 # print ("noclip monolith:\n" + str(results_nc_monolith[:10].T))
 # print ("NAN monolith:\n" + str(results_nan_monolith[:10].T))
+# print ("Simple Loop:\n" + str(results_simple_loop[:10].T))
 
 
 # # how to append to a list

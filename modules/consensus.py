@@ -1,4 +1,4 @@
-from modules import normals
+#from modules import normals
 from modules import input_output
 import numpy as np
 import math
@@ -6,49 +6,14 @@ from mpl_toolkits.mplot3d import Axes3D
 from mpl_toolkits.mplot3d.art3d import Line3D
 from matplotlib.patches import Rectangle    # dummy for legend
 import matplotlib.pyplot as plt
-import sklearn.neighbors    # kdtree
-import itertools            # speed improvement when making a [list] out of a [list of [lists]]
+#import sklearn.neighbors    # kdtree
+import scipy.spatial
+#import itertools            # speed improvement when making a [list] out of a [list of [lists]]
 #import input_output
 #import conversions
 #from modules import conversions
 import time
 from textwrap import wrap
-
-
-# def vector_array_distance (xyz_array, compared_xyz_array=None ):
-#     '''
-#     Computes distances between the vectors of two arrays. Set second array to none to compute magnitudes instead.
-#     '''
-#
-#     if (compared_xyz_array is None):
-#         compared_xyz_array = np.zeros((xyz_array.shape[0], 3 ))
-#
-#     xyz_array = xyz_array[:, 0:3]
-#     compared_xyz_array = compared_xyz_array[:, 0:3]
-#
-#     # The actual process
-#     output = np.sqrt(np.sum((xyz_array - compared_xyz_array )**2, axis=1))
-#
-#     return output.reshape ((xyz_array.shape[0], 1 ))
-
-
-# def angle_between (vector_1, vector_2):
-#     """ Returns the angle in radians between vectors 'vector_1' and 'vector_2' """
-#
-#     if (vector_1 is None or vector_2 is None or None in vector_1 or None in vector_2 ):
-#         return None
-#
-#     # no normalization required
-#     # time1 = time.time ()
-#     # vector_1 = normals.normalize_vector (vector_1 )
-#     # vector_2 = normals.normalize_vector (vector_2 )
-#     # print ("time1: " + str(time.time () - time1))
-#
-#     #time2 = time.time ()
-#     res = np.arccos(np.clip(np.dot(vector_1, vector_2), -1.0, 1.0))
-#     #print ("time2: " + str(time.time () - time2))
-#
-#     return res
 
 
 def alternative_angle_between (vector_array_1, vector_array_2, step=58 ):
@@ -106,18 +71,13 @@ def get_normal_differences (numpy_cloud, numpy_cloud_field_labels,
     normals_numpy_cloud = get_normals (numpy_cloud, numpy_cloud_field_labels )
     normals_corresponding_cloud = get_normals (corresponding_cloud, corresponding_cloud_field_labels )
 
-    # slow looped process: compute angle by angle
-    # results_loop = numpy_cloud.shape[0] * [None]
-    # for index, (vec1, vec2) in enumerate(zip (normals_numpy_cloud, normals_corresponding_cloud )):
-    #     results_loop[index] = (angle_between (vec1, vec2 ) )
-
     # fast process: compute angles in multiple batches
     results = alternative_angle_between (normals_numpy_cloud, normals_corresponding_cloud )
 
     return results
 
 
-def combined_cloud_consensus (tree, numpy_cloud, numpy_cloud_field_labels,
+def combined_cloud_consensus (tree_of_numpy_cloud, numpy_cloud, numpy_cloud_field_labels,
                               corresponding_cloud, corresponding_cloud_field_labels,
                               angle_threshold, distance_threshold):
     '''
@@ -140,30 +100,31 @@ def combined_cloud_consensus (tree, numpy_cloud, numpy_cloud_field_labels,
 
     part_time_1 = time.time ()
     # query the three, but only take the x,y,z fields into consideration (corresponding_cloud[:, 0:3])
-    output = tree.query (corresponding_cloud[:, 0:3], k=1, return_distance=True )
+    #output = tree.query (corresponding_cloud[:, 0:3], k=1, return_distance=True )
+    dists, indices = tree_of_numpy_cloud.query (corresponding_cloud[:, 0:3], k=1 )
     part_time_1 = time.time () - part_time_1
 
     part_time_2 = time.time ()
-    # Make a list out of the values of the respective numpy array
-    distances = list(itertools.chain(*output[0] ))
-    neighbor_indices = list(itertools.chain(*output[1] ))
+    # # Make a list out of the values of the respective numpy array
+    # distances = list(itertools.chain(*output[0] ))
+    # neighbor_indices = list(itertools.chain(*output[1] ))
     part_time_2 = time.time () - part_time_2
 
     part_time_3 = time.time ()
-    angle_differences = get_normal_differences (numpy_cloud[neighbor_indices, :], numpy_cloud_field_labels,
+    angle_differences = get_normal_differences (numpy_cloud[indices, :], numpy_cloud_field_labels,
                                                 corresponding_cloud, corresponding_cloud_field_labels)
     part_time_3 = time.time () - part_time_3
 
     part_time_4 = time.time ()
-    consensus_vector = [1 if (distance < distance_threshold and angle < angle_threshold) else 0
-                        for (distance, angle) in zip (distances, angle_differences)]
+    consensus_vector = np.array ([1 if (distance < distance_threshold and angle < angle_threshold) else 0
+                        for (distance, angle) in zip (dists, angle_differences)])
     part_time_4 = time.time () - part_time_4
 
     return np.sum(consensus_vector ), consensus_vector, (time.time () - start_time, part_time_1, part_time_2, part_time_3, part_time_4)
 
 
 # refactor: rename tree to tree_of_numpy_cloud
-def normal_vector_cloud_consensus (tree, numpy_cloud, numpy_cloud_field_labels,
+def normal_vector_cloud_consensus (tree_of_numpy_cloud, numpy_cloud, numpy_cloud_field_labels,
                                    corresponding_cloud, corresponding_cloud_field_labels,
                                    threshold ):
     '''
@@ -182,16 +143,17 @@ def normal_vector_cloud_consensus (tree, numpy_cloud, numpy_cloud_field_labels,
     start_time = time.time ()
 
     part_time_1 = time.time ()
-    results = tree.query (corresponding_cloud[:, 0:3], k=1, return_distance=False )
+    #results = tree.query (corresponding_cloud[:, 0:3], k=1, return_distance=False )
+    dists, indices = tree_of_numpy_cloud.query (corresponding_cloud[:, 0:3], k=1 )
     part_time_1 = time.time () - part_time_1
 
     part_time_2 = time.time ()
     # get distances to nearest neighbor
-    correlations = list(itertools.chain(*results))
+    # correlations = list(itertools.chain(*results))
     part_time_2 = time.time () - part_time_2
 
     part_time_3 = time.time ()
-    angle_differences = get_normal_differences (numpy_cloud[correlations, :], numpy_cloud_field_labels,
+    angle_differences = get_normal_differences (numpy_cloud[indices, :], numpy_cloud_field_labels,
                                                 corresponding_cloud, corresponding_cloud_field_labels)
     part_time_3 = time.time () - part_time_3
 
@@ -203,7 +165,7 @@ def normal_vector_cloud_consensus (tree, numpy_cloud, numpy_cloud_field_labels,
     return np.sum(consensus_vector), consensus_vector, (time.time () - start_time, part_time_1, part_time_2, part_time_3, part_time_4)
 
 
-def point_distance_cloud_consensus (tree, numpy_cloud, corresponding_cloud, threshold ):
+def point_distance_cloud_consensus (tree_of_numpy_cloud, numpy_cloud, corresponding_cloud, threshold ):
     '''
     Counts points of numpy_cloud that have a neighbor of smaller distance than threshold in the corresponding cloud.
 
@@ -228,11 +190,14 @@ def point_distance_cloud_consensus (tree, numpy_cloud, corresponding_cloud, thre
     part_time_2 = time.time () - part_time_2
 
     part_time_3 = time.time ()
-    list_consensus_counts = tree.query_radius (corresponding_cloud, threshold, return_distance=False, count_only=True)
+    #list_consensus_counts = tree.query_radius (corresponding_cloud, threshold, return_distance=False, count_only=True)
+    #consensus_counts = tree.query_ball_point (np.ascontiguousarray (corresponding_cloud ), r=threshold, return_length=True )
+    dists, indices = tree_of_numpy_cloud.query (corresponding_cloud[:, 0:3], k=1 )
     part_time_3 = time.time () - part_time_3
 
     part_time_4 = time.time ()
-    consensus_vector = np.array([1 if count > 0 else 0 for count in list_consensus_counts ])
+    #consensus_vector = np.array ([1 if count > 0 else 0 for count in list_consensus_counts ])
+    consensus_vector = np.where (dists < threshold, 1, 0)
     part_time_4 = time.time () - part_time_4
 
     return np.sum(consensus_vector), consensus_vector, (time.time () - start_time, part_time_1, part_time_2, part_time_3, part_time_4)
@@ -280,9 +245,6 @@ def display_consensus_cube (consensus_cube, corresponding_cloud_size, best_align
 
     # filter the values
     consensus_cube = consensus_cube[index:, :]
-
-    print (consensus_cube)
-    print ((consensus_cube[:, :3] == best_alignment).all(axis=1).nonzero())
 
     # cut out the row containing the best alignment and put it to the end of the cube, so that the best alignment and
     # the last row will be the same
@@ -412,7 +374,8 @@ def cubic_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
 
     # build a kd tree
     # but only take the x,y,z fields into consideration (numpy_cloud[:, 0:3])
-    sklearn_neighbors_kd_tree = sklearn.neighbors.kd_tree.KDTree (numpy_cloud[:, 0:3], leaf_size=40, metric='euclidean')
+    #sklearn_neighbors_kd_tree = sklearn.neighbors.kd_tree.KDTree (numpy_cloud[:, 0:3], leaf_size=40, metric='euclidean')
+    scipy_kdtree = scipy.spatial.cKDTree (numpy_cloud[:, 0:3] )
 
     # in the complete space of cubus_length * cubus_length * cubus_length, iterate with the interval of step in x, y and
     # z direction
@@ -423,34 +386,36 @@ def cubic_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
         for y_iterator in range (min, max ):
             for z_iterator in range (min, max ):
 
+                # Progress Prints every 10 %
                 if (iteration_count % int(cubus_size / 10) == 0):
                     print ("Progress: " + "{:.1f}".format ((iteration_count / cubus_size) * 100.0 ) + " %" )
 
-                # create a list that is as long as compared_cloud has fields, so that addition will work and only the
+                # Create a list that is as long as compared_cloud has fields, so that addition will work and only the
                 # first three fields x, y and z are modified
                 translation = [x_iterator * step,
                                y_iterator * step,
                                z_iterator * step]
                 translation = translation + [0] * (compared_cloud.shape[1] - 3)
 
+                # Start the computation of the consensus for this translation, using the specified algorithm
                 if (algorithmus == 'distance'):
 
                     consensus_count, consensus_vector, consensus_time = \
-                        point_distance_cloud_consensus (sklearn_neighbors_kd_tree, numpy_cloud,
+                        point_distance_cloud_consensus (scipy_kdtree, numpy_cloud,
                                                        compared_cloud + translation,
                                                        distance_threshold )
                 elif (algorithmus == 'angle'):
 
-                    # find consenting points in the translated compared_cloud
                     consensus_count, consensus_vector, consensus_time = \
-                        normal_vector_cloud_consensus (sklearn_neighbors_kd_tree, numpy_cloud, numpy_cloud_field_labels,
+                        normal_vector_cloud_consensus (scipy_kdtree, numpy_cloud, numpy_cloud_field_labels,
                                                        compared_cloud + translation, compared_cloud_field_labels,
                                                        angle_threshold )
 
                 else:
+
                     algorithmus = 'combined'
                     consensus_count, consensus_vector, consensus_time = \
-                        combined_cloud_consensus (sklearn_neighbors_kd_tree, numpy_cloud, numpy_cloud_field_labels,
+                        combined_cloud_consensus (scipy_kdtree, numpy_cloud, numpy_cloud_field_labels,
                                                   compared_cloud + translation, compared_cloud_field_labels,
                                                   angle_threshold=angle_threshold,
                                                   distance_threshold=distance_threshold )
