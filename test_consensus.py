@@ -51,7 +51,7 @@ def prepare_random_cloud ():
     numpy_cloud = numpy_cloud + np.random.uniform (-0.01, 0.01, size=(1, 6 ))
     corresponding_cloud = corresponding_cloud + np.random.uniform (-0.01, 0.01, size=(1, 6 ))
 
-    return numpy_cloud, numpy_cloud_field_labels, corresponding_cloud, corresponding_cloud_field_labels
+    return numpy_cloud, numpy_cloud_field_labels, corresponding_cloud, corresponding_cloud_field_labels, random1
 
 
 def load_example_cloud ():
@@ -68,11 +68,11 @@ def load_example_cloud ():
 
 if __name__ == '__main__':
 
+    numpy_cloud, numpy_cloud_field_labels, corresponding_cloud, corresponding_cloud_field_labels, random_offset \
+        = prepare_random_cloud ()
+    #
     # numpy_cloud, numpy_cloud_field_labels, corresponding_cloud, corresponding_cloud_field_labels \
-    #     = prepare_random_cloud ()
-
-    numpy_cloud, numpy_cloud_field_labels, corresponding_cloud, corresponding_cloud_field_labels \
-        = load_example_cloud ()
+    #     = load_example_cloud ()
 
     # reach consensus
     best_alignment, best_consensus_count, best_alignment_consensus_vector = \
@@ -81,14 +81,18 @@ if __name__ == '__main__':
                                cubus_length=2,
                                step=.15,
                                distance_threshold=0.3,
-                               angle_threshold=5 * (math.pi/180 ),
-                               algorithmus='combined',
-                               plot_title="Yz_Houses",
-                               save_plot=True )
+                               angle_threshold=10 * (math.pi/180 ),
+                               algorithmus='angle',
+                               plot_title="Display_Test",
+                               save_plot=False )
 
-    #print ("Random Offset: " + str(random1 ))
+    # Plot: 0.45, -0.3, -0.3
+    # Returned: 0.0, -0.45, 0.9
+    # File: 0.45 -0.3 1.05
+
+    print ("Random Offset: " + str(random_offset ))
     #print ("Point Picking Offset Xy Tower: (-0.82777023,  0.16250610,  0.19129372)")
-    print ("Point Picking Offset Yz Houses: (0.31462097, -0.01929474, -0.03573704)")
+    #print ("Point Picking Offset Yz Houses: (0.31462097, -0.01929474, -0.03573704)")
 
     # show plot
     #plt.show ()

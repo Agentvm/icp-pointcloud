@@ -8,6 +8,240 @@ numpy_cloud = np.array([[1.1, 2.1, 3.1],
                         [1.6, 2.6, 3.6]] )
 #
 
+
+# # find the column containing the maximum value of a row
+#print (numpy_cloud[np.argmax(numpy_cloud[:, 2]), :])
+
+
+# # find the row containing a certain subset of values and move it to the end of the array
+# numpy_cloud = np.array([[1.1, 2.1, 3.1, 0],
+#                         [1.2, 2.2, 3.2, 0],
+#                         [171.3, 172.3, 3.3, 0],
+#                         [1.4, 2.4, 3.4, 0],
+#                         [0, 0, 3.5, 0],
+#                         [11.6, 2.6, 3.4, 0]] )
+#
+# best_alignment = [171.3, 172.3, 3.3]
+#
+# print (numpy_cloud)
+# print ()
+# best_alignment_index = (numpy_cloud[:, :3] == best_alignment).all(axis=1).nonzero()[0][0]
+# best_alignment_row = numpy_cloud[best_alignment_index, :].reshape (1, -1)
+# numpy_cloud = np.delete (numpy_cloud, best_alignment_index, axis=0)
+# numpy_cloud = np.concatenate ((numpy_cloud, best_alignment_row), axis=0)
+#
+# print (numpy_cloud)
+
+
+# # angle speed test for loop and monolith
+# from modules import input_output
+# import time
+# import numpy.linalg as la
+# from scipy.spatial import distance as dist
+#
+#
+# def get_normals (numpy_cloud, field_labels_list ):
+#
+#     # remove any spaces around the labels
+#     field_labels_list = [label.strip () for label in field_labels_list]
+#
+#     if ('Nx' in field_labels_list
+#        and 'Ny' in field_labels_list
+#        and 'Nz' in field_labels_list ):
+#         indices = []
+#         indices.append (field_labels_list.index('Nz' ))
+#         indices.append (field_labels_list.index('Ny' ))
+#         indices.append (field_labels_list.index('Nx' ))
+#     else:
+#         raise ValueError ("This Cloud is missing one of the required fields: 'Nx', 'Ny', 'Nz'. Compute Normals first.")
+#
+#     return numpy_cloud[:, indices]
+#
+#
+# def angle_between (vector_1, vector_2):
+#     """ Returns the angle in radians between vectors 'vector_1' and 'vector_2' """
+#
+#     res = np.arccos(np.clip(np.dot(vector_1, vector_2), -1.0, 1.0))
+#
+#     return res
+#
+#
+# def monolith (vector_array_1, vector_array_2 ):
+#     np.arccos (np.diagonal (np.clip (np.dot (vector_array_1, vector_array_2), -1.0, 1.0 )))
+#
+#
+# def alternative_angle_between (vector_array_1, vector_array_2, step=1000 ):
+#
+#     # prepare results vector with lenght of number of points
+#     results = np.zeros ((vector_array_1.shape[0], 1 ))
+#
+#     # np.dot (vector_array_1[i:], vector_array_2.T) computes a gigantic matrix. In order to save RAM space, it has to
+#     # be done in batches
+#     for i in range (0, vector_array_1.shape[0], step ):
+#         if (i + step > vector_array_1.shape[0]):
+#             results[i:] = np.arccos (
+#                            np.diagonal (
+#                             np.clip (
+#                              np.dot (vector_array_1[i:, :],
+#                                      vector_array_2[i:, :].T ), -1, 1 ))).reshape (-1, 1)
+#         else:
+#             results[i:i+step] = np.arccos (
+#                                  np.diagonal (
+#                                   np.clip (
+#                                    np.dot (vector_array_1[i:i+step, :],
+#                                            vector_array_2[i:i+step, :].T ), -1, 1 ))).reshape (-1, 1)
+#
+#     return results
+#
+#
+# def alternative_angle_between_nan (vector_array_1, vector_array_2, step=1000 ):
+#
+#     # prepare results vector with lenght of number of points
+#     results = np.zeros ((vector_array_1.shape[0], 1 ))
+#
+#     # np.dot (vector_array_1[i:], vector_array_2.T) computes a gigantic matrix. In order to save RAM space, it has to
+#     # be done in batches
+#     for i in range (0, vector_array_1.shape[0], step ):
+#         # the last step, all values until the end of the array
+#         if (i + step > vector_array_1.shape[0]):
+#             results[i:] = np.arccos (
+#                            np.diagonal (np.dot (vector_array_1[i:, :],
+#                                      vector_array_2[i:, :].T ))).reshape (-1, 1)
+#         # every other step, taking values in the range of step
+#         else:
+#             results[i:i+step] = np.arccos (
+#                                  np.diagonal (
+#                                   np.dot (vector_array_1[i:i+step, :],
+#                                           vector_array_2[i:i+step, :].T ))).reshape (-1, 1)
+#
+#     # replace nan values with 90 degrees angle difference
+#     return np.where (np.isnan (results), 1.57079632679, results )
+#
+#
+# def alternative_angle_between_noclip (vector_array_1, vector_array_2, step=1000 ):
+#
+#     # prepare results vector with lenght of number of points
+#     results = np.zeros ((vector_array_1.shape[0], 1 ))
+#
+#     # np.dot (vector_array_1[i:], vector_array_2.T) computes a gigantic matrix. In order to save RAM space, it has to
+#     # be done in batches
+#     for i in range (0, vector_array_1.shape[0], step ):
+#         if (i + step > vector_array_1.shape[0]):
+#             results[i:] = np.arccos (
+#                            np.diagonal (np.dot (vector_array_1[i:, :],
+#                                      vector_array_2[i:, :].T ))).reshape (-1, 1)
+#         else:
+#             results[i:i+step] = np.arccos (
+#                                  np.diagonal (np.dot (vector_array_1[i:i+step, :],
+#                                            vector_array_2[i:i+step, :].T ))).reshape (-1, 1)
+#
+#     return results
+#
+#
+# def load_example_cloud ():
+#
+#     # # big cloud
+#     numpy_cloud, numpy_cloud_field_labels = input_output.conditionalized_load(
+#         'clouds/Regions/Yz Houses/ALS16_Cloud_reduced_normals_cleared.asc' )
+#
+#     corresponding_cloud, corresponding_cloud_field_labels = input_output.conditionalized_load (
+#         'clouds/Regions/Yz Houses/DSM_Cloud_reduced_normals.asc' )
+#
+#     return numpy_cloud, numpy_cloud_field_labels, corresponding_cloud, corresponding_cloud_field_labels
+#
+#
+# # ### prepare ####
+# numpy_cloud, numpy_cloud_field_labels, corresponding_cloud, corresponding_cloud_field_labels \
+#     = load_example_cloud ()
+#
+# normals_numpy_cloud = get_normals (numpy_cloud, numpy_cloud_field_labels )
+# normals_corresponding_cloud = get_normals (corresponding_cloud, corresponding_cloud_field_labels )
+#
+#
+# step = 58
+# print ("Step: " + str(step ))
+#
+# # Step: 40
+# # Loop Process Time: 2.312503254413605
+# # Monolith Process Time: 0.15936983108520508
+# # No Clip Monolith Process Time: 0.1318157744407654
+# # NAN Monolith Process Time: 0.1287021803855896
+#
+# # Step: 50
+# # Loop Process Time: 2.491855809688568
+# # Monolith Process Time: 0.16239188432693483
+# # No Clip Monolith Process Time: 0.1278723359107971
+# # NAN Monolith Process Time: 0.12739877462387084
+#
+# # Step: 56
+# # Loop Process Time: 2.857189098993937
+# # Monolith Process Time: 0.16701097488403321
+# # No Clip Monolith Process Time: 0.13585476875305175
+# # NAN Monolith Process Time: 0.14023882548014324
+#
+# # Step: 58
+# # Loop Process Time: 2.310372988382975
+# # Monolith Process Time: 0.1322481155395508
+# # No Clip Monolith Process Time: 0.10442533493041992
+# # NAN Monolith Process Time: 0.10448430379231771
+#
+# # Step: 60
+# # Loop Process Time: 2.739641170501709
+# # Monolith Process Time: 0.16630157709121704
+# # No Clip Monolith Process Time: 0.13103942155838014
+# # NAN Monolith Process Time: 0.1315992569923401
+#
+# # Step: 62
+# # Loop Process Time: 2.4043121496836344
+# # Monolith Process Time: 0.1526663939158122
+# # No Clip Monolith Process Time: 0.12144707043965658
+# # NAN Monolith Process Time: 0.12466743787129721
+#
+#
+# monolith_time = 0
+# monolith_nc_time = 0
+# monolith_nan_time = 0
+# loop_time = 0
+# times = 150
+# for i in range (times):
+#
+#     measure = time.time ()
+#     # slow looped process
+#     results_loop = normals_numpy_cloud.shape[0] * [None]
+#     for index, (vec1, vec2) in enumerate(zip (normals_numpy_cloud, normals_corresponding_cloud[:normals_numpy_cloud.shape[0], :] )):
+#         results_loop[index] = (angle_between (vec1, vec2 ) )
+#     loop_time += time.time () - measure
+#
+#     measure = time.time ()
+#     results_monolith = alternative_angle_between (normals_numpy_cloud, normals_corresponding_cloud[:normals_numpy_cloud.shape[0], :], step )
+#     monolith_time += time.time () - measure
+#
+#     measure = time.time ()
+#     results_nc_monolith = alternative_angle_between_noclip (normals_numpy_cloud, normals_corresponding_cloud[:normals_numpy_cloud.shape[0], :], step )
+#     monolith_nc_time += time.time () - measure
+#
+#     measure = time.time ()
+#     results_nan_monolith = alternative_angle_between_nan (normals_numpy_cloud, normals_corresponding_cloud[:normals_numpy_cloud.shape[0], :], step )
+#     monolith_nan_time += time.time () - measure
+# #
+# monolith_time = monolith_time / times
+# monolith_nc_time = monolith_nc_time / times
+# monolith_nan_time = monolith_nan_time / times
+# loop_time = loop_time / times
+#
+#
+# print ("\nStep: " + str(step ))
+# print ("Loop Process Time: " + str(loop_time ))
+# print ("Monolith Process Time: " + str(monolith_time ))
+# print ("No Clip Monolith Process Time: " + str(monolith_nc_time ))
+# print ("NAN Monolith Process Time: " + str(monolith_nan_time ))
+# #
+# print ("\n\nloop:\n" + str(results_loop[:10]))
+# print ("monolith:\n" + str(results_monolith[:10].T))
+# print ("noclip monolith:\n" + str(results_nc_monolith[:10].T))
+# print ("NAN monolith:\n" + str(results_nan_monolith[:10].T))
+
+
 # # how to append to a list
 # list1 = [1, 2, 3]
 # list2 = [4, 5, 6]
