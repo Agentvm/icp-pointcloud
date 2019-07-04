@@ -1,0 +1,29 @@
+Starting distance Cubic Cloud Consensus
+distance_threshold: 0.3
+angle_threshold: 0.08726646259971647
+cubus_length: 2
+step: 0.15
+
+Progress: 0.0 %
+Progress: 10.0 %
+Progress: 20.0 %
+Progress: 30.0 %
+Progress: 39.9 %
+Progress: 49.9 %
+Progress: 59.9 %
+Progress: 69.9 %
+Progress: 79.9 %
+Progress: 89.9 %
+Progress: 99.9 %
+
+cloud_consensus Time: 0.00018409877353244358
+cloud_consensus Time Part 1: 0.00020788007193544135%
+cloud_consensus Time Part 2: 1.8509557925557783e-05%
+cloud_consensus Time Part 3: 0.022634869963462808%
+cloud_consensus Time Part 4: 0.005305705657923046%
+
+Overall Time - Consensus Time: 0.06787443161010742
+Overall Time: 0.6892156600952148
+
+best_alignment: [-1.05, 0.75, 0.0]
+best_consensus_count: 100
