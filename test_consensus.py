@@ -95,7 +95,7 @@ if __name__ == '__main__':
     print ("Point Picking Offset Yz Houses: (0.31462097, -0.01929474, -0.03573704)")
 
     # show plot
-    #plt.show ()
+    plt.show ()
 
 
 
@@ -103,12 +103,19 @@ if __name__ == '__main__':
 
 # Bsp Random
 
-# #1 combined
+# # 1 combined
 # Starting Cubic Cloud Consensus
 # distance_threshold: 0.2
 # angle_threshold: 0.6108652381980153
 # cubus_length: 2
 # step: 0.2
+
+# # 2 combined
+# Starting combined Cubic Cloud Consensus
+# distance_threshold: 0.3
+# angle_threshold: 0.08726646259971647
+# cubus_length: 2
+# step: 0.15
 
 # Starting Cubic Cloud Consensus
 # distance_threshold: 0.2
