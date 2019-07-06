@@ -1,0 +1,41 @@
+
+Loading file clouds/Regions/Yz Houses/ALS16_Cloud_reduced_normals_cleared.asc ...
+Cloud loaded in 4.338933229446411 seconds.
+Number of points: 262001
+
+Loading file clouds/Regions/Yz Houses/DSM_Cloud_reduced_normals.asc ...
+Cloud loaded in 23.199044942855835 seconds.
+Number of points: 1485847
+
+Starting combined Cubic Cloud Consensus
+distance_threshold: 0.4
+angle_threshold: 0.5235987755982988
+cubus_length: 2
+step: 0.15
+
+Progress: 0.0 %
+Progress: 10.0 %
+Progress: 20.0 %
+Progress: 30.0 %
+Progress: 39.9 %
+Progress: 49.9 %
+Progress: 59.9 %
+Progress: 69.9 %
+Progress: 79.9 %
+Progress: 89.9 %
+Progress: 99.9 %
+
+cloud_consensus Time: 2.9436862332379374
+	Part 1: 59.32 %
+	Part 2: 0.00 %
+	Part 3: 16.89 %
+	Part 4: 23.76 %
+
+Overall Time - Consensus Time: 201.89517307281494
+Overall Time: 10136.836258649826
+
+best_alignment: [0.44999999999999996, 0.0, -0.15]
+best_consensus_count: 1054714
+
+Saving file docs/logs/unordered_cube_savefiles/Yz_Houses_combined-consensus_cubus_length_2.0_step_0.15_distance_threshold_0.400_angle_threshold_0.524.asc
+Point Picking Offset Yz Houses: (0.31462097, -0.01929474, -0.03573704)

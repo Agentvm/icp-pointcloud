@@ -80,9 +80,9 @@ if __name__ == '__main__':
                                corresponding_cloud, corresponding_cloud_field_labels,
                                cubus_length=2,
                                step=.15,
-                               distance_threshold=0.3,
-                               angle_threshold=30 * (math.pi/180 ),
-                               algorithmus='angle',
+                               distance_threshold=0.4,
+                               angle_threshold=15 * (math.pi/180 ),
+                               algorithmus='combined',
                                plot_title="Yz_Houses",
                                save_plot=True )
 
