@@ -68,11 +68,11 @@ def load_example_cloud ():
 
 if __name__ == '__main__':
 
-    # numpy_cloud, numpy_cloud_field_labels, corresponding_cloud, corresponding_cloud_field_labels, random_offset \
-    #     = prepare_random_cloud ()
-    #
-    numpy_cloud, numpy_cloud_field_labels, corresponding_cloud, corresponding_cloud_field_labels \
-        = load_example_cloud ()
+    numpy_cloud, numpy_cloud_field_labels, corresponding_cloud, corresponding_cloud_field_labels, random_offset \
+        = prepare_random_cloud ()
+
+    # numpy_cloud, numpy_cloud_field_labels, corresponding_cloud, corresponding_cloud_field_labels \
+    #     = load_example_cloud ()
 
     # reach consensus
     best_alignment, best_consensus_count, best_alignment_consensus_vector = \
@@ -80,11 +80,11 @@ if __name__ == '__main__':
                                corresponding_cloud, corresponding_cloud_field_labels,
                                cubus_length=2,
                                step=.15,
-                               distance_threshold=0.4,
-                               angle_threshold=15 * (math.pi/180 ),
-                               algorithmus='combined',
-                               plot_title="Yz_Houses",
-                               save_plot=True )
+                               distance_threshold=0.3,
+                               angle_threshold=30,
+                               algorithmus='angle',
+                               plot_title="degree_test",
+                               save_plot=False )
 
     # Plot: 0.45, -0.3, -0.3
     # Returned: 0.0, -0.45, 0.9

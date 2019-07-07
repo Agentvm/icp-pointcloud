@@ -325,7 +325,7 @@ def display_consensus_cube (consensus_cube, corresponding_cloud_size, best_align
 
 def cubic_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
                            compared_cloud, compared_cloud_field_labels,
-                           cubus_length, step, distance_threshold=0.009, angle_threshold=0.5,
+                           cubus_length, step, distance_threshold=0.3, angle_threshold=30,
                            algorithmus='distance',
                            display_plot=True, relative_color_scale=False,
                            plot_title="ConsensusCube (TM)", save_plot=False ):
@@ -336,7 +336,8 @@ def cubic_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
     Input:
         numpy_cloud ([n, 3] np.array):
         compared_cloud ([1, 3] np.array):
-        threshold (float):                  Threshold that defines the range at which a point is counted as neigbor
+        distance_threshold (float):         Threshold that defines the range at which a point is counted as neigbor
+        angle_threshold (float, degree):    Angle threshold to define maximum deviation of normal vectors
         cubus_length (float):               Cubus center is (0, 0, 0). Half of cubus_length is backwards, half forwards.
         step (float):
         algorithmus (string):               'distance', 'angle' or 'combined'
@@ -371,6 +372,7 @@ def cubic_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
     best_alignment = (0, 0, 0)
     best_alignment_consensus_vector = np.zeros ((numpy_cloud.shape[0], 1) )     # field that shows which points consent
     best_consensus_count = 0  #
+    angle_threshold_radians = angle_threshold * (np.pi/180)
 
     # build a kd tree
     # but only take the x,y,z fields into consideration (numpy_cloud[:, 0:3])
@@ -409,7 +411,7 @@ def cubic_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
                     consensus_count, consensus_vector, consensus_time = \
                         normal_vector_cloud_consensus (scipy_kdtree, numpy_cloud, numpy_cloud_field_labels,
                                                        compared_cloud + translation, compared_cloud_field_labels,
-                                                       angle_threshold )
+                                                       angle_threshold_radians )
 
                 else:
 
@@ -417,7 +419,7 @@ def cubic_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
                     consensus_count, consensus_vector, consensus_time = \
                         combined_cloud_consensus (scipy_kdtree, numpy_cloud, numpy_cloud_field_labels,
                                                   compared_cloud + translation, compared_cloud_field_labels,
-                                                  angle_threshold=angle_threshold,
+                                                  angle_threshold=angle_threshold_radians,
                                                   distance_threshold=distance_threshold )
 
                 # timing
