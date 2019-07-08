@@ -2,26 +2,25 @@ from modules import input_output
 from modules import icp
 from modules import conversions
 from modules import consensus
-from data import transformations
-from collections import OrderedDict
 import random
-import numpy as np
-
-from mpl_toolkits.mplot3d import Axes3D
-import matplotlib.pyplot as plt
+# from mpl_toolkits.mplot3d import Axes3D
+# import matplotlib.pyplot as plt
 
 
-def set_consensus_arguments (distance_threshold=.012, angle_threshold=0.1, cubus_length=2, step=.2):
-    """angle_threshold in rad"""
+def set_consensus_arguments (distance_threshold=.3, angle_threshold=30,
+                             cubus_length=2, step=.15, algorithm="distance" ):
+    """angle_threshold in degrees"""
     global CONSENSUS_DISTANCE_THRESHOLD
     global CONSENSUS_ANGLE_THRESHOLD
     global CONSENSUS_CUBUS_LENGHT
     global CONSENSUS_STEP
+    global CONSENSUS_ALGORITHM
 
     CONSENSUS_DISTANCE_THRESHOLD = distance_threshold
     CONSENSUS_ANGLE_THRESHOLD = angle_threshold
     CONSENSUS_CUBUS_LENGHT = cubus_length
     CONSENSUS_STEP = step
+    CONSENSUS_ALGORITHM = algorithm
 
 
 def reach_a_consensus (full_path_of_reference_cloud, full_path_of_aligned_cloud, plot_title ):
@@ -29,7 +28,8 @@ def reach_a_consensus (full_path_of_reference_cloud, full_path_of_aligned_cloud,
     if ('CONSENSUS_DISTANCE_THRESHOLD' not in globals()
             or 'CONSENSUS_ANGLE_THRESHOLD' not in globals()
             or 'CONSENSUS_CUBUS_LENGHT' not in globals()
-            or 'CONSENSUS_STEP' not in globals() ):
+            or 'CONSENSUS_STEP' not in globals()
+            or 'CONSENSUS_ALGORITHM' not in globals() ):
         raise NameError("Consensus arguments are not defined. Call set_consensus_arguments() first.")
 
     # load clouds
@@ -43,8 +43,9 @@ def reach_a_consensus (full_path_of_reference_cloud, full_path_of_aligned_cloud,
                                          step=CONSENSUS_STEP,
                                          distance_threshold=CONSENSUS_DISTANCE_THRESHOLD,
                                          angle_threshold=CONSENSUS_ANGLE_THRESHOLD,
-                                         algorithmus='angle',
-                                         plot_title=plot_title)
+                                         algorithmus=CONSENSUS_ALGORITHM,
+                                         plot_title=plot_title,
+                                         save_plot=False)
 
     dictionary_line = {(full_path_of_reference_cloud, full_path_of_aligned_cloud):
                        (best_alignment, (best_consensus_count/aligned_cloud.shape[0], 0, 0))}
@@ -74,9 +75,9 @@ def do_icp (full_path_of_reference_cloud, full_path_of_aligned_cloud, dummy_arg 
     return dictionary_line
 
 
-def compare_results (algorithmus_results, print_csv=True ):
+def compare_results (algorithmus_results, reference_dict, print_csv=True ):
 
-    reference_dict = transformations.reference_translations
+    #reference_dict = transformations.reference_translations
 
     # # sort the results
     # create a list of tuples from reference and aligned cloud file paths
@@ -129,7 +130,7 @@ def compare_results (algorithmus_results, print_csv=True ):
                                                 + '{: .8f}) '.format(algorithmus_mse[2]))
 
 
-def use_algorithmus_on_dictionary (file_paths_dictionary, algorithmus_function ):
+def use_algorithmus_on_dictionary (reference_dictionary_name, algorithmus_function, results_save_name=None ):
     '''
     Uses a dictionary of reference cloud file_paths as keys
     and a list of corresponding aligned cloud file_paths as values
@@ -137,7 +138,12 @@ def use_algorithmus_on_dictionary (file_paths_dictionary, algorithmus_function )
     Input:
         file_paths_dictionary (string):  Dictionary with reference_paths as keys and paths of aligned clouds as values
         algorithmus_function (function): Function that returns dict {(reference path, aligned_path): (translation, mse)}
+        results_save_name (string):      Results will be saved as data/results_save_path.pkl. Values may be overwritten.
     '''
+
+    # parse the reference values saved in a file
+    reference_dictionary = input_output.load_obj (reference_dictionary_name )
+    file_paths_dictionary = get_reference_data_paths (reference_dictionary )
 
     # before start, check if files exist
     for key in file_paths_dictionary:
@@ -162,38 +168,22 @@ def use_algorithmus_on_dictionary (file_paths_dictionary, algorithmus_function )
             # call the algorithmus supplied by algorithmus_function
             algorithmus_results.update (algorithmus_function (reference_cloud_path, aligned_cloud_path, plot_title ))
 
+    if (results_save_name is not None ):
+        input_output.save_obj (algorithmus_results, results_save_name)
+
     # prints the values computed along with the ground truth in the dictionary
-    compare_results (algorithmus_results )
+    compare_results (algorithmus_results, reference_dictionary )
 
     return True
 
 
-# refactor
-def print_files_dict_of_folder (folder, permitted_file_extension=None ):
-    full_paths = input_output.get_all_files_in_subfolders (folder, permitted_file_extension )
-
-    dict = OrderedDict ()
-    for path in full_paths:
-        dict.update ({('?reference?', path): ((0.0, 0.0, 0.0), 0.0)} )
-
-    print ("Paths in Folder "
-           + folder
-           + ':\n\n'
-           + str (dict.replace ('\', ', '\',\n').replace (': ', ':\n').replace ('), ', '),\n' )))
-
-    return dict
-
-    # + str (full_paths ).replace (', ', '\n' ).replace ('\'', '' ).strip ('[' ).strip (']' ).replace
-    #  ('\n', ':\n((0.0, 0.0, 0.0), 0.0),\n' ))
-
-
-def get_reference_data_paths ():
+def get_reference_data_paths (reference_dict ):
     '''
     Reads transformations.reference_translations to get all transformations currently saved and returns them in a
     dictionary that can be directly used with use_algorithmus_on_dictionary()
     '''
     dict = {}
-    for key in transformations.reference_translations:
+    for key in reference_dict:
 
         reference_path, aligned_path = key
 
@@ -223,16 +213,21 @@ if __name__ == '__main__':
     #                          'clouds/Regions/Xy Tower/DSM_Cloud_reduced_normals.asc' ), print_csv=True)
 
     # # consensus
-    set_consensus_arguments (distance_threshold=0.009, cubus_length=2, step=.2 )
-    set_consensus_arguments (distance_threshold=None, angle_threshold=5 * (np.pi/180), cubus_length=2, step=0.2 )
+    set_consensus_arguments (distance_threshold=0.3,
+                             angle_threshold=None,
+                             cubus_length=2,
+                             step=1,
+                             algorithm='distance' )
 
     print ("\n\nComputing Consensus for each cloud pair in transformations.reference_translations returns: "
-           + str(use_algorithmus_on_dictionary (get_reference_data_paths (), reach_a_consensus )))
+           + str(use_algorithmus_on_dictionary ("reference_translations_dict",
+                                                reach_a_consensus,
+                                                "last_output_dict" )))
 
     # compare_results (reach_a_consensus ('clouds/Regions/Xy Tower/ALS16_Cloud_reduced_normals_cleared.asc',
     #                                     'clouds/Regions/Xy Tower/DSM_Cloud_reduced_normals.asc' ), print_csv=False)
 
-    plt.show ()
+    # #############plt.show ()
 
     # # tests
 

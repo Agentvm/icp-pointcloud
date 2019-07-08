@@ -11,6 +11,7 @@ import time
 from open3d import io, PointCloud, Vector3dVector, read_point_cloud, set_verbosity_level, VerbosityLevel
 from os import listdir, walk
 from os.path import isfile, join, splitext
+import pickle
 
 
 def save_ascii_file (numpy_cloud, field_labels_list, path ):
@@ -60,6 +61,19 @@ def load_ascii_file (path, return_custom_cloud=False ):
            + str(numpy_cloud.shape[0] ))
 
     return numpy_cloud
+
+
+def save_obj (object, name ):
+    '''Saves a python object into data/ folder, using pickle'''
+    print ("\n Saving file " + 'data/' + name + '.pkl')
+    with open('data/' + name + '.pkl', 'wb') as file:
+        pickle.dump(object, file, pickle.HIGHEST_PROTOCOL)
+
+
+def load_obj (name ):
+    '''Loads a python object from the data/ folder, using pickle'''
+    with open('data/' + name + '.pkl', 'rb') as file:
+        return pickle.load(file )
 
 
 def check_for_file (path ):

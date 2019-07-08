@@ -6,7 +6,75 @@ numpy_cloud = np.array([[1.1, 2.1, 3.1],
                         [1.4, 2.4, 3.4],
                         [1.5, 2.5, 3.5],
                         [1.6, 2.6, 3.6]] )
+
 #
+
+# # test data dictionaries
+# from queue_alignment_algorithms import get_reference_data_paths, compare_results
+# from modules import input_output
+# from data import transformations
+#
+#
+# def an_algorithmus (reference_cloud_path, aligned_cloud_path, plot_title ):
+#
+#     dictionary_line = {(reference_cloud_path, aligned_cloud_path):
+#                        ((1337, 0, 0), (1337, 0, 0))}
+#
+#     return dictionary_line
+#
+#
+# def use_algorithmus_on_dictionary (reference_dictionary_name, algorithmus_function, results_save_name=None ):
+#     '''
+#     Uses a dictionary of reference cloud file_paths as keys and a list of corresponding aligned cloud file_paths as values
+#
+#     Input:
+#         file_paths_dictionary (string):  Dictionary with reference_paths as keys and paths of aligned clouds as values
+#         algorithmus_function (function): Function that returns dict {(reference path, aligned_path): (translation, mse)}
+#         results_save_name (string):      Results will be saved as data/results_save_path.pkl. Values may be overwritten.
+#     '''
+#
+#     # parse the reference values saved in a file
+#     reference_dictionary = input_output.load_obj (reference_dictionary_name )
+#     file_paths_dictionary = get_reference_data_paths (reference_dictionary )
+#
+#     # before start, check if files exist
+#     for key in file_paths_dictionary:
+#         if (input_output.check_for_file (key ) is False):
+#             print ("File " + key + " was not found. Aborting.")
+#             return False
+#         for aligned_cloud_path in file_paths_dictionary[key]:
+#             if (input_output.check_for_file (aligned_cloud_path ) is False):
+#                 print ("File " + aligned_cloud_path + " was not found. Aborting.")
+#                 return False
+#
+#     algorithmus_results = {}    # dictionary
+#
+#     # create a list of tuples from reference and aligned cloud file paths
+#     for reference_cloud_path in file_paths_dictionary:
+#         for aligned_cloud_path in file_paths_dictionary[reference_cloud_path]:   # multiple aligned clouds possible
+#
+#             folder, reference_file_name = input_output.get_folder_and_file_name (reference_cloud_path)
+#             folder, aligned_file_name = input_output.get_folder_and_file_name (aligned_cloud_path)
+#             plot_title = folder + ' ' + aligned_file_name + ' to ' + reference_file_name
+#
+#             # call the algorithmus supplied by algorithmus_function
+#             algorithmus_results.update (algorithmus_function (reference_cloud_path, aligned_cloud_path, plot_title ))
+#
+#     if (results_save_name is not None ):
+#         input_output.save_obj (algorithmus_results, results_save_name)
+#
+#     # prints the values computed along with the ground truth in the dictionary
+#     compare_results (algorithmus_results, reference_dictionary )
+#
+#     return True
+#
+#
+# print ("\n\nComputing Consensus for each cloud pair in transformations.reference_translations returns: "
+#        + str(use_algorithmus_on_dictionary ("reference_translations_dict",
+#                                             an_algorithmus,
+#                                             "test_results_dict" )))
+#
+# print (input_output.load_obj ("test_results_dict"))
 
 
 # # find the column containing the maximum value of a row

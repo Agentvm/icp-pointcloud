@@ -372,7 +372,7 @@ def cubic_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
     best_alignment = (0, 0, 0)
     best_alignment_consensus_vector = np.zeros ((numpy_cloud.shape[0], 1) )     # field that shows which points consent
     best_consensus_count = 0  #
-    angle_threshold_radians = angle_threshold * (np.pi/180)
+    angle_threshold_radians = 0 if angle_threshold is None else angle_threshold * (np.pi/180)
 
     # build a kd tree
     # but only take the x,y,z fields into consideration (numpy_cloud[:, 0:3])
