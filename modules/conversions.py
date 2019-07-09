@@ -3,6 +3,24 @@ import numpy as np
 import random
 
 
+def get_fields (numpy_cloud, field_labels_list, requested_fields ):
+
+    # remove any spaces around the labels
+    field_labels_list = [label.strip () for label in field_labels_list]
+
+    if (requested_fields is not None
+       and all(field in field_labels_list for field in requested_fields ) ):
+        indices = []
+        for field in requested_fields:
+            indices.append (field_labels_list.index(field ))
+    else:
+        raise ValueError ("This Cloud is missing one of the requested fields: "
+                          + str(requested_fields)
+                          + ". Compute Normals first.")
+
+    return numpy_cloud[:, indices]
+
+
 def sample_cloud (numpy_cloud, sample_divisor, deterministic_sampling=False ):
     '''
     Samples a cloud by a given divisor. If sample_divisor=4, cloud is 4 times as small after sampling.

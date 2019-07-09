@@ -10,6 +10,130 @@ numpy_cloud = np.array([[1.1, 2.1, 3.1],
 #
 
 
+# # get fields test
+# def get_fields (numpy_cloud, field_labels_list, requested_fields ):
+#
+#     # remove any spaces around the labels
+#     field_labels_list = [label.strip () for label in field_labels_list]
+#
+#     if (requested_fields is not None
+#        and all(field in field_labels_list for field in requested_fields ) ):
+#         indices = []
+#         for field in requested_fields:
+#             indices.append (field_labels_list.index(field ))
+#     else:
+#         raise ValueError ("This Cloud is missing one of the requested fields: "
+#                           + str(requested_fields )
+#                           + ".\nSupplied Cloud fields are: "
+#                           + str(field_labels_list ))
+#
+#     return numpy_cloud[:, indices]
+#
+#
+# numpy_cloud = np.concatenate ((numpy_cloud, numpy_cloud), axis=1 )
+# field_labels_list = ["X", "Y", "Z", "A1", "A2", "A3"]
+# requested_fields = ["Z", "A1", "A3"]
+#
+# print (get_fields (numpy_cloud, field_labels_list, requested_fields ))
+
+
+# # parallelism test
+# import math
+# import time
+# from multiprocessing import Pool
+#
+#
+# def point_distance_cloud_consensus_parallel_wrapper (input):
+#     # translation is received as additional argument
+#     (tree_of_numpy_cloud, numpy_cloud, corresponding_cloud, translation, distance_threshold ) = input
+#
+#     # consensus is started with translated corresponding_cloud
+#     (consensus_count, consensus_vector, consensus_time) = point_distance_cloud_consensus (
+#         tree_of_numpy_cloud, numpy_cloud, corresponding_cloud+translation, distance_threshold )
+#
+#     # translation is returned alongside the computed values
+#     return (consensus_count, consensus_vector, consensus_time, translation)
+#
+#
+# in loop:
+# if (algorithmus == 'distance'):
+#
+#     arguments_list.append (
+#         [scipy_kdtree, numpy_cloud, compared_cloud, translation, distance_threshold] )
+#
+#
+# out of loop:
+# # go parallel
+# with Pool(processes=None) as p:
+#     (results_list) = p.map (point_distance_cloud_consensus_parallel_wrapper, arguments_list )
+# for (consensus_count, consensus_vector, consensus_time, translation) in results_list:
+#
+#
+# def compute (translation ):
+#
+#     #print (translation )
+#
+#     count = 3
+#
+#     for i in range (5000):
+#         isprime = True
+#
+#         for x in range(2, int(math.sqrt(count ) + 1 )):
+#             if count % x == 0:
+#                 isprime = False
+#                 break
+#
+#         # if isprime:
+#         #     print (count )
+#
+#         count += 1
+#
+#     return translation, count, 5
+#
+#
+# step = 0.15
+# steps_number = 5
+# min = -math.floor (steps_number / 2)
+# max = math.ceil (steps_number / 2 )
+#
+#
+# measure = time.time ()
+# for x_iterator in range (min, max ):
+#     for y_iterator in range (min, max ):
+#         for z_iterator in range (min, max ):
+#
+#             translation = [x_iterator * step,
+#                            y_iterator * step,
+#                            z_iterator * step]
+#
+#             compute (translation )
+#
+# print ("Plain Time: " + str (time.time () - measure ))
+#
+# measure_whole = time.time ()
+# to_do_list = []
+# for x_iterator in range (min, max ):
+#     for y_iterator in range (min, max ):
+#         for z_iterator in range (min, max ):
+#
+#             translation = [x_iterator * step,
+#                            y_iterator * step,
+#                            z_iterator * step]
+#
+#             to_do_list.append (translation )
+#
+# # go parallel
+# with Pool(processes=None) as p:
+#     results_list = p.map (compute, to_do_list )
+#
+# # for (consensus_count, consensus_vector, consensus_time) in results_list:
+# #     print (consensus_count )
+# #     print (consensus_vector )
+# #     print (consensus_time )
+#
+# print ("Parallel Complete Time: " + str (time.time () - measure_whole ))
+
+
 # # save current transformations.reference_translations as dict
 # from data import transformations
 # from modules import input_output

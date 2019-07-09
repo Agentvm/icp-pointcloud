@@ -90,7 +90,7 @@ if __name__ == '__main__':
     # Returned: 0.0, -0.45, 0.9
     # File: 0.45 -0.3 1.05
 
-    #print ("Random Offset: " + str(random_offset ))
+    print ("Random Offset: " + str(random_offset ))
     #print ("Point Picking Offset Xy Tower: (-0.82777023,  0.16250610,  0.19129372)")
     print ("Point Picking Offset Yz Houses: (0.31462097, -0.01929474, -0.03573704)")
 

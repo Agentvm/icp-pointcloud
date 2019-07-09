@@ -1,5 +1,6 @@
 #from modules import normals
 from modules import input_output
+from modules import conversions
 import numpy as np
 import math
 from mpl_toolkits.mplot3d import Axes3D
@@ -40,22 +41,22 @@ def alternative_angle_between (vector_array_1, vector_array_2, step=58 ):
     return results
 
 
-def get_normals (numpy_cloud, field_labels_list ):
-
-    # remove any spaces around the labels
-    field_labels_list = [label.strip () for label in field_labels_list]
-
-    if ('Nx' in field_labels_list
-       and 'Ny' in field_labels_list
-       and 'Nz' in field_labels_list ):
-        indices = []
-        indices.append (field_labels_list.index('Nz' ))
-        indices.append (field_labels_list.index('Ny' ))
-        indices.append (field_labels_list.index('Nx' ))
-    else:
-        raise ValueError ("This Cloud is missing one of the required fields: 'Nx', 'Ny', 'Nz'. Compute Normals first.")
-
-    return numpy_cloud[:, indices]
+# def get_normals (numpy_cloud, field_labels_list ):
+#
+#     # remove any spaces around the labels
+#     field_labels_list = [label.strip () for label in field_labels_list]
+#
+#     if ('Nx' in field_labels_list
+#        and 'Ny' in field_labels_list
+#        and 'Nz' in field_labels_list ):
+#         indices = []
+#         indices.append (field_labels_list.index('Nz' ))
+#         indices.append (field_labels_list.index('Ny' ))
+#         indices.append (field_labels_list.index('Nx' ))
+#     else:
+#         raise ValueError ("This Cloud is missing one of the required fields: 'Nx', 'Ny', 'Nz'. Compute Normals first.")
+#
+#     return numpy_cloud[:, indices]
 
 
 def get_normal_differences (numpy_cloud, numpy_cloud_field_labels,
@@ -68,8 +69,9 @@ def get_normal_differences (numpy_cloud, numpy_cloud_field_labels,
         print ("Shapes do not match: " + str(numpy_cloud.shape[0] ) + " / " + str(corresponding_cloud.shape[0] ))
 
     # select the normal fiels of the numpy clouds
-    normals_numpy_cloud = get_normals (numpy_cloud, numpy_cloud_field_labels )
-    normals_corresponding_cloud = get_normals (corresponding_cloud, corresponding_cloud_field_labels )
+    normals_numpy_cloud = conversions.get_fields (numpy_cloud, numpy_cloud_field_labels, ['Nx', 'Ny', 'Nz'] )
+    normals_corresponding_cloud = \
+        conversions.get_fields (corresponding_cloud, corresponding_cloud_field_labels, ['Nx', 'Ny', 'Nz'] )
 
     # fast process: compute angles in multiple batches
     results = alternative_angle_between (normals_numpy_cloud, normals_corresponding_cloud )
@@ -163,6 +165,18 @@ def normal_vector_cloud_consensus (tree_of_numpy_cloud, numpy_cloud, numpy_cloud
     part_time_4 = time.time () - part_time_4
 
     return np.sum(consensus_vector), consensus_vector, (time.time () - start_time, part_time_1, part_time_2, part_time_3, part_time_4)
+
+
+# def point_distance_cloud_consensus_parallel_wrapper (input):
+#     # translation is received as additional argument
+#     (tree_of_numpy_cloud, numpy_cloud, corresponding_cloud, translation, distance_threshold ) = input
+#
+#     # consensus is started with translated corresponding_cloud
+#     (consensus_count, consensus_vector, consensus_time) = point_distance_cloud_consensus (
+#         tree_of_numpy_cloud, numpy_cloud, corresponding_cloud+translation, distance_threshold )
+#
+#     # translation is returned alongside the computed values
+#     return (consensus_count, consensus_vector, consensus_time, translation)
 
 
 def point_distance_cloud_consensus (tree_of_numpy_cloud, numpy_cloud, corresponding_cloud, threshold ):
