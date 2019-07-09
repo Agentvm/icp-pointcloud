@@ -1,6 +1,7 @@
 from modules import input_output
 from modules import normals
-import sklearn.neighbors    # kdtree
+#import sklearn.neighbors    # kdtree
+import scipy.spatial
 import numpy as np
 import random
 import psutil
@@ -32,7 +33,8 @@ def compute_normals (numpy_cloud, file_path, field_labels_list, query_radius ):
     '''
 
     # build a kdtree
-    tree = sklearn.neighbors.kd_tree.KDTree (numpy_cloud[:, 0:3], leaf_size=40, metric='euclidean')
+    #tree = sklearn.neighbors.kd_tree.KDTree (numpy_cloud[:, 0:3], leaf_size=40, metric='euclidean')
+    scipy_kdtree = scipy.spatial.cKDTree (numpy_cloud[:, 0:3] )
 
     # prepare variables
     additional_values = np.zeros ((numpy_cloud.shape[0], 4 ))
@@ -59,7 +61,8 @@ def compute_normals (numpy_cloud, file_path, field_labels_list, query_radius ):
             print ("Progress: " + "{:.1f}".format ((index / numpy_cloud.shape[0]) * 100.0 ) + " %" )
 
         # kdtree radius search
-        point_neighbor_indices = tree.query_radius(point.reshape (1, -1), r=query_radius )
+        #point_neighbor_indices = tree.query_radius(point.reshape (1, -1), r=query_radius )
+        point_neighbor_indices = scipy_kdtree.query_ball_point(point.reshape (1, -1), r=query_radius )
 
         # just get all indices in the point radius
         point_neighbor_indices = [nested_value for value in point_neighbor_indices for nested_value in value]

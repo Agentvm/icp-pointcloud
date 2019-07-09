@@ -2,12 +2,12 @@ from modules import input_output
 # from modules import icp
 # from modules import conversions
 # from modules import consensus
-from data import transformations
+#from data import transformations
 # from collections import OrderedDict
 import numpy as np
 import os
-import sklearn.neighbors    # kdtree
-import itertools            # speed improvement when making a [list] out of a [list of [lists]]
+#import sklearn.neighbors    # kdtree
+import scipy.spatial
 # import random
 
 
@@ -16,14 +16,16 @@ def cloud2cloud (reference_cloud, compared_cloud ):
 
     # make a tree an get a list of distances to the nearest neigbor and his index (which is not needed)
     # but only take the x,y,z fields into consideration (reference_cloud[:, 0:3])
-    tree = sklearn.neighbors.kd_tree.KDTree (reference_cloud[:, 0:3], leaf_size=40, metric='euclidean' )
+    scipy_kdtree = scipy.spatial.cKDTree (reference_cloud[:, 0:3] )
+    #tree = sklearn.neighbors.kd_tree.KDTree (reference_cloud[:, 0:3], leaf_size=40, metric='euclidean' )
 
     # query the three, but only take the x,y,z fields into consideration (compared_cloud[:, 0:3])
-    output = tree.query (compared_cloud[:, 0:3], k=1, return_distance=True )
+    #output = scipy_kdtree.query (compared_cloud[:, 0:3], k=1, return_distance=True )
+    distances, indices = scipy_kdtree.query (compared_cloud[:, 0:3], k=1 )
 
     # Make a list out of the values of the first numpy array,
     # Take only the distances ([0]), not the neighbor indices ([1])
-    distances = list(itertools.chain(*output[0] ))
+    #distances = list(itertools.chain(*output[0] ))
     #neighbor_indices = list(itertools.chain(*output[1] ))
 
     # print ("\nlen(distances_pre): " + str(len(distances_pre)))
@@ -34,15 +36,16 @@ def cloud2cloud (reference_cloud, compared_cloud ):
     # print (distances)
 
     # add a new field containing the distance to the nearest neighbor of each point to the compared_cloud and return it
-    return np.concatenate ((compared_cloud, np.array(distances).reshape (-1, 1)), axis=1 )
+    return np.concatenate ((compared_cloud, distances.reshape (-1, 1)), axis=1 )
 
 
-def use_c2c_on_dictionary (reference_dictionary, descriptive_name ):
+def use_c2c_on_dictionary (reference_dictionary_name, descriptive_name ):
     '''
     Supply a dictionary of data/transformations.py and produce results with C2C column computed
     '''
 
     # refactor, iterate through reference_dictionary instead
+    reference_dictionary = input_output.load_obj (reference_dictionary_name )
     file_paths_dictionary = get_reference_data_paths (reference_dictionary )
 
     # before start, check if files exist
@@ -107,19 +110,19 @@ if __name__ == '__main__':
 
     # no translation, original clouds
     print ("\n\nComputing C2C_absolute_distances for each cloud pair in transformations.no_translations returns: "
-           + str(use_c2c_on_dictionary (transformations.no_translations, "no_translations" ) ))
+           + str(use_c2c_on_dictionary ("no_translations_dict", "no_translations" ) ))
 
     # reference_translations, cloud compare point picking
     print ("\n\nComputing C2C_absolute_distances "
            + "for each cloud pair in transformations.reference_translations returns: "
-           + str(use_c2c_on_dictionary (transformations.reference_translations, "point_clicking" )))
+           + str(use_c2c_on_dictionary ("reference_translations_dict", "point_clicking" )))
 
     # icp translations
     print ("\n\nComputing C2C_absolute_distances "
            + "for each cloud pair in transformations.icp_translations returns: "
-           + str(use_c2c_on_dictionary (transformations.icp_translations, "icp" )))
+           + str(use_c2c_on_dictionary ("icp_translations_dict", "icp" )))
 
     # best consensus (point distance version) translations
     # print ("\n\nComputing C2C_absolute_distances "
     #        + "for each cloud pair in transformations.distance_consensus_translations returns: "
-    #        + str(use_c2c_on_dictionary (transformations.distance_consensus_translations, "distance_consensus" ) ))
+    #        + str(use_c2c_on_dictionary ("distance_consensus_translations_dict", "distance_consensus" ) ))

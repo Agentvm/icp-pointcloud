@@ -1,12 +1,13 @@
 """Import this for a simple iterative closest point algorithm"""
 
-import sklearn.neighbors    # kdtree
+#import sklearn.neighbors    # kdtree
+import scipy.spatial
 import numpy as np
 import time                 # measure time
 import itertools            # speed improvement when making a [list] out of a [list of [lists]]
 
 
-def icp (numpy_reference_cloud, numpy_aligned_cloud, accuracy=0.000001, verbose=False ):
+def icp (numpy_reference_cloud, numpy_aligned_cloud, accuracy=0.000000001, verbose=False ):
     '''
     Iterative closest point algorithm that computes the translation from numpy_aligned_cloud to numpy_reference_cloud.
 
@@ -32,7 +33,8 @@ def icp (numpy_reference_cloud, numpy_aligned_cloud, accuracy=0.000001, verbose=
     iterations = 1
 
     # build a kdtree
-    tree = sklearn.neighbors.kd_tree.KDTree (reference_cloud, leaf_size=40, metric='euclidean')
+    #tree = sklearn.neighbors.kd_tree.KDTree (reference_cloud, leaf_size=40, metric='euclidean')
+    scipy_kdtree = scipy.spatial.cKDTree (reference_cloud )
 
     # mean difference between the clouds
     # (set to inf to avoid exit criterium in the first iteration)
@@ -49,7 +51,8 @@ def icp (numpy_reference_cloud, numpy_aligned_cloud, accuracy=0.000001, verbose=
         # get correspondences (e.g. nearest neighbors) of aligned_cloud's points in reference_cloud
         # list(itertools.chain(*tree.query())  --> sklearn returns a list of lists,
         # which needs to be reduced to a list to be used in this context
-        correlations = list(itertools.chain(*tree.query (aligned_cloud, k=1, return_distance=False )))
+        #correlations = list(itertools.chain(*tree.query (aligned_cloud, k=1, return_distance=False )))
+        distances, correlations = scipy_kdtree.query(aligned_cloud, k=1 )
 
         # Compute translation between each point pair and sum it up
         point_deltas = np.subtract (reference_cloud[correlations, :], aligned_cloud )
@@ -71,7 +74,7 @@ def icp (numpy_reference_cloud, numpy_aligned_cloud, accuracy=0.000001, verbose=
         iterations = iterations + 1
 
     if (iterations >= 3000 ):
-        print ("\nToo many iterations (100000). Aborting.")
+        print ("\nToo many iterations (3000). Aborting.")
     else:
         print('\nICP finished in ' + str(time.time() - start_time) + ' seconds' )
 
