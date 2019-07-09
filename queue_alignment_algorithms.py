@@ -45,7 +45,7 @@ def reach_a_consensus (full_path_of_reference_cloud, full_path_of_aligned_cloud,
                                          angle_threshold=CONSENSUS_ANGLE_THRESHOLD,
                                          algorithmus=CONSENSUS_ALGORITHM,
                                          plot_title=plot_title,
-                                         save_plot=False)
+                                         save_plot=True)
 
     dictionary_line = {(full_path_of_reference_cloud, full_path_of_aligned_cloud):
                        (best_alignment, (best_consensus_count/aligned_cloud.shape[0], 0, 0))}
@@ -216,13 +216,15 @@ if __name__ == '__main__':
     set_consensus_arguments (distance_threshold=0.3,
                              angle_threshold=None,
                              cubus_length=2,
-                             step=1,
+                             step=0.15,
                              algorithm='distance' )
 
-    print ("\n\nComputing Consensus for each cloud pair in transformations.reference_translations returns: "
-           + str(use_algorithmus_on_dictionary ("reference_translations_dict",
+    print ("\n\nComputing Consensus for each cloud pair in reference_translations_part_3_dict returns: "
+           + str(use_algorithmus_on_dictionary ("reference_translations_part_3_dict",
                                                 reach_a_consensus,
-                                                "last_output_dict" )))
+                                                "output_dict_3" )))
+
+    #print (str(input_output.load_obj ("last_output_dict" )).replace (")), ", ")),\n" ))
 
     # compare_results (reach_a_consensus ('clouds/Regions/Xy Tower/ALS16_Cloud_reduced_normals_cleared.asc',
     #                                     'clouds/Regions/Xy Tower/DSM_Cloud_reduced_normals.asc' ), print_csv=False)

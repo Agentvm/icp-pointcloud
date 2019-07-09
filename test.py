@@ -9,6 +9,16 @@ numpy_cloud = np.array([[1.1, 2.1, 3.1],
 
 #
 
+
+# # save current transformations.reference_translations as dict
+# from data import transformations
+# from modules import input_output
+#
+#
+#
+# input_output.save_obj (transformations.reference_translations, "reference_translations_part_3_dict")
+
+
 # # test data dictionaries
 # from queue_alignment_algorithms import get_reference_data_paths, compare_results
 # from modules import input_output

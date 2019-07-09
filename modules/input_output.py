@@ -76,6 +76,10 @@ def load_obj (name ):
         return pickle.load(file )
 
 
+def join_saved_dictionaries (dictionary_name_1, dictionary_name_2 ):
+    load
+
+
 def check_for_file (path ):
     return isfile(path )
 
