@@ -75,7 +75,7 @@ def use_c2c_on_dictionary (reference_dictionary_name, descriptive_name ):
 
             # apply alignment and update aligned_cloud with C2C_absolute_distances field
             updated_aligned_cloud = cloud2cloud(reference_cloud, aligned_cloud + alignment)
-            field_labels_list = field_labels_list + ["C2C_absolute_distances"]
+            field_labels_list += ["C2C_absolute_distances"]
 
             # make path
             _, reference_file_name = input_output.get_folder_and_file_name (reference_cloud_path)

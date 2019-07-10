@@ -8,7 +8,21 @@ numpy_cloud = np.array([[1.1, 2.1, 3.1],
                         [1.5, 2.5, 3.5],
                         [1.6, 2.6, 3.6]] )
 
-#a = np.einsum('ij,ij->i', n, p) #dot product with each row in n and p
+#
+
+
+# # einsum test
+# numpy_cloud = np.array([[1, 0, 0],
+#                         [1, 0, 0],
+#                         [1, 0, 0],
+#                         [1, 0, 0]] )
+# numpy_cloud_2 = np.array([[1, 0, 0],
+#                           [0, 13, 0],
+#                           [12, 1, 0],
+#                           [0, 1, 1]] )
+#
+# print (np.dot (numpy_cloud, numpy_cloud_2.T ))
+# print (np.einsum('ij,ij->i', numpy_cloud, numpy_cloud_2 ))  # dot product with each row in n and p
 
 
 # # delete isolated points without neighbors in corresponding cloud
@@ -266,7 +280,7 @@ numpy_cloud = np.array([[1.1, 2.1, 3.1],
 # print (numpy_cloud)
 
 
-# # angle speed test for loop and monolith
+# # angle speed test for loop and monolith and einsum
 # from modules import input_output
 # import time
 # import numpy.linalg as la
@@ -376,6 +390,14 @@ numpy_cloud = np.array([[1.1, 2.1, 3.1],
 #     return np.arccos (np.clip (results, -1, 1 ))
 #
 #
+# def einsum_angle_between (vector_array_1, vector_array_2 ):
+#
+#     # diagonal of dot product
+#     diag = np.clip (np.einsum('ij,ij->i', vector_array_1, vector_array_2 ), -1, 1 )
+#
+#     return np.arccos (diag )
+#
+#
 # def load_example_cloud ():
 #
 #     # # big cloud
@@ -441,7 +463,8 @@ numpy_cloud = np.array([[1.1, 2.1, 3.1],
 # monolith_nan_time = 0
 # loop_time = 0
 # simple_loop_time = 0
-# times = 15
+# einsum_time = 0
+# times = 25
 # for i in range (times):
 #
 #     measure = time.time ()
@@ -466,12 +489,18 @@ numpy_cloud = np.array([[1.1, 2.1, 3.1],
 #     measure = time.time ()
 #     results_simple_loop = simple_loop_angle (normals_numpy_cloud, normals_corresponding_cloud[:normals_numpy_cloud.shape[0], :] )
 #     simple_loop_time += time.time () - measure
+#
+#     measure = time.time ()
+#     results_einsum = einsum_angle_between (normals_numpy_cloud, normals_corresponding_cloud[:normals_numpy_cloud.shape[0], :] )
+#     einsum_time += time.time () - measure
+#
 # #
 # monolith_time = monolith_time / times
 # monolith_nc_time = monolith_nc_time / times
 # monolith_nan_time = monolith_nan_time / times
 # loop_time = loop_time / times
 # simple_loop_time = simple_loop_time / times
+# einsum_time = einsum_time / times
 #
 #
 # print ("\nStep: " + str(step ))
@@ -480,12 +509,14 @@ numpy_cloud = np.array([[1.1, 2.1, 3.1],
 # print ("No Clip Monolith Process Time: " + str(monolith_nc_time ))
 # print ("NAN Monolith Process Time: " + str(monolith_nan_time ))
 # print ("Simple Loop Time: " + str(simple_loop_time ))
+# print ("Einsum Time: " + str(einsum_time ))
 # #
 # print ("\n\nloop:\n" + str(results_loop[:10]))
 # print ("monolith:\n" + str(results_monolith[:10].T))
 # print ("noclip monolith:\n" + str(results_nc_monolith[:10].T))
 # print ("NAN monolith:\n" + str(results_nan_monolith[:10].T))
 # print ("Simple Loop:\n" + str(results_simple_loop[:10].T))
+# print ("Einsum Result:\n" + str(results_einsum[:10].T))
 
 
 # # how to append to a list
@@ -700,7 +731,7 @@ numpy_cloud = np.array([[1.1, 2.1, 3.1],
 # {: .8f}.format (value)
 
 
-# # delete everything that has more or equal to 20 in the 8th row:
+# # delete everything that has more or equal to 20 in the 8th row _cleared:
 # numpy_cloud = numpy_cloud[numpy_cloud[:, 7] < 20]
 # cloud_altered = True
 

@@ -1,10 +1,12 @@
 from modules import input_output
 from modules import normals
+from modules import conversions
 #import sklearn.neighbors    # kdtree
 import scipy.spatial
 import numpy as np
 import random
 import psutil
+import os.path
 
 
 def get_reduction (numpy_cloud ):
@@ -88,6 +90,9 @@ def compute_normals (numpy_cloud, file_path, field_labels_list, query_radius ):
         # join the normal_vector and sigma value to a 4x1 array and write them to the corresponding position
         additional_values[index, :] = np.append (normal_vector, sigma )
 
+    # remove any spaces around the labels
+    field_labels_list = [label.strip () for label in field_labels_list]
+
     # delete normals if already computed
     if ('Nx' in field_labels_list
        and 'Ny' in field_labels_list
@@ -106,9 +111,15 @@ def compute_normals (numpy_cloud, file_path, field_labels_list, query_radius ):
 
     # add the newly computed values to the cloud
     numpy_cloud = np.concatenate ((numpy_cloud, additional_values ), axis=1 )
-    field_labels_list = field_labels_list + ['Nx ', 'Ny ', 'Nz ', 'Sigma']
+    field_labels_list += ['Nx', 'Ny', 'Nz', 'Sigma']
 
     return numpy_cloud, field_labels_list, success
+
+
+def clear_redundand_classes (numpy_cloud, field_labels_list ):
+    truth = conversions.get_fields (numpy_cloud, field_labels_list, ["Classification"])
+    truth = [nested_value for value in truth < 20 for nested_value in value]
+    return numpy_cloud[truth, :]
 
 
 def process_clouds_in_folder (path_to_folder,
@@ -116,6 +127,7 @@ def process_clouds_in_folder (path_to_folder,
                               string_list_to_ignore="",
                               reduce_clouds=False,
                               do_normal_calculation=False,
+                              clear_classes=False,
                               normals_computation_radius=2.5 ):
     '''
     Loads all .las files in a given folder. At the users choice, this function also reduces their points so they are
@@ -177,10 +189,21 @@ def process_clouds_in_folder (path_to_folder,
         # # # alter cloud
         cloud_altered = False
 
+        #delete everything that has more or equal to 20 in the 8th row:
+        if (clear_classes ):
+            numpy_cloud = clear_redundand_classes (numpy_cloud, field_labels_list )
+            print ("Points with class 20 and above have been removed from this cloud.\n")
+            cloud_altered = True
+
+        print ("field_labels_list_1: " + str(field_labels_list ))
+
         # # reduce cloud
         if (reduce_clouds ):
             numpy_cloud = apply_reduction (numpy_cloud, min_x, min_y )
+            print ("Cloud has been reduced by x=" + str(min_x ) + ", y=" + str(min_y ) + ".\n")
             cloud_altered = True
+
+        print ("field_labels_list_2: " + str(field_labels_list ))
 
         # # compute normals on cloud
         if (do_normal_calculation ):
@@ -188,13 +211,20 @@ def process_clouds_in_folder (path_to_folder,
                                                                        complete_file_path,
                                                                        field_labels_list,
                                                                        normals_computation_radius )
-
+            if (success):
+                print ("Normals successfully computed.\n")
             # don't change the cloud unless all normals have been computed
             cloud_altered = success
 
+        print ("field_labels_list_3: " + str(field_labels_list ))
+
         # save the cloud again
         if (cloud_altered):
-            input_output.save_ascii_file (numpy_cloud, field_labels_list, complete_file_path )
+            alteration_string = "_reduced" if reduce_clouds else ""
+            alteration_string += "_normals" if do_normal_calculation else ""
+            alteration_string += "_cleared" if clear_classes else ""
+            filename, file_extension = os.path.splitext(complete_file_path )
+            input_output.save_ascii_file (numpy_cloud, field_labels_list, filename + alteration_string + ".asc" )
             #input_output.save_ascii_file (numpy_cloud, field_labels_list, "clouds/tmp/normals_fixpoint_test.asc" )
 
         # set current to previous folder for folder-specific computations
@@ -211,10 +241,12 @@ if __name__ == '__main__':
         print ("Random Seed set to: " + str(random.seed ))
 
     # # normals / reducing clouds
-    if (process_clouds_in_folder ('clouds/Regions/Test Xy/',
+    if (process_clouds_in_folder ('clouds/tmp/',
                                   permitted_file_extension='.asc',
-                                  string_list_to_ignore=['original_clouds'],
-                                  do_normal_calculation=True,
+                                  string_list_to_ignore=['original_clouds', '.las'],
+                                  do_normal_calculation=False,
+                                  reduce_clouds=False,
+                                  clear_classes=True,
                                   normals_computation_radius=2.5 )):
         print ("\n\nAll Clouds successfully processed.")
     else:
