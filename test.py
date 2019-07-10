@@ -8,7 +8,29 @@ numpy_cloud = np.array([[1.1, 2.1, 3.1],
                         [1.5, 2.5, 3.5],
                         [1.6, 2.6, 3.6]] )
 
+#a = np.einsum('ij,ij->i', n, p) #dot product with each row in n and p
+
+
+# # delete isolated points without neighbors in corresponding cloud
+# from modules import conversions
+# from modules import icp
+# from modules import input_output
 #
+#
+# #load ALS and DSM cloud
+# als14_cloud, als14_field_labels = input_output.conditionalized_load (
+#     'clouds/Regions/Everything/ALS14_Cloud_reduced_normals_cleared.asc' )
+# dim_cloud, dim_field_labels = input_output.conditionalized_load (
+#     'clouds/Regions/Everything/DSM_Cloud_reduced_normals.asc' )
+#
+# radius = 0.5
+# als14_cloud, als14_field_labels, dim_cloud, dim_field_labels = conversions.mask_cloudpoints_without_correspondence (
+#     als14_cloud, als14_field_labels, dim_cloud, dim_field_labels, radius )
+#
+# print (icp.icp (als14_cloud, dim_cloud ))
+#
+# # input_output.save_ascii_file (als14_cloud, als14_field_labels, "clouds/tmp/als14_cloud_" + str(radius ) + ".asc")
+# # input_output.save_ascii_file (dim_cloud, dim_field_labels, "clouds/tmp/dim_cloud_" + str(radius ) + ".asc")
 
 
 # # join saved dictionaries
@@ -158,9 +180,9 @@ numpy_cloud = np.array([[1.1, 2.1, 3.1],
 # from data import transformations
 #
 #
-# def an_algorithmus (reference_cloud_path, aligned_cloud_path, plot_title ):
+# def an_algorithmus (ref_cloud_path, aligned_cloud_path, plot_title ):
 #
-#     dictionary_line = {(reference_cloud_path, aligned_cloud_path):
+#     dictionary_line = {(ref_cloud_path, aligned_cloud_path):
 #                        ((1337, 0, 0), (1337, 0, 0))}
 #
 #     return dictionary_line
@@ -193,15 +215,15 @@ numpy_cloud = np.array([[1.1, 2.1, 3.1],
 #     algorithmus_results = {}    # dictionary
 #
 #     # create a list of tuples from reference and aligned cloud file paths
-#     for reference_cloud_path in file_paths_dictionary:
-#         for aligned_cloud_path in file_paths_dictionary[reference_cloud_path]:   # multiple aligned clouds possible
+#     for ref_cloud_path in file_paths_dictionary:
+#         for aligned_cloud_path in file_paths_dictionary[ref_cloud_path]:   # multiple aligned clouds possible
 #
-#             folder, reference_file_name = input_output.get_folder_and_file_name (reference_cloud_path)
+#             folder, reference_file_name = input_output.get_folder_and_file_name (ref_cloud_path)
 #             folder, aligned_file_name = input_output.get_folder_and_file_name (aligned_cloud_path)
 #             plot_title = folder + ' ' + aligned_file_name + ' to ' + reference_file_name
 #
 #             # call the algorithmus supplied by algorithmus_function
-#             algorithmus_results.update (algorithmus_function (reference_cloud_path, aligned_cloud_path, plot_title ))
+#             algorithmus_results.update (algorithmus_function (ref_cloud_path, aligned_cloud_path, plot_title ))
 #
 #     if (results_save_name is not None ):
 #         input_output.save_obj (algorithmus_results, results_save_name)

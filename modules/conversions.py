@@ -1,9 +1,15 @@
 import pcl
 import numpy as np
 import random
+from modules.consensus import point_distance_cloud_consensus
+import scipy.spatial
 
 
 def get_fields (numpy_cloud, field_labels_list, requested_fields ):
+    '''
+    Input:
+        requested_fields (list(string)):    The names of the fields to be returned, in a list
+    '''
 
     # remove any spaces around the labels
     field_labels_list = [label.strip () for label in field_labels_list]
@@ -19,6 +25,74 @@ def get_fields (numpy_cloud, field_labels_list, requested_fields ):
                           + ". Compute Normals first.")
 
     return numpy_cloud[:, indices]
+
+
+def add_field (numpy_cloud, numpy_cloud_field_labels, field, field_name ):
+    numpy_cloud = np.concatenate ((numpy_cloud, field), axis=1 )
+    numpy_cloud_field_labels += [field_name]
+
+    return numpy_cloud, numpy_cloud_field_labels
+
+
+def add_fields (numpy_cloud, numpy_cloud_field_labels, field, field_name ):
+    raise NotImplementedError
+
+
+def mask_cloud_rows (numpy_cloud, condition_column ):
+    """
+    Masks numpy_cloud rows depending on the True/False Values defined in condition_column
+
+    --- Usage example:
+    from modules import conversions
+
+
+    numpy_cloud = np.array([[1.1, 2.1, 3.1],
+                            [1.2, 2.2, 3.2],
+                            [1.3, 2.3, 3.3],
+                            [1.4, 2.4, 3.4],
+                            [1.5, 2.5, 3.5],
+                            [1.6, 2.6, 3.6]] )
+
+    print (conversions.mask_cloud_rows (numpy_cloud, numpy_cloud[:, 0] < 1.4 ))
+    --- Example end
+    """
+
+    # prepare the mask of boolean_values
+    mask_boolean_values = boolean_values = condition_column.reshape (-1, 1)
+
+    # spread the mask along axis=1 of the cloud, until it is the same shape as the cloud
+    for i in range (numpy_cloud.shape[1] - 1 ):
+        mask_boolean_values = np.concatenate ((mask_boolean_values, boolean_values ), axis=1 )
+
+    return np.ma.masked_array (numpy_cloud, mask=mask_boolean_values )
+
+
+def mask_cloudpoints_without_correspondence (ref_cloud, ref_labels,
+                                             corr_cloud, corr_labels,
+                                             radius = 0.5):
+
+    # build trees
+    scipy_kdtree_ref = scipy.spatial.cKDTree (ref_cloud[:, 0:3] )
+    scipy_kdtree_corr = scipy.spatial.cKDTree (corr_cloud[:, 0:3] )
+
+    # # determine the consensus in the current aligment of clouds
+    # reference: ref_cloud -> consensus_vector: consensus_vector_corr
+    _, consensus_vector_corr = point_distance_cloud_consensus (scipy_kdtree_ref, ref_cloud, corr_cloud, radius )
+
+    # reference: corr_cloud  -> consensus_vector: consensus_vector_ref
+    _, consensus_vector_ref = point_distance_cloud_consensus (scipy_kdtree_corr, corr_cloud, ref_cloud, radius )
+
+    # attach the consensus_vector to the clouds
+    ref_cloud, ref_labels = add_field (ref_cloud, ref_labels, consensus_vector_ref, "Consensus" )
+    corr_cloud, corr_labels = add_field (corr_cloud, corr_labels, consensus_vector_corr, "Consensus" )
+
+    # delete all points that did not contribute to the consensus
+    truth_vector = get_fields (ref_cloud, ref_labels, ["Consensus"] ) == 0
+    ref_cloud = mask_cloud_rows (ref_cloud, truth_vector )
+    truth_vector = get_fields (corr_cloud, corr_labels, ["Consensus"] ) == 0
+    corr_cloud = mask_cloud_rows (corr_cloud, truth_vector )
+
+    return ref_cloud, ref_labels, corr_cloud, corr_labels
 
 
 def sample_cloud (numpy_cloud, sample_divisor, deterministic_sampling=False ):

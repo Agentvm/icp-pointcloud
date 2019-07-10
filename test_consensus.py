@@ -54,14 +54,14 @@ def prepare_random_cloud ():
     return numpy_cloud, numpy_cloud_field_labels, corresponding_cloud, corresponding_cloud_field_labels, random1
 
 
-def load_example_cloud ():
+def load_example_cloud (folder ):
 
     # # big cloud
     numpy_cloud, numpy_cloud_field_labels = input_output.conditionalized_load(
-        'clouds/Regions/Yz Houses/ALS16_Cloud_reduced_normals_cleared.asc' )
+        'clouds/Regions/' + folder + '/ALS16_Cloud_reduced_normals_cleared.asc' )
 
     corresponding_cloud, corresponding_cloud_field_labels = input_output.conditionalized_load (
-        'clouds/Regions/Yz Houses/DSM_Cloud_reduced_normals.asc' )
+        'clouds/Regions/' + folder + '/DSM_Cloud_reduced_normals.asc' )
 
     return numpy_cloud, numpy_cloud_field_labels, corresponding_cloud, corresponding_cloud_field_labels
 
@@ -72,7 +72,7 @@ if __name__ == '__main__':
         = prepare_random_cloud ()
 
     # numpy_cloud, numpy_cloud_field_labels, corresponding_cloud, corresponding_cloud_field_labels \
-    #     = load_example_cloud ()
+    #     = load_example_cloud ("Yz Houses" )
 
     # reach consensus
     best_alignment, best_consensus_count, best_alignment_consensus_vector = \
