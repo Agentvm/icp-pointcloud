@@ -11,6 +11,14 @@ numpy_cloud = np.array([[1.1, 2.1, 3.1],
 #
 
 
+# # join saved dictionaries
+# from modules import input_output
+#
+#
+# input_output.join_saved_dictionaries (["output_dict_1", "output_dict_2", "output_dict_3"], "output_dict")
+# print (str (input_output.load_obj ("output_dict" )).replace (")), ", ")),\n" ))
+
+
 # # get fields test
 # def get_fields (numpy_cloud, field_labels_list, requested_fields ):
 #
@@ -204,7 +212,7 @@ numpy_cloud = np.array([[1.1, 2.1, 3.1],
 #     return True
 #
 #
-# print ("\n\nComputing Consensus for each cloud pair in transformations.reference_translations returns: "
+# print ("\n\nComputing Consensus for each cloud pair in reference_translations returns: "
 #        + str(use_algorithmus_on_dictionary ("reference_translations_dict",
 #                                             an_algorithmus,
 #                                             "test_results_dict" )))

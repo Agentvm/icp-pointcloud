@@ -76,8 +76,15 @@ def load_obj (name ):
         return pickle.load(file )
 
 
-def join_saved_dictionaries (dictionary_name_1, dictionary_name_2 ):
-    load
+def join_saved_dictionaries (list_of_dict_names, output_name ):
+    resulting_dictionary = {}
+
+    for dict_name in list_of_dict_names:
+        resulting_dictionary.update (load_obj (dict_name ))
+
+    save_obj (resulting_dictionary, output_name )
+
+    return True
 
 
 def check_for_file (path ):

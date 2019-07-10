@@ -1,4 +1,5 @@
 from modules import input_output
+from queue_alignment_algorithms import get_reference_data_paths
 # from modules import icp
 # from modules import conversions
 # from modules import consensus
@@ -41,7 +42,7 @@ def cloud2cloud (reference_cloud, compared_cloud ):
 
 def use_c2c_on_dictionary (reference_dictionary_name, descriptive_name ):
     '''
-    Supply a dictionary of data/transformations.py and produce results with C2C column computed
+    Takes the name of a dictionary in data/ and returns a numpy cloud with Cloud2Cloud Distance column computed
     '''
 
     # refactor, iterate through reference_dictionary instead
@@ -88,41 +89,41 @@ def use_c2c_on_dictionary (reference_dictionary_name, descriptive_name ):
     return True
 
 
-def get_reference_data_paths (input_dictionary ):
-    '''
-    Reads transformations.reference_translations to get all transformations currently saved and returns them in a
-    dictionary that can be directly used with use_algorithmus_on_dictionary()
-    '''
-    dict = {}
-    for key in input_dictionary:
-
-        reference_path, aligned_path = key
-
-        if (dict.__contains__ (reference_path )):
-            dict[reference_path].append (aligned_path )
-        else:
-            dict.update ({reference_path: [aligned_path]} )
-
-    return dict
+# def get_reference_data_paths (input_dictionary ):
+#     '''
+#     Reads input_dictionary to get all transformations currently saved and returns them in a
+#     dictionary that can be directly used with use_algorithmus_on_dictionary()
+#     '''
+#     dict = {}
+#     for key in input_dictionary:
+#
+#         reference_path, aligned_path = key
+#
+#         if (dict.__contains__ (reference_path )):
+#             dict[reference_path].append (aligned_path )
+#         else:
+#             dict.update ({reference_path: [aligned_path]} )
+#
+#     return dict
 
 
 if __name__ == '__main__':
 
     # no translation, original clouds
-    print ("\n\nComputing C2C_absolute_distances for each cloud pair in transformations.no_translations returns: "
+    print ("\n\nComputing C2C_absolute_distances for each cloud pair in no_translations returns: "
            + str(use_c2c_on_dictionary ("no_translations_dict", "no_translations" ) ))
 
     # reference_translations, cloud compare point picking
     print ("\n\nComputing C2C_absolute_distances "
-           + "for each cloud pair in transformations.reference_translations returns: "
+           + "for each cloud pair in reference_translations returns: "
            + str(use_c2c_on_dictionary ("reference_translations_dict", "point_clicking" )))
 
     # icp translations
     print ("\n\nComputing C2C_absolute_distances "
-           + "for each cloud pair in transformations.icp_translations returns: "
+           + "for each cloud pair in icp_translations returns: "
            + str(use_c2c_on_dictionary ("icp_translations_dict", "icp" )))
 
     # best consensus (point distance version) translations
     # print ("\n\nComputing C2C_absolute_distances "
-    #        + "for each cloud pair in transformations.distance_consensus_translations returns: "
+    #        + "for each cloud pair in distance_consensus_translations returns: "
     #        + str(use_c2c_on_dictionary ("distance_consensus_translations_dict", "distance_consensus" ) ))

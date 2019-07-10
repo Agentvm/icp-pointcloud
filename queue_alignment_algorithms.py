@@ -179,7 +179,7 @@ def use_algorithmus_on_dictionary (reference_dictionary_name, algorithmus_functi
 
 def get_reference_data_paths (reference_dict ):
     '''
-    Reads transformations.reference_translations to get all transformations currently saved and returns them in a
+    Reads input_dictionary to get all transformations currently saved and returns them in a
     dictionary that can be directly used with use_algorithmus_on_dictionary()
     '''
     dict = {}
@@ -206,7 +206,7 @@ if __name__ == '__main__':
         print ("Random Seed set to: " + str(random.seed ))
 
     # # icp
-    # print ("\n\nComputing ICP for each cloud pair in transformations.reference_translations returns: "
+    # print ("\n\nComputing ICP for each cloud pair in reference_translations returns: "
     #        + str(use_algorithmus_on_dictionary (get_reference_data_paths (), do_icp )))
     #
     # compare_results (do_icp ('clouds/Regions/Xy Tower/ALS16_Cloud_reduced_normals_cleared.asc',
