@@ -5,39 +5,39 @@ import random
 from math import ceil, sqrt
 
 
-def pcl_compute_normals (pcl_cloud):
-    '''
-    Computes normals for a pcl cloud
-
-    Input:
-        pcl_cloud (pcl.PointCloud):  Any pcl cloud
-
-    Output:
-        normals (?):    ..?
-    '''
-
-    start_time = time.time()
-    # Search
-    searching_neighbour = {'knn_search': 25}
-    feat = pcl_cloud.make_NormalEstimation()
-
-    if 'range_search' in searching_neighbour.keys():
-        # Range search
-        searching_para = searching_neighbour['range_search'] if searching_neighbour['range_search'] > 0 else 0.1
-        feat.setRadiusSearch(searching_para)
-    elif 'knn_search' in searching_neighbour.keys():
-        # kNN search
-        searching_para = int(searching_neighbour['knn_search']) if int(searching_neighbour['knn_search']) > 5 else 20
-        tree = pcl_cloud.make_kdtree()
-        feat.set_SearchMethod(tree)
-        feat.set_KSearch(searching_para)
-    else:
-        print('Define researching method does not support')
-
-    normals = feat.compute()
-    print('Computed normal vectors in ' + str(time.time() - start_time) + ' seconds' )
-
-    return normals
+# def pcl_compute_normals (pcl_cloud):
+#     '''
+#     Computes normals for a pcl cloud
+#
+#     Input:
+#         pcl_cloud (pcl.PointCloud):  Any pcl cloud
+#
+#     Output:
+#         normals (?):    ..?
+#     '''
+#
+#     start_time = time.time()
+#     # Search
+#     searching_neighbour = {'knn_search': 25}
+#     feat = pcl_cloud.make_NormalEstimation()
+#
+#     if 'range_search' in searching_neighbour.keys():
+#         # Range search
+#         searching_para = searching_neighbour['range_search'] if searching_neighbour['range_search'] > 0 else 0.1
+#         feat.setRadiusSearch(searching_para)
+#     elif 'knn_search' in searching_neighbour.keys():
+#         # kNN search
+#         searching_para = int(searching_neighbour['knn_search']) if int(searching_neighbour['knn_search']) > 5 else 20
+#         tree = pcl_cloud.make_kdtree()
+#         feat.set_SearchMethod(tree)
+#         feat.set_KSearch(searching_para)
+#     else:
+#         print('Define researching method does not support')
+#
+#     normals = feat.compute()
+#     print('Computed normal vectors in ' + str(time.time() - start_time) + ' seconds' )
+#
+#     return normals
 
 
 def vector_magnitude (vector):

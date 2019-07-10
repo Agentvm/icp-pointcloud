@@ -6,7 +6,7 @@ Loading and saving Point Cloud .las and ASCII (.asc) files
 from modules.custom_clouds import CustomCloud
 from laspy.file import File
 import numpy as np
-import pcl
+#import pcl
 import time
 from open3d import io, PointCloud, Vector3dVector, read_point_cloud, set_verbosity_level, VerbosityLevel
 from os import listdir, walk
@@ -247,14 +247,14 @@ def save_ply_file (numpy_cloud, file_name ):
     io.write_point_cloud(file_name, open3d_cloud, write_ascii=True )
 
 
-def load_las_file (file_path, dtype=None, return_custom_cloud=False ):
+def load_las_file (file_path, dtype=None ):
     """
     Loads .las data as numpy array
 
     Inputs:
-        dir_in: string; directory in
-        filename: String; name of the .las tile (incl. .las)
-        dtype: String;
+        dir_in (String): directory in
+        filename (String): name of the .las tile (incl. .las)
+        dtype (String):
         if dtype = 'als', then the function will return points as [x, y, z, intensity, class]
         if dtype = 'dim', then the function will return points as [x, y, z, r, g, b, class]
         if dtype = None, then the function will return points as [x, y, z, class]
@@ -262,85 +262,84 @@ def load_las_file (file_path, dtype=None, return_custom_cloud=False ):
 
     Outputs:
         points: np array; contains n points with different columns depending on dtype
+        field_labels_list:
     """
 
     # Load a file
     start_time = time.time()    # measure time
     print('\nLoading file ' + file_path + ' ...')
 
+    field_labels_list = []
     with File(file_path, mode = 'r') as inFile:
         # add points by adding xyz channels. Reshape to create colums
         x = np.reshape(inFile.x.copy(), (-1, 1))
         y = np.reshape(inFile.y.copy(), (-1, 1))
         z = np.reshape(inFile.z.copy(), (-1, 1))
 
-        # add classification channel
-        raw_class = np.reshape(inFile.raw_classification.copy(), (-1, 1))
-
         if dtype == 'dim':
             # add rgb color channels and convert them to float
             red = np.reshape(inFile.red.copy() / 65535.0, (-1, 1))
             green = np.reshape(inFile.green.copy() / 65535.0, (-1, 1))
             blue = np.reshape(inFile.blue.copy() / 65535.0, (-1, 1))
-            points = np.concatenate((x, y, z, red, green, blue, raw_class), axis = -1)  # join all values in an np.array
-            if (return_custom_cloud ):
-                points = CustomCloud (points, ['X', 'Y', 'Z',
-                                               'Rf', 'Gf', 'Bf',
-                                               'Classification'])
+
+            # join all values in one np.array and update the field labels to allow safe access of colums
+            points = np.concatenate((x, y, z, red, green, blue), axis = -1)  # join all values in an np.array
+            field_labels_list += ['X', 'Y', 'Z', 'Rf', 'Gf', 'Bf']
+
+            # if (return_custom_cloud ):
+            #     points = CustomCloud (points, field_labels_list )
 
         elif dtype == 'als':
-            # add LIDAR intensity
-            intensity = np.reshape(inFile.intensity.copy(), (-1, 1))
-            num_returns = np.reshape(inFile.num_returns.copy(), (-1, 1))    # number of returns
-            return_num = np.reshape(inFile.return_num.copy(), (-1, 1))      # this points' return number
-            point_src_id = np.reshape(inFile.pt_src_id.copy(), (-1, 1))    # this points' file origin id
+            # extract the scalar fields of the .las cloud
+            intensity = np.reshape(inFile.intensity.copy(), (-1, 1))            # add LIDAR intensity
+            num_returns = np.reshape(inFile.num_returns.copy(), (-1, 1))        # number of returns
+            return_num = np.reshape(inFile.return_num.copy(), (-1, 1))          # this points' return number
+            point_src_id = np.reshape(inFile.pt_src_id.copy(), (-1, 1))         # this points' file origin id
+            raw_class = np.reshape(inFile.raw_classification.copy(), (-1, 1))   # add classification channel
 
-            # join all values in one np.array
+            # join all values in one np.array and update the field labels to allow safe access of colums
             points = np.concatenate((x, y, z, intensity, num_returns, return_num, point_src_id, raw_class), axis = -1)
-            if (return_custom_cloud ):
-                points = CustomCloud (points,
-                                      ['x', 'y', 'z',
-                                       'Intensity',
-                                       'Number_of_Returns',
-                                       'Return_Number',
-                                       'Point_Source_ID',
-                                       'Classification'])
+            field_labels_list += [
+                'X', 'Y', 'Z', 'Intensity', 'Number_of_Returns', 'Return_Number', 'Point_Source_ID', 'Classification']
+
+            # if (return_custom_cloud ):
+            #     points = CustomCloud (points, field_labels_list )
 
         else:
             points = np.concatenate((x, y, z, raw_class), axis = -1)  # join all values in one np.array
-            if (return_custom_cloud ):
-                points = CustomCloud (points, ['x', 'y', 'z', 'raw_class'])
+            # if (return_custom_cloud ):
+            #     points = CustomCloud (points, ['X', 'Y', 'Z', 'Classification'])
 
     print ('Cloud loaded in ' + str(time.time() - start_time) + ' seconds.\nNumber of points: '
            + str(points.shape[0] ))
 
-    return points
+    return points, field_labels_list
 
 
-def pcl_load (dir_in, file_name, format = None):
-    '''
-    Takes a directory path and a filename, then loads a pointcloud file and returns it as pcl cloud.
-
-    Input:
-        dir_in (String):            The relative path to the folder that the file to be loaded is in
-        file_name (String):         The name of the file to be loaded, including it's file type extension
-        format (String):            Default is None. If format=None, file format is determined automatically
-
-    Output:
-        points (pcl.PointCloudXYZ): The pcl object containing the loaded points
-    '''
-
-    # Load a file
-    start_time = time.time()    # measure time
-    print('\nLoading file ' + file_name + ' ...')
-
-    #points = pcl.load(dir_in + file_name, format)
-    pcl_cloud = pcl.load (dir_in + file_name, format)
-
-    print ('Cloud loaded in ' + str(time.time() - start_time) + ' seconds.\nNumber of points: '
-           + str(pcl_cloud.size ))
-
-    return pcl_cloud
+# def pcl_load (dir_in, file_name, format = None):
+#     '''
+#     Takes a directory path and a filename, then loads a pointcloud file and returns it as pcl cloud.
+#
+#     Input:
+#         dir_in (String):            The relative path to the folder that the file to be loaded is in
+#         file_name (String):         The name of the file to be loaded, including it's file type extension
+#         format (String):            Default is None. If format=None, file format is determined automatically
+#
+#     Output:
+#         points (pcl.PointCloudXYZ): The pcl object containing the loaded points
+#     '''
+#
+#     # Load a file
+#     start_time = time.time()    # measure time
+#     print('\nLoading file ' + file_name + ' ...')
+#
+#     #points = pcl.load(dir_in + file_name, format)
+#     pcl_cloud = pcl.load (dir_in + file_name, format)
+#
+#     print ('Cloud loaded in ' + str(time.time() - start_time) + ' seconds.\nNumber of points: '
+#            + str(pcl_cloud.size ))
+#
+#     return pcl_cloud
 
 
 def conditionalized_load (file_path ):
@@ -356,27 +355,24 @@ def conditionalized_load (file_path ):
     '''
 
     numpy_cloud = None
-    field_labels_list = ['X', 'Y', 'Z']
+    field_labels_list = []
     file_name, file_extension = splitext(file_path )
 
     # # load the file
     if (file_extension == '.las'):
         if ("DSM_Cloud" in file_path):
             # Load DIM cloud
-            numpy_cloud = load_las_file (file_path, dtype="dim" )
-            field_labels_list.append ('Rf ' 'Gf ' 'Bf ' 'Classification')
+            numpy_cloud, labels_list_loaded = load_las_file (file_path, dtype="dim" )
+            field_labels_list += labels_list_loaded
         else:
             # Load ALS cloud
-            numpy_cloud = load_las_file (file_path, dtype="als")
-            field_labels_list.append('Intensity '
-                                     'Number_of_Returns '
-                                     'Return_Number '
-                                     'Point_Source_ID '
-                                     'Classification')
+            numpy_cloud, labels_list_loaded = load_las_file (file_path, dtype="als")
+            field_labels_list += labels_list_loaded
+
     elif (file_extension == '.asc'):
         # load ASCII cloud
         numpy_cloud = load_ascii_file (file_path )
         with open(file_path) as f:
-            field_labels_list = f.readline().strip ('//').split ()
+            field_labels_list += f.readline().strip ('//').split ()
 
     return numpy_cloud, field_labels_list
