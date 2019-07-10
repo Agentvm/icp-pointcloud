@@ -17,29 +17,36 @@ import time
 from textwrap import wrap
 
 
-def alternative_angle_between (vector_array_1, vector_array_2, step=58 ):
+# def alternative_angle_between (vector_array_1, vector_array_2, step=58 ):
+#
+#     # prepare results vector with lenght of number of points
+#     results = np.zeros ((vector_array_1.shape[0], 1 ))
+#
+#     # np.dot (vector_array_1[i:], vector_array_2.T) computes a gigantic matrix. In order to save RAM space, it has to
+#     # be done in batches
+#     for i in range (0, vector_array_1.shape[0], step ):
+#         if (i + step > vector_array_1.shape[0]):
+#             results[i:] = np.arccos (
+#                            np.diagonal (
+#                             np.clip (
+#                              np.dot (vector_array_1[i:, :],
+#                                      vector_array_2[i:, :].T ), -1, 1 ))).reshape (-1, 1)
+#         else:
+#             results[i:i+step] = np.arccos (
+#                                  np.diagonal (
+#                                   np.clip (
+#                                    np.dot (vector_array_1[i:i+step, :],
+#                                            vector_array_2[i:i+step, :].T ), -1, 1 ))).reshape (-1, 1)
+#
+#     return results
 
-    # prepare results vector with lenght of number of points
-    results = np.zeros ((vector_array_1.shape[0], 1 ))
 
-    # np.dot (vector_array_1[i:], vector_array_2.T) computes a gigantic matrix. In order to save RAM space, it has to
-    # be done in batches
-    for i in range (0, vector_array_1.shape[0], step ):
-        if (i + step > vector_array_1.shape[0]):
-            results[i:] = np.arccos (
-                           np.diagonal (
-                            np.clip (
-                             np.dot (vector_array_1[i:, :],
-                                     vector_array_2[i:, :].T ), -1, 1 ))).reshape (-1, 1)
-        else:
-            results[i:i+step] = np.arccos (
-                                 np.diagonal (
-                                  np.clip (
-                                   np.dot (vector_array_1[i:i+step, :],
-                                           vector_array_2[i:i+step, :].T ), -1, 1 ))).reshape (-1, 1)
+def einsum_angle_between (vector_array_1, vector_array_2 ):
 
-    return results
+    # diagonal of dot product
+    diag = np.clip (np.einsum('ij,ij->i', vector_array_1, vector_array_2 ), -1, 1 )
 
+    return np.arccos (diag )
 
 # def get_normals (numpy_cloud, field_labels_list ):
 #
@@ -74,7 +81,7 @@ def get_normal_differences (numpy_cloud, numpy_cloud_field_labels,
         conversions.get_fields (corresponding_cloud, corresponding_cloud_field_labels, ['Nx', 'Ny', 'Nz'] )
 
     # fast process: compute angles in multiple batches
-    results = alternative_angle_between (normals_numpy_cloud, normals_corresponding_cloud )
+    results = einsum_angle_between (normals_numpy_cloud, normals_corresponding_cloud )
 
     return results
 
