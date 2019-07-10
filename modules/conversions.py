@@ -1,7 +1,7 @@
 #import pcl
 import numpy as np
 import random
-from modules.consensus import point_distance_cloud_consensus
+from modules import consensus
 import scipy.spatial
 
 
@@ -77,10 +77,12 @@ def mask_cloudpoints_without_correspondence (ref_cloud, ref_labels,
 
     # # determine the consensus in the current aligment of clouds
     # reference: ref_cloud -> consensus_vector: consensus_vector_corr
-    _, consensus_vector_corr = point_distance_cloud_consensus (scipy_kdtree_ref, ref_cloud, corr_cloud, radius )
+    _, consensus_vector_corr = consensus.point_distance_cloud_consensus (
+        scipy_kdtree_ref, ref_cloud, corr_cloud, radius )
 
     # reference: corr_cloud  -> consensus_vector: consensus_vector_ref
-    _, consensus_vector_ref = point_distance_cloud_consensus (scipy_kdtree_corr, corr_cloud, ref_cloud, radius )
+    _, consensus_vector_ref = consensus.point_distance_cloud_consensus (
+        scipy_kdtree_corr, corr_cloud, ref_cloud, radius )
 
     # attach the consensus_vector to the clouds
     ref_cloud, ref_labels = add_field (ref_cloud, ref_labels, consensus_vector_ref, "Consensus" )
