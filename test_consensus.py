@@ -78,13 +78,46 @@ if __name__ == '__main__':
     best_alignment, best_consensus_count, best_alignment_consensus_vector = \
         consensus.cubic_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
                                corresponding_cloud, corresponding_cloud_field_labels,
-                               cubus_length=2,
-                               step=.15,
+                               cubus_length=1,
+                               step=.1,
+                               distance_threshold=0.3,
+                               angle_threshold=30,
+                               algorithmus='distance',
+                               plot_title="all_in_one_placebo",
+                               save_plot=True )
+    # reach consensus
+    best_alignment, best_consensus_count, best_alignment_consensus_vector = \
+        consensus.cubic_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
+                               corresponding_cloud, corresponding_cloud_field_labels,
+                               cubus_length=1,
+                               step=.1,
                                distance_threshold=0.3,
                                angle_threshold=30,
                                algorithmus='angle',
-                               plot_title="degree_test",
-                               save_plot=False )
+                               plot_title="all_in_one_placebo",
+                               save_plot=True )
+    # reach consensus
+    best_alignment, best_consensus_count, best_alignment_consensus_vector = \
+        consensus.cubic_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
+                               corresponding_cloud, corresponding_cloud_field_labels,
+                               cubus_length=1,
+                               step=.1,
+                               distance_threshold=0.3,
+                               angle_threshold=30,
+                               algorithmus='combined',
+                               plot_title="all_in_one_placebo",
+                               save_plot=True )
+    # reach consensus
+    best_alignment, best_consensus_count, best_alignment_consensus_vector = \
+        consensus.cubic_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
+                               corresponding_cloud, corresponding_cloud_field_labels,
+                               cubus_length=1,
+                               step=.1,
+                               distance_threshold=0.3,
+                               angle_threshold=30,
+                               algorithmus='all_in_one',
+                               plot_title="all_in_one_test",
+                               save_plot=True )
 
     # Plot: 0.45, -0.3, -0.3
     # Returned: 0.0, -0.45, 0.9
@@ -95,7 +128,7 @@ if __name__ == '__main__':
     print ("Point Picking Offset Yz Houses: (0.31462097, -0.01929474, -0.03573704)")
 
     # show plot
-    plt.show ()
+    #plt.show ()
 
 
 

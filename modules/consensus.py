@@ -86,6 +86,31 @@ def get_normal_differences (numpy_cloud, numpy_cloud_field_labels,
     return results
 
 
+def all_in_one_cloud_consensus (tree_of_numpy_cloud, numpy_cloud, numpy_cloud_field_labels,
+                                corresponding_cloud, corresponding_cloud_field_labels,
+                                angle_threshold, distance_threshold):
+    '''
+    Like combined_cloud_consensus, but returns the results of distance, angle, and combined consensus
+    '''
+
+    # query the three, but only take the x,y,z fields into consideration (corresponding_cloud[:, 0:3])
+    dists, indices = tree_of_numpy_cloud.query (corresponding_cloud[:, 0:3], k=1 )
+
+    # compare normal vectors
+    angle_differences = get_normal_differences (numpy_cloud[indices, :], numpy_cloud_field_labels,
+                                                corresponding_cloud, corresponding_cloud_field_labels)
+
+    # # check the consensus for every point
+    consensus_vector_distance = np.where (dists < distance_threshold, 1, 0)
+    consensus_vector_angle = np.where(angle_differences < angle_threshold, 1, 0)
+    consensus_vector_combined = np.where (consensus_vector_distance + consensus_vector_angle == 2, 1, 0 )
+
+    return np.sum(consensus_vector_distance ), np.sum(consensus_vector_angle ), \
+        np.sum(consensus_vector_combined ), consensus_vector_combined.reshape (-1, 1 )
+
+
+
+
 def combined_cloud_consensus (tree_of_numpy_cloud, numpy_cloud, numpy_cloud_field_labels,
                               corresponding_cloud, corresponding_cloud_field_labels,
                               angle_threshold, distance_threshold):
@@ -105,13 +130,13 @@ def combined_cloud_consensus (tree_of_numpy_cloud, numpy_cloud, numpy_cloud_fiel
     '''
 
     # query the three, but only take the x,y,z fields into consideration (corresponding_cloud[:, 0:3])
-    #output = tree.query (corresponding_cloud[:, 0:3], k=1, return_distance=True )
     dists, indices = tree_of_numpy_cloud.query (corresponding_cloud[:, 0:3], k=1 )
-    # # Make a list out of the values of the respective numpy array
-    # distances = list(itertools.chain(*output[0] ))
-    # neighbor_indices = list(itertools.chain(*output[1] ))
+
+    # compare normal vectors
     angle_differences = get_normal_differences (numpy_cloud[indices, :], numpy_cloud_field_labels,
                                                 corresponding_cloud, corresponding_cloud_field_labels)
+
+    # check the consensus for every point
     consensus_vector = np.array ([1 if (distance < distance_threshold and angle < angle_threshold) else 0
                         for (distance, angle) in zip (dists, angle_differences)])
 
@@ -227,10 +252,19 @@ def display_consensus_cube (consensus_cube, corresponding_cloud_size, best_align
     # filter the values
     consensus_cube = consensus_cube[index:, :]
 
+    # print (consensus_cube)
+    # print ("\nalign: " + str (best_alignment))
+    # print ((consensus_cube[:, :3] == best_alignment).all(axis=1).nonzero())
+
     # cut out the row containing the best alignment and put it to the end of the cube, so that the best alignment and
     # the last row will be the same
-    if (best_alignment != (0, 0, 0 )):
-        best_alignment_index = (consensus_cube[:, :3] == best_alignment).all(axis=1).nonzero()[0][0]
+    # ToDo: This crashes if best alignment is at min or max  or zero coordinates. In these cases,
+    # best value and corresponding consensus is not appended to the end of the files saved.
+    # But even scarier: why are values like (0, 0, 0) and (0.5, 0.5, 0.5) not found in the results? Are they missing?
+    # Explanation: (0.5, 0.5, 0.5) is the max value for cubus_length=1 and step=0.10
+    best_alignment_query = (consensus_cube[:, :3] == best_alignment).all(axis=1).nonzero()
+    if (len (best_alignment_query[0] ) != 0 ):
+        best_alignment_index = best_alignment_query[0][0]
         best_alignment_row = consensus_cube[best_alignment_index, :].reshape (1, -1)
         consensus_cube = np.delete (consensus_cube, best_alignment_index, axis=0)
         consensus_cube = np.concatenate ((consensus_cube, best_alignment_row), axis=0)
@@ -304,6 +338,19 @@ def display_consensus_cube (consensus_cube, corresponding_cloud_size, best_align
     return original_cube, matplotlib_figure_object
 
 
+def create_plot_title (base_title, algorithmus, cubus_length, step, distance_threshold, angle_threshold ):
+    plot_title = str(base_title
+            + "_" + str(algorithmus ) + "-consensus"
+            + "_cubus_length_" + '{:.1f}'.format (cubus_length )
+            + "_step_" + '{:.2f}'.format (step ))
+    if (algorithmus == 'distance' or algorithmus == 'combined'):
+        plot_title = str(plot_title + "_distance_threshold_" + '{:.3f}'.format (distance_threshold ))
+    if (algorithmus == 'angle' or algorithmus == 'combined'):
+        plot_title = str(plot_title + "_angle_threshold_" + '{:.3f}'.format (angle_threshold))
+
+    return plot_title
+
+
 def cubic_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
                            compared_cloud, compared_cloud_field_labels,
                            cubus_length, step, distance_threshold=0.3, angle_threshold=30,
@@ -350,6 +397,17 @@ def cubic_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
     best_consensus_count = 0  #
     angle_threshold_radians = 0 if angle_threshold is None else angle_threshold * (np.pi/180)
 
+    # special case to compute three results at once
+    all_in_one = False
+    if (algorithmus == 'all_in_one' ):
+        all_in_one = True
+        best_alignment_dist = (0, 0, 0)
+        best_alignment_angle = (0, 0, 0)
+        best_consensus_count_dist = 0
+        best_consensus_count_angle = 0
+        consensus_cloud_distance = np.zeros ((cubus_size, 4 ))
+        consensus_cloud_angle = np.zeros ((cubus_size, 4 ))
+
     # build a kd tree
     # but only take the x,y,z fields into consideration (numpy_cloud[:, 0:3])
     #sklearn_neighbors_kd_tree = sklearn.neighbors.kd_tree.KDTree (numpy_cloud[:, 0:3], leaf_size=40, metric='euclidean')
@@ -389,6 +447,43 @@ def cubic_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
                                                        compared_cloud + translation, compared_cloud_field_labels,
                                                        angle_threshold_radians )
 
+                # refactor
+                elif (all_in_one):
+
+                    # set this for the naming of the plot additional plots will be saved for distance and angle results
+                    algorithmus = 'combined'
+
+                    # in addition to the combined_consensus results (consensus_count, consensus_vector), we get
+                    # dist and angle consensus counts, to build two additional consensus_cubes
+                    consensus_count_dist, consensus_count_angle, consensus_count, consensus_vector = \
+                        all_in_one_cloud_consensus (scipy_kdtree, numpy_cloud, numpy_cloud_field_labels,
+                                                    compared_cloud + translation, compared_cloud_field_labels,
+                                                    angle_threshold=angle_threshold_radians,
+                                                    distance_threshold=distance_threshold )
+
+                    # check for a new consensus high
+                    if (consensus_count_dist > best_consensus_count_dist ):   # distance
+                        best_alignment_dist = translation[0:3]
+                        best_consensus_count_dist = consensus_count_dist
+
+                    if (consensus_count_angle > best_consensus_count_angle ):  # angle
+                        best_alignment_angle = translation[0:3]
+                        best_consensus_count_angle = consensus_count_angle
+
+                    # if (consensus_count > best_consensus_count ):    # combined
+                    #     best_alignment = translation[0:3]
+                    #     best_consensus_count = consensus_count
+                    #     best_alignment_consensus_vector = consensus_vector
+
+                    # prepare the ConsensusCube as a numpy cloud with a fourth field that specifies the consensus count
+                    # prepare two extra cubes for angle and distance
+                    consensus_cloud_distance[iteration_count, :] = (translation[0], translation[1], translation[2],
+                                                           consensus_count_dist)
+                    consensus_cloud_angle[iteration_count, :] = (translation[0], translation[1], translation[2],
+                                                           consensus_count_angle)
+                    # consensus_cloud[iteration_count, :] = (translation[0], translation[1], translation[2],
+                                                           # consensus_count)
+
                 else:
 
                     algorithmus = 'combined'
@@ -398,9 +493,9 @@ def cubic_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
                                                   angle_threshold=angle_threshold_radians,
                                                   distance_threshold=distance_threshold )
 
+                #if (not all_in_one):
                 # check for a new consensus high
                 if (consensus_count > best_consensus_count ):
-                    #best_alignment = [element * -1 for element in translation[0:3]]  # don't know why this is inverted
                     best_alignment = translation[0:3]
                     best_consensus_count = consensus_count
                     best_alignment_consensus_vector = consensus_vector
@@ -419,22 +514,33 @@ def cubic_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
     print ("\nbest_alignment: " + str(best_alignment ))
     print ("best_consensus_count: " + str(best_consensus_count ))
 
-    if (display_plot):
+    if (display_plot or all_in_one):
         # put together the plot tile, including the string given as argument to this function and the other algorithmus
         # parameters
-        plot_title = str(plot_title
-                + "_" + str(algorithmus ) + "-consensus"
-                + "_cubus_length_" + '{:.1f}'.format (cubus_length )
-                + "_step_" + '{:.2f}'.format (step ))
-        if (algorithmus == 'distance' or algorithmus == 'combined'):
-            plot_title = str(plot_title + "_distance_threshold_" + '{:.3f}'.format (distance_threshold ))
-        if (algorithmus == 'angle' or algorithmus == 'combined'):
-            plot_title = str(plot_title + "_angle_threshold_" + '{:.3f}'.format (angle_threshold))
+        original_plot_base = plot_title
+        plot_title = create_plot_title (
+            plot_title, algorithmus, cubus_length, step, distance_threshold, angle_threshold )
 
         # display the plot
         display_cube, figure = display_consensus_cube (
                         consensus_cloud, compared_cloud.shape[0], best_alignment,
                         plot_title, relative_color_scale=relative_color_scale )
+
+        if (all_in_one):
+            plot_title_dist = create_plot_title (
+                original_plot_base, 'distance', cubus_length, step, distance_threshold, angle_threshold )
+            plot_title_angle = create_plot_title (
+                original_plot_base, 'angle', cubus_length, step, distance_threshold, angle_threshold )
+
+            # display the plot
+            display_cube_dist, figure_dist = display_consensus_cube (
+                            consensus_cloud_distance, compared_cloud.shape[0], best_alignment_dist,
+                            plot_title_dist, relative_color_scale=relative_color_scale )
+
+            # display the plot
+            display_cube_angle, figure_angle = display_consensus_cube (
+                            consensus_cloud_angle, compared_cloud.shape[0], best_alignment_angle,
+                            plot_title_angle, relative_color_scale=relative_color_scale )
 
         if (save_plot):
             figure.savefig (str("docs/logs/unordered_cube_savefiles/" + plot_title + ".png" ), format='png', dpi=220, bbox_inches='tight')
@@ -442,5 +548,18 @@ def cubic_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
                 display_cube, allow_pickle=False )
             input_output.save_ascii_file (display_cube, ["X", "Y", "Z", "Consensus"],
                 str("docs/logs/unordered_cube_savefiles/" + plot_title + ".asc"))
+
+            if (all_in_one):
+                figure_dist.savefig (str("docs/logs/unordered_cube_savefiles/" + plot_title_dist + ".png" ), format='png', dpi=220, bbox_inches='tight')
+                np.save (str("docs/logs/unordered_cube_savefiles/" + plot_title_dist ),
+                    display_cube_dist, allow_pickle=False )
+                input_output.save_ascii_file (display_cube_dist, ["X", "Y", "Z", "Consensus"],
+                    str("docs/logs/unordered_cube_savefiles/" + plot_title_dist + ".asc"))
+
+                figure_angle.savefig (str("docs/logs/unordered_cube_savefiles/" + plot_title_angle + ".png" ), format='png', dpi=220, bbox_inches='tight')
+                np.save (str("docs/logs/unordered_cube_savefiles/" + plot_title_angle ),
+                    display_cube_angle, allow_pickle=False )
+                input_output.save_ascii_file (display_cube_angle, ["X", "Y", "Z", "Consensus"],
+                    str("docs/logs/unordered_cube_savefiles/" + plot_title_angle + ".asc"))
 
     return best_alignment, best_consensus_count, best_alignment_consensus_vector
