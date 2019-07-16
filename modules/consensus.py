@@ -1,6 +1,7 @@
 #from modules import normals
 from modules import input_output
 from modules import conversions
+from modules.normals import normalize_vector_array
 import numpy as np
 import math
 from mpl_toolkits.mplot3d import Axes3D
@@ -79,6 +80,10 @@ def get_normal_differences (numpy_cloud, numpy_cloud_field_labels,
     normals_numpy_cloud = conversions.get_fields (numpy_cloud, numpy_cloud_field_labels, ['Nx', 'Ny', 'Nz'] )
     normals_corresponding_cloud = \
         conversions.get_fields (corresponding_cloud, corresponding_cloud_field_labels, ['Nx', 'Ny', 'Nz'] )
+
+    # normalize
+    normals_numpy_cloud = normalize_vector_array (normals_numpy_cloud )
+    normals_corresponding_cloud = normalize_vector_array (normals_corresponding_cloud )
 
     # fast process: compute angles in multiple batches
     results = einsum_angle_between (normals_numpy_cloud, normals_corresponding_cloud )

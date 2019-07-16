@@ -1,6 +1,7 @@
 # test consensus
 from modules import input_output
 from modules import consensus
+from modules.normals import normalize_vector_array
 #from modules import normals
 import numpy as np
 import random
@@ -10,9 +11,7 @@ from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 
 
-def normalize_vector_array (vector_array ):
-    norms = np.apply_along_axis(np.linalg.norm, 1, vector_array )
-    return vector_array / norms.reshape (-1, 1 )
+
 
 
 def prepare_random_cloud ():

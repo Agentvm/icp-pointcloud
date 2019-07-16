@@ -58,23 +58,18 @@ def normalize_vector (vector ):
     Takes a vector and returns it's unit vector
     '''
 
-    # check if vector is a matrix
-    # if (len (vector.shape ) > 1 ):
-    #     print ("In normalize_vector: Vector is out of shape. Returning input vector.")
-    #     return vector
-
     if (np.sum (vector ) == 0):
         #print ("In normalize_vector: Vector is 0. Returning input vector.")
         return vector
 
-    # vector_magnitude = 0
-    # for value in vector:
-    #     vector_magnitude = vector_magnitude + np.float_power (value, 2 )
-    # vector_magnitude = sqrt (vector_magnitude )
-    #
-    # return vector / vector_magnitude
-
     return vector / np.linalg.norm(vector)
+
+
+def normalize_vector_array (vector_array ):
+    norms = np.apply_along_axis(np.linalg.norm, 1, vector_array )
+    norms = np.where (norms == 0, 1, norms )    # these filtered values belong to arrays that already are normalized
+
+    return vector_array / norms.reshape (-1, 1 )
 
 
 def angle_between(v1, v2):
