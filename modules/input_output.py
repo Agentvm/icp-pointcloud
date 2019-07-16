@@ -48,19 +48,20 @@ def load_ascii_file (path, return_custom_cloud=False ):
     start_time = time.time()    # measure time
     print('\nLoading file ' + path + ' ...')
     numpy_cloud = np.loadtxt (path, comments='//')
+    with open(path) as f:
+        field_labels_list = f.readline().strip ('//').split ()
 
     if (return_custom_cloud ):
         # get the first line of the file, extracting the field labels
-        with open(path) as f:
-            field_labels_list = f.readline().strip ('//').split ()
         custom_cloud = CustomCloud (numpy_cloud, field_labels_list )
 
         return custom_cloud
 
+    print ("Field labels: " + str (field_labels_list ))
     print ('Cloud loaded in ' + str(time.time() - start_time) + ' seconds.\nNumber of points: '
            + str(numpy_cloud.shape[0] ))
 
-    return numpy_cloud
+    return numpy_cloud, field_labels_list
 
 
 def save_obj (object, name ):
@@ -310,6 +311,7 @@ def load_las_file (file_path, dtype=None ):
             # if (return_custom_cloud ):
             #     points = CustomCloud (points, ['X', 'Y', 'Z', 'Classification'])
 
+    print ("Field labels: " + str (field_labels_list ))
     print ('Cloud loaded in ' + str(time.time() - start_time) + ' seconds.\nNumber of points: '
            + str(points.shape[0] ))
 
@@ -355,24 +357,24 @@ def conditionalized_load (file_path ):
     '''
 
     numpy_cloud = None
-    field_labels_list = []
+    #field_labels_list = []
     file_name, file_extension = splitext(file_path )
 
     # # load the file
     if (file_extension == '.las'):
         if ("DSM_Cloud" in file_path):
             # Load DIM cloud
-            numpy_cloud, labels_list_loaded = load_las_file (file_path, dtype="dim" )
-            field_labels_list += labels_list_loaded
+            numpy_cloud, field_labels_list = load_las_file (file_path, dtype="dim" )
+            #field_labels_list += labels_list_loaded
         else:
             # Load ALS cloud
-            numpy_cloud, labels_list_loaded = load_las_file (file_path, dtype="als")
-            field_labels_list += labels_list_loaded
+            numpy_cloud, field_labels_list = load_las_file (file_path, dtype="als")
+            #field_labels_list += labels_list_loaded
 
     elif (file_extension == '.asc'):
         # load ASCII cloud
-        numpy_cloud = load_ascii_file (file_path )
-        with open(file_path) as f:
-            field_labels_list += f.readline().strip ('//').split ()
+        numpy_cloud, field_labels_list = load_ascii_file (file_path )
+        # with open(file_path) as f:
+        #     field_labels_list += f.readline().strip ('//').split ()
 
     return numpy_cloud, field_labels_list
