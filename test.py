@@ -10,71 +10,87 @@ numpy_cloud = np.array([[1.1, 2.1, 3.1],
 
 #
 
-# # Plot an angle histogram of the differences of normal vectors
-# from modules import input_output
-# from modules.conversions import get_fields
-# from modules.normals import normalize_vector_array, normalize_vector
-# import matplotlib.pyplot as plt
-# import scipy.spatial
-#
-#
-# def load_example_cloud (folder ):
-#
-#     # # big cloud
-#     numpy_cloud, numpy_cloud_field_labels = input_output.conditionalized_load(
-#         'clouds/Regions/' + folder + '/ALS16_Cloud_reduced_normals_cleared.asc' )
-#
-#     corresponding_cloud, corresponding_cloud_field_labels = input_output.conditionalized_load (
-#         'clouds/Regions/' + folder + '/DSM_Cloud_reduced_normals.asc' )
-#
-#     return numpy_cloud, numpy_cloud_field_labels, corresponding_cloud, corresponding_cloud_field_labels
-#
-#
-# def einsum_angle_between (vector_array_1, vector_array_2 ):
-#
-#     # diagonal of dot product
-#     diag = np.clip (np.einsum('ij,ij->i', vector_array_1, vector_array_2 ), -1, 1 )
-#
-#     return np.arccos (diag )
-#
-#
-# def plot_histogram (data, bins ):
-#     # the histogram of the data
-#     n, bins, patches = plt.hist(data, bins, density=False, range=(0, 180), facecolor='g', alpha=0.75 )
-#
-#     plt.xlabel('angle' )
-#     plt.ylabel('count' )
-#     plt.title('Histogram of Angle Differences not transl., normalized' )
-#     #plt.text(60, .025, r'$\mu=100,\ \sigma=15$')
-#     plt.axis([0, 180, 0, 20000] )
-#     plt.grid(True )
-#     plt.show()
-#
-#
-# # load clouds
-# numpy_cloud, numpy_cloud_field_labels, corresponding_cloud, corresponding_cloud_field_labels \
-#      = load_example_cloud ("Yz Houses" )
-#
-# # translate
-# corresponding_cloud = corresponding_cloud + (0.314620971680, -0.019294738770, -0.035737037659, 0, 0, 0, 0, 0, 0, 0, 0 )
-#
-# # extract normals
-# normals_numpy_cloud = get_fields (numpy_cloud, numpy_cloud_field_labels, ["Nx", "Ny", "Nz"] )
-# normals_corresponding_cloud = get_fields (corresponding_cloud, corresponding_cloud_field_labels, ["Nx", "Ny", "Nz"] )
-#
-# # normalize
-# normals_numpy_cloud = normalize_vector_array (normals_numpy_cloud )
-# normals_corresponding_cloud = normalize_vector_array (normals_corresponding_cloud )
-#
-# # build a kdtree and query it
-# kdtree = scipy.spatial.cKDTree (numpy_cloud[:, 0:3] )
-# distances, correspondences = kdtree.query (corresponding_cloud[:, 0:3], k=1 )
-#
-# # get the angle differences between the normal vectors
-# angle_differences = einsum_angle_between (normals_numpy_cloud[correspondences, :], normals_corresponding_cloud ) * (180/np.pi)
-#
-# # plot
-# plot_histogram (angle_differences, 180 )
+# Plot an angle histogram of the differences of normal vectors
+from modules import input_output
+from modules.conversions import get_fields
+from modules.normals import normalize_vector_array, normalize_vector
+import matplotlib.pyplot as plt
+import scipy.spatial
+
+
+def load_example_cloud (folder ):
+
+    # # big cloud
+    numpy_cloud, numpy_cloud_field_labels = input_output.conditionalized_load(
+        'clouds/Regions/' + folder + '/ALS16_Cloud_reduced_normals_cleared.asc' )
+
+    corresponding_cloud, corresponding_cloud_field_labels = input_output.conditionalized_load (
+        'clouds/Regions/' + folder + '/DSM_Cloud_reduced_normals.asc' )
+
+    return numpy_cloud, numpy_cloud_field_labels, corresponding_cloud, corresponding_cloud_field_labels
+
+
+def einsum_angle_between (vector_array_1, vector_array_2 ):
+
+    # diagonal of dot product
+    diag = np.clip (np.einsum('ij,ij->i', vector_array_1, vector_array_2 ), -1, 1 )
+
+    return np.arccos (diag )
+
+
+def plot_histogram (data, bins ):
+    # the histogram of the data
+    n, bins, patches = plt.hist(data, bins, density=False, range=(0, 180), facecolor='g', alpha=0.75 )
+
+    plt.xlabel('angle' )
+    plt.ylabel('count' )
+    plt.title('Histogram of Angle Differences Yz Houses translated' )
+    #plt.text(60, .025, r'$\mu=100,\ \sigma=15$')
+    plt.axis([0, 180, 0, 200000] )
+    plt.grid(True )
+    plt.show()
+
+
+def get_points_normals_zero (numpy_cloud, field_labels_list):
+    normals = get_fields (numpy_cloud, field_labels_list, ["Nx", "Ny", "Nz"] )
+    normals = np.absolute (normals )
+
+    sqrt = np.sqrt (normals[:, 0]**2 + normals[:, 1]**2 + normals[:, 2]**2 )
+
+    a = np.where (sqrt > 0.5, True, False )
+
+    return numpy_cloud[a, :]
+
+    #return points
+
+
+# load clouds
+numpy_cloud, numpy_cloud_field_labels, corresponding_cloud, corresponding_cloud_field_labels \
+     = load_example_cloud ("Yz Houses" )
+
+# numpy_cloud = get_points_normals_zero (numpy_cloud, numpy_cloud_field_labels )
+# corresponding_cloud = get_points_normals_zero (corresponding_cloud, corresponding_cloud_field_labels )
+
+# translate
+corresponding_cloud = corresponding_cloud + (0.314620971680, -0.019294738770, -0.035737037659, 0, 0, 0, 0, 0, 0, 0, 0 )
+
+# extract normals
+normals_numpy_cloud = get_fields (numpy_cloud, numpy_cloud_field_labels, ["Nx", "Ny", "Nz"] )
+normals_corresponding_cloud = get_fields (corresponding_cloud, corresponding_cloud_field_labels, ["Nx", "Ny", "Nz"] )
+
+# normalize
+normals_numpy_cloud = normalize_vector_array (normals_numpy_cloud )
+normals_corresponding_cloud = normalize_vector_array (normals_corresponding_cloud )
+
+# build a kdtree and query it
+kdtree = scipy.spatial.cKDTree (numpy_cloud[:, 0:3] )
+distances, correspondences = kdtree.query (corresponding_cloud[:, 0:3], k=1 )
+
+# get the angle differences between the normal vectors
+angle_differences = einsum_angle_between (normals_numpy_cloud[correspondences, :], normals_corresponding_cloud ) * (180/np.pi)
+
+# plot
+plot_histogram (angle_differences, 180 )
 
 
 # # einsum behavior
@@ -82,7 +98,7 @@ numpy_cloud = np.array([[1.1, 2.1, 3.1],
 #                         [1, 0, 0],
 #                         [1, 0, 0]] )
 #
-# numpy_cloud_2 = np.array([[1, 0, 0],
+# numpy_cloud_2 = np.array([[0, 0, 0],
 #                           [1, 1, 0],
 #                           [0, 1, 0]] )
 #
