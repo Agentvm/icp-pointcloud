@@ -236,8 +236,9 @@ def process_clouds_in_folder (path_to_folder,
 
 if __name__ == '__main__':
 
-    if (random.seed != 1337):
+    if (random.seed != 1337 or np.random.seed != 1337):
         random.seed = 1337
+        np.random.seed = 1337
         print ("Random Seed set to: " + str(random.seed ))
 
     # # normals / reducing clouds

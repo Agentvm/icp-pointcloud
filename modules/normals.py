@@ -318,6 +318,7 @@ def ransac_plane_estimation (input_numpy_cloud, threshold, fixed_point=None, w =
     return np.array (consensus_normal_vector), np.array (consensus_points).copy ()
 
 
-if (random.seed != 1337):
+if (random.seed != 1337 or np.random.seed != 1337):
     random.seed = 1337
+    np.random.seed = 1337
     print ("Random Seed set to: " + str(random.seed ))

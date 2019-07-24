@@ -4,14 +4,11 @@ from modules import consensus
 from modules.normals import normalize_vector_array
 #from modules import normals
 import numpy as np
-import random
+#import random
 import math
 
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
-
-
-
 
 
 def prepare_random_cloud ():
@@ -67,6 +64,10 @@ def load_example_cloud (folder ):
 
 if __name__ == '__main__':
 
+    if (np.random.seed != 1337):
+        np.random.seed = 1337
+        print ("Random Seed set to: " + str(np.random.seed ))
+
     numpy_cloud, numpy_cloud_field_labels, corresponding_cloud, corresponding_cloud_field_labels, random_offset \
         = prepare_random_cloud ()
 
@@ -77,11 +78,11 @@ if __name__ == '__main__':
     best_alignment, best_consensus_count, best_alignment_consensus_vector = \
         consensus.cubic_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
                                corresponding_cloud, corresponding_cloud_field_labels,
-                               cubus_length=2,
-                               step=.15,
-                               distance_threshold=0.3,
+                               cubus_length=1,
+                               step=.1,
+                               distance_threshold=0.2,
                                angle_threshold=30,
-                               algorithmus='angle',
+                               algorithmus='distance',
                                plot_title="degree_test",
                                save_plot=False )
 
