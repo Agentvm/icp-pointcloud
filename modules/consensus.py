@@ -220,7 +220,7 @@ def display_consensus_cube (consensus_cube, corresponding_cloud_size, best_align
     zmin = np.min (consensus_cube[:, 2] )
     zmax = np.max (consensus_cube[:, 2] )
 
-    original_cube = consensus_cube
+    original_cube = consensus_cube.copy ()
 
     # # thin out the cloud by removing the lowest 60% of results
     # sort by best consensus and remove the first 60 % of values
@@ -234,8 +234,9 @@ def display_consensus_cube (consensus_cube, corresponding_cloud_size, best_align
 
     # cut out the row containing the best alignment and put it to the end of the cube, so that the best alignment and
     # the last row will be the same
-    if (best_alignment != (0, 0, 0 )):
-        best_alignment_index = (consensus_cube[:, :3] == best_alignment).all(axis=1).nonzero()[0][0]
+    best_alignment_query = (consensus_cube[:, :3] == best_alignment).all(axis=1).nonzero()
+    if (len (best_alignment_query[0] ) > 0 ):
+        best_alignment_index = best_alignment_query[0][0]
         best_alignment_row = consensus_cube[best_alignment_index, :].reshape (1, -1)
         consensus_cube = np.delete (consensus_cube, best_alignment_index, axis=0)
         consensus_cube = np.concatenate ((consensus_cube, best_alignment_row), axis=0)
@@ -307,6 +308,19 @@ def display_consensus_cube (consensus_cube, corresponding_cloud_size, best_align
     plt.draw ()
 
     return original_cube, matplotlib_figure_object
+
+
+def create_plot_title (base_title, algorithmus, cubus_length, step, distance_threshold, angle_threshold ):
+    plot_title = str(base_title
+            + "_" + str(algorithmus ) + "-consensus"
+            + "_cubus_length_" + '{:.1f}'.format (cubus_length )
+            + "_step_" + '{:.2f}'.format (step ))
+    if (algorithmus == 'distance' or algorithmus == 'combined'):
+        plot_title = str(plot_title + "_distance_threshold_" + '{:.3f}'.format (distance_threshold ))
+    if (algorithmus == 'angle' or algorithmus == 'combined'):
+        plot_title = str(plot_title + "_angle_threshold_" + '{:.3f}'.format (angle_threshold))
+
+    return plot_title
 
 
 def cubic_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
@@ -427,14 +441,9 @@ def cubic_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
     if (display_plot):
         # put together the plot tile, including the string given as argument to this function and the other algorithmus
         # parameters
-        plot_title = str(plot_title
-                + "_" + str(algorithmus ) + "-consensus"
-                + "_cubus_length_" + '{:.1f}'.format (cubus_length )
-                + "_step_" + '{:.2f}'.format (step ))
-        if (algorithmus == 'distance' or algorithmus == 'combined'):
-            plot_title = str(plot_title + "_distance_threshold_" + '{:.3f}'.format (distance_threshold ))
-        if (algorithmus == 'angle' or algorithmus == 'combined'):
-            plot_title = str(plot_title + "_angle_threshold_" + '{:.3f}'.format (angle_threshold))
+        original_plot_base = plot_title
+        plot_title = create_plot_title (
+            plot_title, algorithmus, cubus_length, step, distance_threshold, angle_threshold )
 
         # display the plot
         display_cube, figure = display_consensus_cube (
