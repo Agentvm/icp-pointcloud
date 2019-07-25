@@ -237,6 +237,10 @@ def spheric_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
 
         point_indices = scipy_kdtree.query_ball_point (point, accumulator_radius )
 
+        # Progress Prints every 10 %
+        if (i % int(compared_cloud.shape[0] / 10) == 0):
+            print ("Progress: " + "{:.1f}".format ((i / compared_cloud.shape[0]) * 100.0 ) + " %" )
+
         if (len(point_indices ) > 0):
 
             # diff all points found near the corresponding point with corresponding point
@@ -244,10 +248,14 @@ def spheric_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
             # print ("\n--------------------------------------------------\n\npoint_indices:\n" + str (point_indices ))
             # print ("diff_vectors:\n" + str (diff_vectors ))
 
-            # rasterize
+            # rasterize by finding nearest grid node (representing a translation)
             dists, point_matches = grid_kdtree.query (diff_vectors, k=1 )
             # print ("dists from gridpoints: " + str (dists.T ))
             # print ("grid point matches: " + str (point_matches.T ))
+
+            # apply distance filter to results
+            if (distance_threshold is not None and distance_threshold > 0 ):
+                point_matches = point_matches[dists < distance_threshold]
 
             # update the cube with the results of this point, ignore multiple hits
             consensus_cube[np.unique (point_matches ), 3] += 1

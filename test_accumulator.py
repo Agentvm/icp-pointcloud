@@ -24,7 +24,7 @@ def prepare_random_cloud ():
     # print ('numpy_cloud:\n' + str (numpy_cloud ))
 
     # displace
-    random1 = np.random.uniform ((-1, -1, -1, 0, 0, 0), (1, 1, 1, 0, 0, 0 ))
+    random1 = np.random.uniform ((-0.8, -0.8, -0.8, 0, 0, 0), (0.8, 0.8, 0.8, 0, 0, 0 ))
     corresponding_cloud = numpy_cloud + random1
 
     # noise
@@ -74,13 +74,13 @@ if __name__ == '__main__':
     best_alignment, best_consensus_count, best_alignment_consensus_vector = \
         accumulator.spheric_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
                                              corresponding_cloud, corresponding_cloud_field_labels,
-                                             accumulator_radius=1,
+                                             accumulator_radius=1.0,
                                              grid_size=0.05,
-                                             distance_threshold=None,
+                                             distance_threshold=0.03,
                                              angle_threshold=None,
                                              algorithmus='distance-accumulator',
-                                             display_plot=True,
-                                             save_plot=False,
+                                             display_plot=False,
+                                             save_plot=True,
                                              relative_color_scale=True,
                                              plot_title="YZ_Houses" )
 
