@@ -76,7 +76,7 @@ if __name__ == '__main__':
                                              corresponding_cloud, corresponding_cloud_field_labels,
                                              accumulator_radius=1.0,
                                              grid_size=0.05,
-                                             distance_threshold=0.03,
+                                             distance_threshold=None,
                                              angle_threshold=None,
                                              algorithmus='distance-accumulator',
                                              display_plot=False,
