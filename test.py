@@ -7,94 +7,128 @@ numpy_cloud = np.array([[1.1, 2.1, 3.1],
                         [1.4, 2.4, 3.4],
                         [1.5, 2.5, 3.5],
                         [1.6, 2.6, 3.6]] )
-
 #
-import math
-import scipy.spatial
-from modules import input_output
 
 
-def create_closed_grid (grid_length, step ):
-
-    # grid variables
-    steps_number = math.ceil (grid_length / step + 1 )
-    grid_points_number = steps_number**3
-
-    # make a grid in the style of a pointcloud
-    grid = np.zeros ((grid_points_number, 4 ))
-
-    # in intervals of step, create grid nodes
-    general_iterator = 0
-    min = -math.floor (steps_number / 2)
-    max = math.ceil (steps_number / 2 )
-    for x_iterator in range (min, max ):
-        for y_iterator in range (min, max ):
-            for z_iterator in range (min, max ):
-
-                grid[general_iterator, 0:3] = [x_iterator * step,
-                                               y_iterator * step,
-                                               z_iterator * step]
-
-                general_iterator += 1
-
-    return grid
-
-
-numpy_cloud = np.array([[1, 0, 0],
-                        [1, 0, 0],
-                        [20, 0, 0],
-                        [30, 0, 0],
-                        [40, 0, 0],
-                        [50, 0, 0]], dtype=float )
-
-numpy_cloud += np.random.uniform (-0.1, 0.1, size=(numpy_cloud.shape[0], 3 ))
-
-compared_cloud = np.array([[1, 2, 0],
-                           [10, 2, 0],
-                           [20, 2, 0],
-                           [30, 2, 0],
-                           [40, 2, 0],
-                           [50, 0, 2]], dtype=float )
-
-compared_cloud += np.random.uniform (-0.1, 0.1, size=(compared_cloud.shape[0], 3 ))
+# # Test np_pointcloud class NumpyPointCloud - This will throw warnings (and expected errors, if # are removed )
+# from modules.np_pointcloud import NumpyPointCloud
+#
+# numpy_cloud = np.concatenate ((numpy_cloud, numpy_cloud), axis=1 )
+# my_cloud = NumpyPointCloud (numpy_cloud, ["X", "Y", "Z", "I", "Don't", "Know"] )
+#
+# #
+# # print ("Test: Wrong Get." + str (my_cloud.get_fields (["X", "Y", "Z", "I", "Dont", "Know"] )))
+# # print ("Test: Wrong Get." + str (my_cloud.get_fields (["Dont"] )))
+# print ("\nTest: Get." + str (my_cloud.get_fields (["X", "Y", "Z", "I", "Don't", "Know"] )))
+#
+# # wrong replace
+# # my_cloud.add_fields (np.array([1.1, 2.1, 3.1, 1.1, 2.1, 3.1]).reshape (-1, 1), "Know" )
+# # my_cloud.add_fields (numpy_cloud[:, 2], "Know" )
+# print ("\nTest: Wrong Replace." + str (my_cloud ))
+#
+# # replace
+# my_cloud.add_fields (np.array ([1.1, 2.1, 1337, 1.1, 2.1, 3.1]).reshape(-1, 1), "Know", replace=True )
+# my_cloud.add_fields (numpy_cloud[:, 1], "I", replace=True )
+# print ("\nTest: Replace." + str (my_cloud ))
+#
+# # add
+# my_cloud.add_fields ([1.1, 2.1, 3.1, 1337, 2.1, 3.1], "Test1" )
+# print ("\nTest: Add." + str (my_cloud ))
+#
+# my_cloud.delete_fields (["I", "Dont", "Know"] )
+# print ("\nTest: Wrong Delete." + str (my_cloud ))
+#
+# my_cloud.delete_fields (["Test1"] )
+# print ("\nTest: Delete." + str (my_cloud ))
 
 
-accumulator_radius = 2
-grid_size = 0.1
-
-# build a grid as a kdtree to discretize the results
-consensus_cube = create_closed_grid (accumulator_radius * 2, grid_size )
-grid_kdtree = scipy.spatial.cKDTree (consensus_cube[:, 0:3] )
-print ("\nconsensus_cube shape: " + str (consensus_cube.shape ))
-#print ("\nconsensus_cube:\n" + str (consensus_cube ))
-
-# build kdtree and query it for points within radius
-scipy_kdtree = scipy.spatial.cKDTree (numpy_cloud[:, 0:3] )
-cloud_indices = scipy_kdtree.query_ball_point (compared_cloud[:, 0:3], accumulator_radius )
-#print ("\ncloud_indices: " + str (cloud_indices ))
-
-for i, point_indices in enumerate (cloud_indices ):
-    if (len(point_indices ) > 0):
-
-        # diff all points found near the corresponding point with corresponding point
-        diff_vectors = numpy_cloud[point_indices, 0:3] - compared_cloud[i, 0:3]
-        print ("\n---------------------------------------------------------\n\npoint_indices:\n" + str (point_indices ))
-        print ("diff_vectors:\n" + str (diff_vectors ))
-
-        # rasterize
-        dists, point_matches = grid_kdtree.query (diff_vectors, k=1 )
-        print ("dists from gridpoints: " + str (dists.T ))
-        print ("grid point matches: " + str (point_matches.T ))
-
-        # update the cube with the results of this point, ignore multiple hits
-        consensus_cube[np.unique (point_matches ), 3] += 1
-        print ("\nupdated consensus_cube >0:\n" + str (consensus_cube[consensus_cube[:, 3] > 0, :] ))
-
-
-
-best_alignment = consensus_cube[np.argmax (consensus_cube[:, 3] ), 0:3]
-print ("\nbest_alignment: \t" + str (best_alignment ))
-#print ("random_offset: \t\t" + str (random_offset ))
+# # basic accumulator
+# import math
+# import scipy.spatial
+# from modules import input_output
+#
+#
+# def create_closed_grid (grid_length, step ):
+#
+#     # grid variables
+#     steps_number = math.ceil (grid_length / step + 1 )
+#     grid_points_number = steps_number**3
+#
+#     # make a grid in the style of a pointcloud
+#     grid = np.zeros ((grid_points_number, 4 ))
+#
+#     # in intervals of step, create grid nodes
+#     general_iterator = 0
+#     min = -math.floor (steps_number / 2)
+#     max = math.ceil (steps_number / 2 )
+#     for x_iterator in range (min, max ):
+#         for y_iterator in range (min, max ):
+#             for z_iterator in range (min, max ):
+#
+#                 grid[general_iterator, 0:3] = [x_iterator * step,
+#                                                y_iterator * step,
+#                                                z_iterator * step]
+#
+#                 general_iterator += 1
+#
+#     return grid
+#
+#
+# numpy_cloud = np.array([[1, 0, 0],
+#                         [1, 0, 0],
+#                         [20, 0, 0],
+#                         [30, 0, 0],
+#                         [40, 0, 0],
+#                         [50, 0, 0]], dtype=float )
+#
+# numpy_cloud += np.random.uniform (-0.1, 0.1, size=(numpy_cloud.shape[0], 3 ))
+#
+# compared_cloud = np.array([[1, 2, 0],
+#                            [10, 2, 0],
+#                            [20, 2, 0],
+#                            [30, 2, 0],
+#                            [40, 2, 0],
+#                            [50, 0, 2]], dtype=float )
+#
+# compared_cloud += np.random.uniform (-0.1, 0.1, size=(compared_cloud.shape[0], 3 ))
+#
+#
+# accumulator_radius = 2
+# grid_size = 0.1
+#
+# # build a grid as a kdtree to discretize the results
+# consensus_cube = create_closed_grid (accumulator_radius * 2, grid_size )
+# grid_kdtree = scipy.spatial.cKDTree (consensus_cube[:, 0:3] )
+# print ("\nconsensus_cube shape: " + str (consensus_cube.shape ))
+# #print ("\nconsensus_cube:\n" + str (consensus_cube ))
+#
+# # build kdtree and query it for points within radius
+# scipy_kdtree = scipy.spatial.cKDTree (numpy_cloud[:, 0:3] )
+# cloud_indices = scipy_kdtree.query_ball_point (compared_cloud[:, 0:3], accumulator_radius )
+# #print ("\ncloud_indices: " + str (cloud_indices ))
+#
+# for i, point_indices in enumerate (cloud_indices ):
+#     if (len(point_indices ) > 0):
+#
+#         # diff all points found near the corresponding point with corresponding point
+#         diff_vectors = numpy_cloud[point_indices, 0:3] - compared_cloud[i, 0:3]
+#         print ("\n---------------------------------------------------------\n\npoint_indices:\n" + str (point_indices ))
+#         print ("diff_vectors:\n" + str (diff_vectors ))
+#
+#         # rasterize
+#         dists, point_matches = grid_kdtree.query (diff_vectors, k=1 )
+#         print ("dists from gridpoints: " + str (dists.T ))
+#         print ("grid point matches: " + str (point_matches.T ))
+#
+#         # update the cube with the results of this point, ignore multiple hits
+#         consensus_cube[np.unique (point_matches ), 3] += 1
+#         print ("\nupdated consensus_cube >0:\n" + str (consensus_cube[consensus_cube[:, 3] > 0, :] ))
+#
+#
+#
+# best_alignment = consensus_cube[np.argmax (consensus_cube[:, 3] ), 0:3]
+# print ("\nbest_alignment: \t" + str (best_alignment ))
+# #print ("random_offset: \t\t" + str (random_offset ))
 
 
 # # Plot an angle histogram of the differences of normal vectors
@@ -1047,99 +1081,6 @@ print ("\nbest_alignment: \t" + str (best_alignment ))
 # print (file_path)
 # print (len(file_path.split ('/')))
 # print (file_path.split ('/')[-2])
-
-# # cloud not mutable :(
-#from custom_clouds import CustomCloud
-#
-#
-# a = CustomCloud.initialize_xyz (numpy_cloud )
-#
-# a.fields.y = 0
-#
-# print (a.fields.y)
-#
-# for point in a:
-#     point.x = 0
-#     print (point)
-#
-# print (a)
-
-
-# import input_output
-#
-#
-# big_numpy_cloud = np.array([[1010, 2100, 3.1, 0.5, 1010, 2100, 3.1],
-#                             [1620, 1500, 3.2, 0.5, 1010, 2100, 3.1],
-#                             [1880, 1470, 3.3, 0.5, 1010, 2100, 3.1]] )
-#
-# #print (big_numpy_cloud[:, 1] - 1000.0)
-# input_output.save_ascii_file (big_numpy_cloud,
-#                              ['x', 'y', 'z', 'i', 'normx', 'normy', 'normz'],
-#                              "clouds/tmp/input_output_test.asc" )
-#
-# custom_cloud = input_output.load_ascii_file ("clouds/tmp/input_output_test.asc", return_custom_cloud=True)
-#
-# print ("Custom:\n" + str(custom_cloud ))
-
-
-# #time difference between numpy and custom cloud ~ 1/1.5
-# from custom_clouds import CustomCloud
-# import time
-# numpy_cloud = np.random.rand (1000000, 3) * 1000
-#
-# a = time.time ()
-# custom_cloud = CustomCloud.initialize_xyz(numpy_cloud )
-# print (time.time () - a )
-# a = time.time ()
-# input_output.save_ascii_file(custom_cloud.data, custom_cloud.labels )
-# print (time.time () - a )
-
-
-# from custom_clouds import CustomCloud
-# import time
-# # init both clouds
-# numpy_cloud = np.random.rand (10000, 3 ) * 1000
-# custom = CustomCloud.initialize_xyz (numpy_cloud )
-#
-# print ('\nnumpy_cloud:\n' + str(numpy_cloud ))
-# print ('\nCustom cloud:\n' + str(custom ))
-#
-# # test time
-# numpy_time = time.time ()
-# for point in numpy_cloud:
-#     point = point * 3
-# print ("numpy time: " + str (time.time () - numpy_time ))
-#
-# # test time
-# custom_time = time.time ()
-# for point in custom:
-#     point = point * 3
-# print ("custom_time time: " + str (time.time () - custom_time ))
-
-
-# custom = CustomCloud.initialize_xyzi (numpy_cloud )
-# happy = np.array((0.0, 1.0, 1.0, 0.0, 1.0, 1.0 ))
-#
-# # print
-# print ('\ncustom.fields: ' + str(custom.labels ))
-# print ('\nhas happy: ' + str(custom.has_field ("happy" ) ))
-# print ('\nCustom cloud:\n' + str(custom ))
-#
-# # add some random field
-# print ('\n\n------------------------------------------\nadding field happy')
-# custom.add_field (happy, "happy" )
-#
-# # print
-# print ('\ncustom.fields: ' + str(custom.labels ))
-# print ('\nhas happy: ' + str(custom.has_field ("happy" ) ))
-# print ('\nCustom cloud:\n' + str(custom ))
-#
-# print ('\ncustom.fields.happy: ' + str(custom.fields.happy ) + '\n')
-#
-# for point in custom:
-#     print ('point: ' + str(point ))
-#     if (custom.has_field ("happy" )):
-#         print ('point.happy: ' + str(point.happy ))
 
 
 # field_names_list = ["x", "y", "z", "i" ]

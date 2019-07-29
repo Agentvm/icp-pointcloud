@@ -154,7 +154,7 @@ def PCA (input_numpy_cloud ):
     the given point cloud in respect to this plane.
 
     Input:
-        input_numpy_cloud (np.array):   numpy array with data points, only the first 3 colums are used
+        input_numpy_cloud (np.ndarray):   numpy array with data points, only the first 3 colums are used
 
     Output:
         normal_vector ([1, 3] np.array): The normal vector of the computed plane
@@ -196,7 +196,7 @@ def random_plane_estimation (numpy_cloud, fixed_point=None ):
     Uses 3 random points to estimate Plane Parameters. Used for RANSAC.
 
     Input:
-        numpy_cloud (np.array): The Point Cloud in which to find a random plane
+        numpy_cloud (np.ndarray): The Point Cloud in which to find a random plane
 
     Output:
         normal_vector ([1, 3] np.array):
@@ -267,14 +267,14 @@ def ransac_plane_estimation (input_numpy_cloud, threshold, fixed_point=None, w =
     Returns points and point indices of the detected plane.
 
     Input:
-        input_numpy_cloud (np.array):   Input cloud
+        input_numpy_cloud (np.ndarray):   Input cloud
         threshold (float, in m):        Points closer to the plane than this value are counted as inliers
         fixed_point (int):              This point will be used as one of three points for every plane estimation
         w (float between 0 and 1):      probability that any observation belongs to the model
         z (float between 0 and 1):      desired probability that the model is found
     Output:
         consensus_normal_vector ([1, 3] np.array):  The normal_vector computed
-        consensus_points (np.array):                All points used for plane estimation
+        consensus_points (np.ndarray):                All points used for plane estimation
     """
 
     # measure time

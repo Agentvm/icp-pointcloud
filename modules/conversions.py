@@ -1,41 +1,9 @@
 #import pcl
+from modules import np_pointcloud
+from modules import consensus
 import numpy as np
 import random
-from modules import consensus
 import scipy.spatial
-
-
-def get_fields (numpy_cloud, field_labels_list, requested_fields ):
-    '''
-    Input:
-        requested_fields (list(string)):    The names of the fields to be returned, in a list
-    '''
-
-    # remove any spaces around the labels
-    field_labels_list = [label.strip () for label in field_labels_list]
-
-    if (requested_fields is not None
-       and all(field in field_labels_list for field in requested_fields ) ):
-        indices = []
-        for field in requested_fields:
-            indices.append (field_labels_list.index(field ))
-    else:
-        raise ValueError ("This Cloud is missing one of the requested fields: "
-                          + str(requested_fields)
-                          + ".\nCloud fields are: " + str(field_labels_list ))
-
-    return numpy_cloud[:, indices]
-
-
-def add_field (numpy_cloud, numpy_cloud_field_labels, field, field_name ):
-    numpy_cloud = np.concatenate ((numpy_cloud, field), axis=1 )
-    numpy_cloud_field_labels += [field_name]
-
-    return numpy_cloud, numpy_cloud_field_labels
-
-
-def add_fields (numpy_cloud, numpy_cloud_field_labels, field, field_name ):
-    raise NotImplementedError
 
 
 def mask_cloud_rows (numpy_cloud, condition_column ):
@@ -85,13 +53,13 @@ def mask_cloudpoints_without_correspondence (ref_cloud, ref_labels,
         scipy_kdtree_corr, corr_cloud, ref_cloud, radius )
 
     # attach the consensus_vector to the clouds
-    ref_cloud, ref_labels = add_field (ref_cloud, ref_labels, consensus_vector_ref, "Consensus" )
-    corr_cloud, corr_labels = add_field (corr_cloud, corr_labels, consensus_vector_corr, "Consensus" )
+    ref_cloud, ref_labels = np_pointcloud.add_field (ref_cloud, ref_labels, consensus_vector_ref, "Consensus" )
+    corr_cloud, corr_labels = np_pointcloud.add_field (corr_cloud, corr_labels, consensus_vector_corr, "Consensus" )
 
     # delete all points that did not contribute to the consensus
-    truth_vector = get_fields (ref_cloud, ref_labels, ["Consensus"] ) == 0
+    truth_vector = np_pointcloud.get_fields (ref_cloud, ref_labels, ["Consensus"] ) == 0
     ref_cloud = mask_cloud_rows (ref_cloud, truth_vector )
-    truth_vector = get_fields (corr_cloud, corr_labels, ["Consensus"] ) == 0
+    truth_vector = np_pointcloud.get_fields (corr_cloud, corr_labels, ["Consensus"] ) == 0
     corr_cloud = mask_cloud_rows (corr_cloud, truth_vector )
 
     return ref_cloud, ref_labels, corr_cloud, corr_labels
@@ -145,54 +113,6 @@ def reduce_cloud (input_cloud_numpy, copy=True, return_transformation=False, ret
         return numpy_cloud, min_x_coordinate, min_y_coordinate
 
     return numpy_cloud
-
-
-# def numpy_to_pcl (input_cloud_numpy):
-#     """
-#     Takes a numpy array and returns a pcl cloud, and the values that have been subtracted from the cloud to fit the
-#     values into a float32.
-#
-#     Input:
-#         input_cloud_numpy (np.array): numpy array with data points and Intensity or RGB values
-#
-#     Output:
-#         pcl_cloud (pcl.PointCloudXYZ):  A pcl cloud
-#         min_x (float):                  The amount by which the x coordinates have been reduced
-#         min_y (float):                  The amount by which the y coordinates have been reduced
-#     """
-#
-#     # get number of different values XYZRGB, XYZI or XYZ
-#     numpy_colums = input_cloud_numpy.shape[1]
-#     if (numpy_colums < 3 ):
-#         print ('In numpy_to_pcl: Inserted numpy cloud only has ' + str(numpy_colums)
-#                + ' channels. Returning empty cloud.')
-#         return pcl.PointCloudXYZ ()     # abort
-#
-#     # reduce coordinates to ensure that the precision of float32 is enough
-#     input_cloud_numpy, min_x_coordinate, min_y_coordinate = reduce_cloud (input_cloud_numpy,
-#                                                                          return_transformation=True )
-#     # DIM cloud, with RGB
-#     if (numpy_colums == 6):
-#         # Python understands float as Float64, which C++ understands as Double, therefore, a conversion is needed.
-#         pcl_cloud = pcl.PointCloudXYZRGB(np.array(input_cloud_numpy, dtype=np.float32 ))
-#     # ALS cloud, with intensity
-#     elif (numpy_colums == 4):
-#         # Python understands float as Float64, which C++ understands as Double, therefore, a conversion is needed.
-#         pcl_cloud = pcl.PointCloud_PointXYZI (np.array(input_cloud_numpy, dtype=np.float32 ))
-#     # some other cloud
-#     else:
-#         first_three_colums = input_cloud_numpy[:, 0:3]
-#         # Python understands float as Float64, which C++ understands as Double, therefore, a conversion is needed.
-#         pcl_cloud = pcl.PointCloudXYZ(np.array(first_three_colums, dtype=np.float32 ))
-#
-#     return pcl_cloud, min_x_coordinate, min_y_coordinate
-
-
-# def pcl_to_numpy (pcl_cloud ):
-#     """
-#     Wraps PCL's to_array function to return an np.array.
-#     """
-#     return pcl_cloud.to_array (pcl_cloud)
 
 
 if (random.seed != 1337 or np.random.seed != 1337):

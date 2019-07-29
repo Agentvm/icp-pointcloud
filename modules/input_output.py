@@ -3,7 +3,6 @@ Loading and saving Point Cloud .las and ASCII (.asc) files
 """
 
 # load
-from modules.custom_clouds import CustomCloud
 from laspy.file import File
 import numpy as np
 #import pcl
@@ -19,7 +18,7 @@ def save_ascii_file (numpy_cloud, field_labels_list, path ):
     Saves Pointcloud as ASCII file
 
     Input:
-        numpy_cloud (np.array):             Data array
+        numpy_cloud (np.ndarray):             Data array
         field_names_list ([str, str, ...]): List of strings containing the labels of the pointcloud columns. These will
                                             be written to the header of the ascii file
         path (str):                         The path to the file to save
@@ -43,19 +42,13 @@ def save_ascii_file (numpy_cloud, field_labels_list, path ):
     fmt = format)  # format
 
 
-def load_ascii_file (path, return_custom_cloud=False ):
+def load_ascii_file (path ):
 
     start_time = time.time()    # measure time
     print('\nLoading file ' + path + ' ...')
     numpy_cloud = np.loadtxt (path, comments='//')
     with open(path) as f:
         field_labels_list = f.readline().strip ('//').split ()
-
-    if (return_custom_cloud ):
-        # get the first line of the file, extracting the field labels
-        custom_cloud = CustomCloud (numpy_cloud, field_labels_list )
-
-        return custom_cloud
 
     print ("Field labels: " + str (field_labels_list ))
     print ('Cloud loaded in ' + str(time.time() - start_time) + ' seconds.\nNumber of points: '
@@ -203,7 +196,7 @@ def load_ply_file (dir_in, file_name ):
         file_name (String):  The name of the file to be loaded, including it's file type extension (.ply)
 
     Output:
-        points (np.array):   The numpy array containing the loaded points is of shape (n, 3).
+        points (np.ndarray):   The numpy array containing the loaded points is of shape (n, 3).
     '''
 
     # Load a file
@@ -228,7 +221,7 @@ def save_ply_file (numpy_cloud, file_name ):
     Takes a directory path and a filename, then loads a .ply pointcloud file and returns it as numpy array.
 
     Input:
-        numpy_cloud (np.array): The cloud to save
+        numpy_cloud (np.ndarray): The cloud to save
         dir_in (String):        The relative path to the folder that the file to be loaded is in
         file_name (String):     The name of the file to be loaded, including it's file type extension (.ply)
     '''
@@ -287,8 +280,6 @@ def load_las_file (file_path, dtype=None ):
             points = np.concatenate((x, y, z, red, green, blue), axis = -1)  # join all values in an np.array
             field_labels_list += ['X', 'Y', 'Z', 'Rf', 'Gf', 'Bf']
 
-            # if (return_custom_cloud ):
-            #     points = CustomCloud (points, field_labels_list )
 
         elif dtype == 'als':
             # extract the scalar fields of the .las cloud
@@ -303,13 +294,9 @@ def load_las_file (file_path, dtype=None ):
             field_labels_list += [
                 'X', 'Y', 'Z', 'Intensity', 'Number_of_Returns', 'Return_Number', 'Point_Source_ID', 'Classification']
 
-            # if (return_custom_cloud ):
-            #     points = CustomCloud (points, field_labels_list )
 
         else:
             points = np.concatenate((x, y, z, raw_class), axis = -1)  # join all values in one np.array
-            # if (return_custom_cloud ):
-            #     points = CustomCloud (points, ['X', 'Y', 'Z', 'Classification'])
 
     print ("Field labels: " + str (field_labels_list ))
     print ('Cloud loaded in ' + str(time.time() - start_time) + ' seconds.\nNumber of points: '
@@ -352,7 +339,7 @@ def conditionalized_load (file_path ):
         file_path (string):     The path to the file to load. Include file extension.
 
     Output:
-        numpy_cloud (np.array): The cloud values, fitted in a numpy nd array
+        numpy_cloud (np.ndarray): The cloud values, fitted in a numpy nd array
         field_labels_list:      The header of the file, containing the labels of the cloud fields (column titles)
     '''
 

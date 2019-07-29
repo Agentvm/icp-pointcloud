@@ -12,8 +12,8 @@ def icp (numpy_reference_cloud, numpy_aligned_cloud, accuracy=0.000000001, verbo
     Iterative closest point algorithm that computes the translation from numpy_aligned_cloud to numpy_reference_cloud.
 
     Input:
-        input_reference_cloud (np.array):       Input Cloud. This Cloud will stay fixed in place.
-        input_aligned_cloud (np.array):         Input Cloud. This Cloud will be moved to match the reference cloud.
+        input_reference_cloud (np.ndarray):       Input Cloud. This Cloud will stay fixed in place.
+        input_aligned_cloud (np.ndarray):         Input Cloud. This Cloud will be moved to match the reference cloud.
         accuracy (float):                       The desired accuracy of alignment in meters
 
     Output:
