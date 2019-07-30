@@ -52,12 +52,12 @@ if __name__ == '__main__':
         np.random.seed = 1337
         print ("Random Seed set to: " + str(np.random.seed ))
 
-    numpy_cloud, numpy_cloud_field_labels, corresponding_cloud, corresponding_cloud_field_labels, random_offset \
-        = prepare_random_cloud ()
+    # numpy_cloud, numpy_cloud_field_labels, corresponding_cloud, corresponding_cloud_field_labels, random_offset \
+    #     = prepare_random_cloud ()
 
 
-    # numpy_cloud, numpy_cloud_field_labels, corresponding_cloud, corresponding_cloud_field_labels \
-    #     = load_example_cloud ("Yz Houses" )
+    numpy_cloud, numpy_cloud_field_labels, corresponding_cloud, corresponding_cloud_field_labels \
+        = load_example_cloud ("Missing Building" )
 
     # numpy_cloud = np.array([[1, 0, 0],
     #                         [2, 0, 0],
@@ -82,7 +82,7 @@ if __name__ == '__main__':
                                              display_plot=False,
                                              save_plot=True,
                                              relative_color_scale=True,
-                                             plot_title="YZ_Houses" )
+                                             plot_title="Missing Building" )
 
     print ("best_alignment: \t\t" + str(best_alignment ))
     if ("random_offset" in locals() ):
