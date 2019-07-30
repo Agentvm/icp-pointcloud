@@ -1,56 +1,13 @@
+"""
+Offers Principal Component Analysis and RANSAC algorithms for normal vector computation.
+"""
+
+
+# basic imports
 import time
 import numpy as np
 import random
-#import pcl
 from math import ceil, sqrt
-
-
-# def pcl_compute_normals (pcl_cloud):
-#     '''
-#     Computes normals for a pcl cloud
-#
-#     Input:
-#         pcl_cloud (pcl.PointCloud):  Any pcl cloud
-#
-#     Output:
-#         normals (?):    ..?
-#     '''
-#
-#     start_time = time.time()
-#     # Search
-#     searching_neighbour = {'knn_search': 25}
-#     feat = pcl_cloud.make_NormalEstimation()
-#
-#     if 'range_search' in searching_neighbour.keys():
-#         # Range search
-#         searching_para = searching_neighbour['range_search'] if searching_neighbour['range_search'] > 0 else 0.1
-#         feat.setRadiusSearch(searching_para)
-#     elif 'knn_search' in searching_neighbour.keys():
-#         # kNN search
-#         searching_para = int(searching_neighbour['knn_search']) if int(searching_neighbour['knn_search']) > 5 else 20
-#         tree = pcl_cloud.make_kdtree()
-#         feat.set_SearchMethod(tree)
-#         feat.set_KSearch(searching_para)
-#     else:
-#         print('Define researching method does not support')
-#
-#     normals = feat.compute()
-#     print('Computed normal vectors in ' + str(time.time() - start_time) + ' seconds' )
-#
-#     return normals
-
-
-def vector_magnitude (vector):
-
-    if (np.sum (vector ) == 0):
-        print ("In vector_magnitude: Vector is 0. Returning input vector.")
-        return vector
-
-    vector_magnitude = 0
-    for value in vector:
-        vector_magnitude = vector_magnitude + np.float_power (value, 2 )
-
-    return sqrt (vector_magnitude )
 
 
 def normalize_vector (vector ):
@@ -70,25 +27,6 @@ def normalize_vector_array (vector_array ):
     norms = np.where (norms == 0, 1, norms )    # these filtered values belong to arrays that already are normalized
 
     return vector_array / norms.reshape (-1, 1 )
-
-
-def angle_between(v1, v2):
-    """ Returns the angle in radians between vectors 'v1' and 'v2'::
-
-            >>> angle_between((1, 0, 0), (0, 1, 0))
-            1.5707963267948966
-            >>> angle_between((1, 0, 0), (1, 0, 0))
-            0.0
-            >>> angle_between((1, 0, 0), (-1, 0, 0))
-            3.141592653589793
-    """
-
-    if (v1 is None or v2 is None or None in v1 or None in v2 ):
-        return None
-
-    v1_u = normalize_vector (v1 )
-    v2_u = normalize_vector (v2 )
-    return np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
 
 
 def eigenvalue_decomposition (a_t_a_matrix ):
@@ -115,19 +53,19 @@ def eigenvalue_decomposition (a_t_a_matrix ):
     return normal_vector, eigenvalues[-1]
 
 
-def build_covariance_matrix (input_numpy_cloud, reduce_by_center_of_mass=True ):
+def build_covariance_matrix (numpy_cloud, reduce_by_center_of_mass=True ):
 
     # build a sum over all points
-    sum_xyz = np.sum (input_numpy_cloud, axis=0 )
+    sum_xyz = np.sum (numpy_cloud, axis=0 )
 
     # and normalize it to get center of mass
-    mass_center = sum_xyz / input_numpy_cloud.shape[0]
+    mass_center = sum_xyz / numpy_cloud.shape[0]
 
     # reduce point cloud by center of mass
     if (reduce_by_center_of_mass ):
-        numpy_cloud_reduced = np.subtract (input_numpy_cloud[:, 0:3], mass_center )
+        numpy_cloud_reduced = np.subtract (numpy_cloud[:, 0:3], mass_center )
     else:
-        numpy_cloud_reduced = input_numpy_cloud
+        numpy_cloud_reduced = numpy_cloud.copy ()
 
     # build ATA matrix
     a_transposed_a = np.zeros ((3, 3 ))
@@ -148,13 +86,13 @@ def build_covariance_matrix (input_numpy_cloud, reduce_by_center_of_mass=True ):
     return a_transposed_a, mass_center
 
 
-def PCA (input_numpy_cloud ):
+def PCA (numpy_cloud ):
     """
     From the points of the given point cloud, this function derives a plane defined by a normal vector and the noise of
     the given point cloud in respect to this plane.
 
     Input:
-        input_numpy_cloud (np.ndarray):   numpy array with data points, only the first 3 colums are used
+        numpy_cloud (np.ndarray):   numpy array with data points, only the first 3 colums are used
 
     Output:
         normal_vector ([1, 3] np.array): The normal vector of the computed plane
@@ -162,15 +100,15 @@ def PCA (input_numpy_cloud ):
         mass_center ([1, 3] np.array):   Centre of mass
     """
 
-    start_time = time.time()
+    #start_time = time.time()
 
     # abort, if there are no points
-    if (input_numpy_cloud.shape[0] == 0):
-        #print ("In normals.py, in PCA: The input array is empty. Returning a null vector and sigma")
-        return np.array ((0, 0, 0)), 0.0, np.array ((0, 0, 0))
+    if (numpy_cloud.shape[0] == 0):
+        #print ("In normals.py, in PCA: The input array is empty. Returning a null vector and high sigma")
+        return np.array ((0, 0, 0)), 100.0, np.array ((0, 0, 0))
 
     # we only need three colums [X, Y, Z, I] -> [X, Y, Z]
-    numpy_cloud = input_numpy_cloud[:, :3].copy ()     # copying takes roughly 0.000558 seconds per 1000 points
+    numpy_cloud = numpy_cloud[:, :3].copy ()     # copying takes roughly 0.000558 seconds per 1000 points
     cloud_size = numpy_cloud.shape[0]
 
     # get covariance matrix
@@ -207,11 +145,11 @@ def random_plane_estimation (numpy_cloud, fixed_point=None ):
     idx_1, idx_2, idx_3 = random.sample(range(0, numpy_cloud.shape[0] ), 3 )
 
     if (fixed_point is None):
-        point_1 = numpy_cloud [idx_1, :]
+        point_1 = numpy_cloud [idx_1, :].copy ()
     else:
-        point_1 = fixed_point[:3]
-    point_2 = numpy_cloud [idx_2, :]
-    point_3 = numpy_cloud [idx_3, :]
+        point_1 = fixed_point[:3].copy ()
+    point_2 = numpy_cloud [idx_2, :].copy ()
+    point_3 = numpy_cloud [idx_3, :].copy ()
 
     # get the normal vector, normalize it and if it's turned to the ground, turn it around
     normal_vector = normalize_vector (np.cross((point_2 - point_1), (point_3 - point_1 )))
@@ -249,6 +187,9 @@ def plane_consensus (numpy_cloud, normal_vector, d, threshold ):
     consensus_points = []
 
     divisor = np.float_power (a, 2 ) + np.float_power (b, 2 ) + np.float_power (c, 2 )
+
+    # refactor: apply along axis, or similar speed improvement
+    # refactor: return np.ndarray, so no conversion is necessary in RANSAC
     for point in numpy_cloud:
         dist = (a * point[0] + b * point[1] + c * point[2] + d ) / sqrt (divisor)
 
@@ -260,14 +201,14 @@ def plane_consensus (numpy_cloud, normal_vector, d, threshold ):
     return consensus_count, consensus_points
 
 
-def ransac_plane_estimation (input_numpy_cloud, threshold, fixed_point=None, w = .9, z = 0.95 ):
+def ransac_plane_estimation (numpy_cloud, threshold, fixed_point=None, w = .9, z = 0.95 ):
     """
     Uses Ransac with the probability parameters w and z to estimate a valid plane in given cloud.
     Uses distance from plane compared to given threshold to determine the consensus set.
     Returns points and point indices of the detected plane.
 
     Input:
-        input_numpy_cloud (np.ndarray):   Input cloud
+        numpy_cloud (np.ndarray):   Input cloud
         threshold (float, in m):        Points closer to the plane than this value are counted as inliers
         fixed_point (int):              This point will be used as one of three points for every plane estimation
         w (float between 0 and 1):      probability that any observation belongs to the model
@@ -278,7 +219,7 @@ def ransac_plane_estimation (input_numpy_cloud, threshold, fixed_point=None, w =
     """
 
     # measure time
-    start_time = time.time ()
+    #start_time = time.time ()
 
     # variables
     current_consensus = 0
@@ -290,8 +231,8 @@ def ransac_plane_estimation (input_numpy_cloud, threshold, fixed_point=None, w =
     b = np.float_power(w, 3 )   # probability that all three observations belong to the model
     k = ceil(np.log(1-z ) / np.log(1-b ))   # number of draws
 
-    # copy cloud
-    numpy_cloud = input_numpy_cloud[:, 0:3].copy ()
+    # # copy cloud
+    numpy_cloud = numpy_cloud[:, 0:3]
 
     # iterate: draw 3 points k times
     for i in range (1, k):
@@ -315,9 +256,10 @@ def ransac_plane_estimation (input_numpy_cloud, threshold, fixed_point=None, w =
     # print time
     #print('RANSAC completed in ' + str(time.time() - start_time) + ' seconds.\n' )
 
-    return np.array (consensus_normal_vector), np.array (consensus_points).copy ()
+    return np.array (consensus_normal_vector), np.array (consensus_points)
 
 
+# set the random seed for both the numpy and random module, if it is not already set.
 if (random.seed != 1337 or np.random.seed != 1337):
     random.seed = 1337
     np.random.seed = 1337

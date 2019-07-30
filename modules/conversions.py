@@ -1,8 +1,16 @@
-#import pcl
-from modules import np_pointcloud
+"""
+This module contains various pointcloud operations including masking certain rows, sampling and reducing the x, y
+coordinated to zero
+"""
+
+# local modules
 from modules import consensus
+
+# basic imports
 import numpy as np
 import random
+
+# advanced functionality
 import scipy.spatial
 
 
@@ -35,34 +43,40 @@ def mask_cloud_rows (numpy_cloud, condition_column ):
     return np.ma.masked_array (numpy_cloud, mask=mask_boolean_values )
 
 
-def mask_cloudpoints_without_correspondence (ref_cloud, ref_labels,
-                                             corr_cloud, corr_labels,
-                                             radius = 0.5):
+def mask_cloudpoints_without_correspondence (ref_pointcloud, corr_pointcloud, radius = 0.5 ):
+    """
+    Remove points in ref_pointcloud and corr_pointcloud which have no neighbor in the other cloud that is nearer than
+    radius
+
+    Input:
+        ref_pointcloud (NumpyPointCloud):    NumpyPointCloud object containing a numpy array and it's data labels
+        corr_pointcloud (NumpyPointCloud):   The cloud corresponding to ref_pointcloud. Both clouds will be modified.
+    """
 
     # build trees
-    scipy_kdtree_ref = scipy.spatial.cKDTree (ref_cloud[:, 0:3] )
-    scipy_kdtree_corr = scipy.spatial.cKDTree (corr_cloud[:, 0:3] )
+    scipy_kdtree_ref = scipy.spatial.cKDTree (ref_pointcloud[:, 0:3] )
+    scipy_kdtree_corr = scipy.spatial.cKDTree (corr_pointcloud[:, 0:3] )
 
     # # determine the consensus in the current aligment of clouds
-    # reference: ref_cloud -> consensus_vector: consensus_vector_corr
+    # reference: ref_pointcloud -> consensus_vector: consensus_vector_corr
     _, consensus_vector_corr = consensus.point_distance_cloud_consensus (
-        scipy_kdtree_ref, ref_cloud, corr_cloud, radius )
+        scipy_kdtree_ref, ref_pointcloud, corr_pointcloud, radius )
 
-    # reference: corr_cloud  -> consensus_vector: consensus_vector_ref
+    # reference: corr_pointcloud  -> consensus_vector: consensus_vector_ref
     _, consensus_vector_ref = consensus.point_distance_cloud_consensus (
-        scipy_kdtree_corr, corr_cloud, ref_cloud, radius )
+        scipy_kdtree_corr, corr_pointcloud, ref_pointcloud, radius )
 
     # attach the consensus_vector to the clouds
-    ref_cloud, ref_labels = np_pointcloud.add_field (ref_cloud, ref_labels, consensus_vector_ref, "Consensus" )
-    corr_cloud, corr_labels = np_pointcloud.add_field (corr_cloud, corr_labels, consensus_vector_corr, "Consensus" )
+    ref_pointcloud.add_field (consensus_vector_ref, "Consensus" )
+    corr_pointcloud.add_field (consensus_vector_corr, "Consensus" )
 
     # delete all points that did not contribute to the consensus
-    truth_vector = np_pointcloud.get_fields (ref_cloud, ref_labels, ["Consensus"] ) == 0
-    ref_cloud = mask_cloud_rows (ref_cloud, truth_vector )
-    truth_vector = np_pointcloud.get_fields (corr_cloud, corr_labels, ["Consensus"] ) == 0
-    corr_cloud = mask_cloud_rows (corr_cloud, truth_vector )
+    truth_vector = ref_pointcloud.get_fields (["Consensus"] ) == 0
+    ref_pointcloud.points = mask_cloud_rows (ref_pointcloud.points, truth_vector )
+    truth_vector = corr_pointcloud.get_fields (["Consensus"] ) == 0
+    corr_pointcloud.points = mask_cloud_rows (corr_pointcloud.points, truth_vector )
 
-    return ref_cloud, ref_labels, corr_cloud, corr_labels
+    return ref_pointcloud, corr_pointcloud
 
 
 def sample_cloud (numpy_cloud, sample_divisor, deterministic_sampling=False ):
@@ -115,6 +129,7 @@ def reduce_cloud (input_cloud_numpy, copy=True, return_transformation=False, ret
     return numpy_cloud
 
 
+# set the random seed for both the numpy and random module, if it is not already set.
 if (random.seed != 1337 or np.random.seed != 1337):
     random.seed = 1337
     np.random.seed = 1337

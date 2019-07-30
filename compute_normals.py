@@ -1,18 +1,20 @@
+
+# local modules
 from modules import input_output
 from modules import normals
-from modules import conversions
-#import sklearn.neighbors    # kdtree
-import scipy.spatial
+
+# basic imports
 import numpy as np
 import random
-import psutil
 import os.path
+
+# advanced functionality
+import scipy.spatial
+import psutil
 
 
 def get_reduction (numpy_cloud ):
-    '''
-    Compute the min x and min y coordinate
-    '''
+    """Compute the min x and min y coordinate"""
 
     min_x_coordinate = np.min (numpy_cloud[:, 0] )
     min_y_coordinate = np.min (numpy_cloud[:, 1] )
@@ -21,25 +23,30 @@ def get_reduction (numpy_cloud ):
 
 
 def apply_reduction (numpy_cloud, min_x_coordinate, min_y_coordinate ):
-
-    # reduce the cloud, so all points are closer to origin
+    """Reduce the cloud's point coordinates, so all points are closer to origin """
     numpy_cloud[:, 0] = numpy_cloud[:, 0] - min_x_coordinate
     numpy_cloud[:, 1] = numpy_cloud[:, 1] - min_y_coordinate
 
     return numpy_cloud
 
 
-def compute_normals (numpy_cloud, file_path, field_labels_list, query_radius ):
-    '''
-    Computes Normals for a Cloud and concatenates the newly computed colums with the Cloud.
-    '''
+def compute_normals (numpy_pointcloud, file_path, query_radius ):
+    """
+    Computes Normals for a Cloud and adds the newly computed colums to the Cloud.
+
+    Input:
+
+
+    Output:
+
+    """
 
     # build a kdtree
     #tree = sklearn.neighbors.kd_tree.KDTree (numpy_cloud[:, 0:3], leaf_size=40, metric='euclidean')
-    scipy_kdtree = scipy.spatial.cKDTree (numpy_cloud[:, 0:3] )
+    scipy_kdtree = scipy.spatial.cKDTree (numpy_pointcloud.get_xyz_coordinates () )
 
     # prepare variables
-    additional_values = np.zeros ((numpy_cloud.shape[0], 4 ))
+    additional_values = np.zeros ((numpy_pointcloud.points.shape[0], 4 ))
     success = True
 
     # set radius
@@ -47,20 +54,20 @@ def compute_normals (numpy_cloud, file_path, field_labels_list, query_radius ):
         query_radius = 0.8
 
     # compute normals for each point
-    for index, point in enumerate (numpy_cloud[:, 0:3] ):
+    for index, point in enumerate (numpy_pointcloud.get_xyz_coordinates () ):
 
         # check memory usage
         if (psutil.virtual_memory().percent > 95.0):
             print (print ("!!! Memory Usage too high: "
                           + str(psutil.virtual_memory().percent)
                           + "%. Skipping cloud. There still are "
-                          + str (numpy_cloud.shape[0] - index)
+                          + str (numpy_pointcloud.points.shape[0] - index)
                           + " normal vectors left to compute. Reduction process might be lost."))
             success = False
             break
 
-        if (index % int(numpy_cloud.shape[0] / 10) == 0):
-            print ("Progress: " + "{:.1f}".format ((index / numpy_cloud.shape[0]) * 100.0 ) + " %" )
+        if (numpy_pointcloud.points.shape[0] > 10 and index % int(numpy_pointcloud.points.shape[0] / 10) == 0):
+            print ("Progress: " + "{:.1f}".format ((index / numpy_pointcloud.points.shape[0]) * 100.0 ) + " %" )
 
         # kdtree radius search
         #point_neighbor_indices = tree.query_radius(point.reshape (1, -1), r=query_radius )
@@ -80,9 +87,9 @@ def compute_normals (numpy_cloud, file_path, field_labels_list, query_radius ):
 
         # do a Principal Component Analysis with the plane points obtained by a RANSAC plane estimation
         normal_vector, sigma, mass_center = normals.PCA (
-                    normals.ransac_plane_estimation (numpy_cloud[point_neighbor_indices, :],   # point neighbors
+                    normals.ransac_plane_estimation (numpy_pointcloud.points[point_neighbor_indices, :],    # neighbors
                                                      threshold=0.3,  # max point distance from the plane
-                                                     fixed_point=numpy_cloud[index, :],
+                                                     fixed_point=numpy_pointcloud.points[index, :],
                                                      w=0.6,         # probability for the point to be an inlier
                                                      z=0.90)        # desired probability that plane is found
                                                      [1] )          # only use the second return value, the points
@@ -90,36 +97,20 @@ def compute_normals (numpy_cloud, file_path, field_labels_list, query_radius ):
         # join the normal_vector and sigma value to a 4x1 array and write them to the corresponding position
         additional_values[index, :] = np.append (normal_vector, sigma )
 
-    # remove any spaces around the labels
-    field_labels_list = [label.strip () for label in field_labels_list]
-
-    # delete normals if already computed
-    if ('Nx' in field_labels_list
-       and 'Ny' in field_labels_list
-       and 'Nz' in field_labels_list
-       and 'Sigma' in field_labels_list ):
-        indices = []
-        indices.append (field_labels_list.index('Sigma' ))
-        indices.append (field_labels_list.index('Nz' ))
-        indices.append (field_labels_list.index('Ny' ))
-        indices.append (field_labels_list.index('Nx' ))
-
-        print ("Found previously computed normals. Removing the following fields: Nx, Ny, Nz and Sigma")
-
-        field_labels_list = [label for label in field_labels_list if field_labels_list.index(label) not in indices]
-        numpy_cloud = np.delete (numpy_cloud, indices, axis=1 )
-
     # add the newly computed values to the cloud
-    numpy_cloud = np.concatenate ((numpy_cloud, additional_values ), axis=1 )
-    field_labels_list += ['Nx', 'Ny', 'Nz', 'Sigma']
+    numpy_pointcloud.add_fields (additional_values, ['Nx', 'Ny', 'Nz', 'Sigma'], replace=True )
 
-    return numpy_cloud, field_labels_list, success
+    return numpy_pointcloud, success
 
 
-def clear_redundand_classes (numpy_cloud, field_labels_list ):
-    truth = conversions.get_fields (numpy_cloud, field_labels_list, ["Classification"])
-    truth = [nested_value for value in truth < 20 for nested_value in value]
-    return numpy_cloud[truth, :]
+def clear_redundand_classes (numpy_pointcloud ):
+    """Clears points with a class label > 19"""
+
+    # keep classes < 20
+    classes = numpy_pointcloud.get_fields (["Classification"])
+    numpy_pointcloud.points = numpy_pointcloud.points[classes < 20, :]
+
+    return numpy_pointcloud
 
 
 def process_clouds_in_folder (path_to_folder,
@@ -171,7 +162,7 @@ def process_clouds_in_folder (path_to_folder,
             continue
 
         # # load
-        numpy_cloud, field_labels_list = input_output.conditionalized_load (complete_file_path )
+        np_pointcloud = input_output.conditionalized_load (complete_file_path )
 
         # # treat clouds folder-specific
         # find folder name
@@ -184,39 +175,32 @@ def process_clouds_in_folder (path_to_folder,
         if (current_folder != previous_folder and reduce_clouds):
 
             # all clouds in one folder should get the same trafo
-            min_x, min_y = get_reduction (numpy_cloud )
+            min_x, min_y = get_reduction (np_pointcloud.points )
 
         # # # alter cloud
         cloud_altered = False
 
         #delete everything that has more or equal to 20 in the 8th row:
         if (clear_classes ):
-            numpy_cloud = clear_redundand_classes (numpy_cloud, field_labels_list )
+            np_pointcloud = clear_redundand_classes (np_pointcloud )
             print ("Points with class 20 and above have been removed from this cloud.\n")
             cloud_altered = True
 
-        print ("field_labels_list_1: " + str(field_labels_list ))
-
         # # reduce cloud
         if (reduce_clouds ):
-            numpy_cloud = apply_reduction (numpy_cloud, min_x, min_y )
+            np_pointcloud.points = apply_reduction (np_pointcloud.points, min_x, min_y )
             print ("Cloud has been reduced by x=" + str(min_x ) + ", y=" + str(min_y ) + ".\n")
             cloud_altered = True
 
-        print ("field_labels_list_2: " + str(field_labels_list ))
-
         # # compute normals on cloud
         if (do_normal_calculation ):
-            numpy_cloud, field_labels_list, success = compute_normals (numpy_cloud,
+            np_pointcloud, success = compute_normals (np_pointcloud,
                                                                        complete_file_path,
-                                                                       field_labels_list,
                                                                        normals_computation_radius )
             if (success):
                 print ("Normals successfully computed.\n")
             # don't change the cloud unless all normals have been computed
             cloud_altered = success
-
-        print ("field_labels_list_3: " + str(field_labels_list ))
 
         # save the cloud again
         if (cloud_altered):
@@ -224,8 +208,9 @@ def process_clouds_in_folder (path_to_folder,
             alteration_string += "_normals" if do_normal_calculation else ""
             alteration_string += "_cleared" if clear_classes else ""
             filename, file_extension = os.path.splitext(complete_file_path )
-            input_output.save_ascii_file (numpy_cloud, field_labels_list, filename + alteration_string + ".asc" )
-            #input_output.save_ascii_file (numpy_cloud, field_labels_list, "clouds/tmp/normals_fixpoint_test.asc" )
+            input_output.save_ascii_file (np_pointcloud.points,
+                                          np_pointcloud.field_labels,
+                                          filename + alteration_string + ".asc" )
 
         # set current to previous folder for folder-specific computations
         previous_folder = current_folder
@@ -236,6 +221,7 @@ def process_clouds_in_folder (path_to_folder,
 
 if __name__ == '__main__':
 
+    # set the random seed for both the numpy and random module, if it is not already set.
     if (random.seed != 1337 or np.random.seed != 1337):
         random.seed = 1337
         np.random.seed = 1337
@@ -244,10 +230,10 @@ if __name__ == '__main__':
     # # normals / reducing clouds
     if (process_clouds_in_folder ('clouds/tmp/',
                                   permitted_file_extension='.asc',
-                                  string_list_to_ignore=['original_clouds', '.las'],
-                                  do_normal_calculation=False,
-                                  reduce_clouds=False,
-                                  clear_classes=True,
+                                  string_list_to_ignore=['original_clouds', 'fix', 'fail', '.las'],
+                                  do_normal_calculation=True,
+                                  reduce_clouds=True,
+                                  clear_classes=False,
                                   normals_computation_radius=2.5 )):
         print ("\n\nAll Clouds successfully processed.")
     else:

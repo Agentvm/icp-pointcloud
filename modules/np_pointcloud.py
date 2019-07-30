@@ -41,7 +41,7 @@ class NumpyPointCloud (object ):
         Extract multiple rows of this cloud by name.
 
         Input:
-            requested_fields (list(string)):    The names of the fields to be returned, in a list
+            field_labels_list (list(string)):    The names of the fields to be returned, in a list
         '''
 
         if (type (field_labels_list) is str):
@@ -59,13 +59,28 @@ class NumpyPointCloud (object ):
                               + str(field_labels_list)
                               + ".\nCloud fields are: " + str(self.field_labels ))
 
-        # return the requested data
-        return self.points[:, indices]
+        # return a copy of the requested data
+        data = self.points[:, indices].copy ()
+
+        if (data.shape[1] == 1):
+            data = data[:, 0]
+
+        return data
+
+    def get_xyz_coordinates (self ):
+        return self.get_fields (["X", "Y", "Z"] )
+
+    def get_normals (self ):
+        return self.get_fields (["Nx", "Ny", "Nz"] )
+
+    def get_normals_and_sigma (self ):
+        return self.get_fields (["Nx", "Ny", "Nz", "Sigma"] )
 
     def add_fields (self, field_data, field_labels_list, replace=False ):
         '''
         Input:
-            field_data (np.ndarray):    Data in the shape of (n, m), where n = number of points in cloud
+            field_data (np.ndarray):            Data in the shape of (n, m), where n = number of points in cloud
+            field_labels_list (list(string)):   Labels of field_data, length = m
         '''
 
         # check type of input
@@ -81,6 +96,13 @@ class NumpyPointCloud (object ):
             raise ValueError ("The number of points in the input data is different from this cloud."
                              + "\nNumber of input points: " + str (field_data.shape[0] )
                              + "\nNumber of cloud points: " + str (self.points.shape[0] ))
+
+        # check number of labels
+        if (len (field_labels_list ) != field_data.shape[1] ):
+            raise ValueError ("Supplied data was of shape "
+                              + str (field_data.shape )
+                              + ", but there were "
+                              + str (len (field_labels_list )) + " Labels supplied." )
 
         truth_array = [new_field_name in self.field_labels for new_field_name in field_labels_list]
 

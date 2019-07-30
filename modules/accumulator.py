@@ -1,27 +1,33 @@
-#from modules import normals
+"""
+Contains the accumulator algorithm to implement a spheric_cloud_consensus. This can robustly find the best translation
+between two different clouds that share important features (like two scenes showing the same place at a different time).
+Finds a (X, Y, Z) translation if the correct result is within a sphere of 2 meters with a resolution of 0.1 m.
+"""
+
+# local modules
 from modules import input_output
-from modules import conversions
-# from modules.normals import normalize_vector_array
+
+# basic imports
 import numpy as np
 import math
+import warnings
+
+# advanced functionality
+import scipy.spatial
+
+# plot imports
+import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from mpl_toolkits.mplot3d.art3d import Line3D
-from matplotlib.patches import Rectangle    # dummy for legend
-import matplotlib.pyplot as plt
-import scipy.spatial
-#import itertools            # speed improvement when making a [list] out of a [list of [lists]]
-#import input_output
-#import conversions
-#from modules import conversions
-import time
-from textwrap import wrap
+from matplotlib.patches import Rectangle    # dummy for creating a legend entry
+import textwrap    # for wrapping the plot title
 
-# DEBUG
-import pylab
-import matplotlib._pylab_helpers
+# debug
+import time
 
 
 def create_line (point1, point2 ):
+    """Returns a mpl_toolkits.mplot3d.art3d.Line3D object that is a line between the two given points."""
     xs = (point1[0], point2[0])
     ys = (point1[1], point2[1])
     zs = (point1[2], point2[2])
@@ -54,7 +60,7 @@ def display_consensus_cube (consensus_cube, corresponding_cloud_size, best_align
 
     original_cube = consensus_cube.copy ()
 
-    # # thin out the cloud by keeping the best 1000 resulst
+    # # thin out the cloud by keeping the best 500 results
     # sort by best consensus and remove the first values
     index = -math.floor (500 )
 
@@ -104,7 +110,7 @@ def display_consensus_cube (consensus_cube, corresponding_cloud_size, best_align
     plt.subplots_adjust(left=0.2 )
     if (plot_title is None ):
         plot_title = "ConsensusCube (TM)"
-    plt.title ("\n".join(wrap(plot_title)), loc='right' )
+    plt.title ("\n".join(textwrap.wrap(plot_title)), loc='right' )
 
     # # create lines to mark the translation result with the best consensus
     # line passing through max consensus point in x-direction
@@ -184,24 +190,23 @@ def create_plot_title (base_title, algorithmus, accumulator_radius, grid_size, d
     return plot_title
 
 
-def spheric_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
-                             compared_cloud, compared_cloud_field_labels,
+def spheric_cloud_consensus (np_pointcloud, compared_pointcloud,
                              accumulator_radius=1.2, grid_size=0.1, distance_threshold=0.2, angle_threshold=30,
                              algorithmus='distance',
                              display_plot=True, save_plot=False,
                              relative_color_scale=False,
                              plot_title="ConsensusCube (TM)"  ):
     '''
-    if algorithmus='distance':  Translates compared_cloud in lenghts of grid_size inside a sphere-shaped space and, for
-    every step, checks how many points of cloud numpy_cloud have a neighbor within threshold range in compared_cloud.
+    if algorithmus='distance':  Counts how many points of cloud np_pointcloud have a neighbor within threshold range in
+                                compared_cloud.
 
     Input:
-        numpy_cloud ([n, 3] np.array):
-        compared_cloud ([1, 3] np.array):
+        np_pointcloud (NumpyPointCloud):    NumpyPointCloud object containing a numpy array and it's data labels
+        compared_cloud (NumpyPointCloud):   This cloud will be aligned to match np_pointcloud
         distance_threshold (float):         Threshold that defines the range at which a point is counted as neigbor
         angle_threshold (float, degree):    Angle threshold to define maximum deviation of normal vectors
-        accumulator_radius (float):         Cubus center is (0, 0, 0). Half of cubus_length is backwards, half forwards.
-        step (float):
+        accumulator_radius (float):         Sphere center is translation (0, 0, 0). Translations are possible in sphere
+        grid_size (float):                  Rasterization of results. May yield unsatisfying results if too small
         algorithmus (string):               'distance', 'angle' or 'combined'
 
     Output:
@@ -216,35 +221,43 @@ def spheric_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
     print ("accumulator_radius: " + str(accumulator_radius ))
     print ("grid_size: " + str(grid_size ) + '\n' )
 
+    if (display_plot and save_plot):
+        message = ("Displaying the plot halts code execution until the plot is closed. This can be a problem when "
+                  + "multiple computations are queued.")
+        warnings.warn (message)
+
     start_time = time.time ()
 
     # variables
-    best_alignment_consensus_vector = np.zeros ((numpy_cloud.shape[0], 1) )     # field that shows which points consent
+    # field that shows which points consent
+    best_alignment_consensus_vector = np.zeros ((np_pointcloud.points.shape[0], 1) )
     # angle_threshold_radians = 0 if angle_threshold is None else angle_threshold * (np.pi/180)
 
     # build a grid as a kdtree to discretize the results
     consensus_cube = create_closed_grid (accumulator_radius * 2, grid_size )
     grid_kdtree = scipy.spatial.cKDTree (consensus_cube[:, 0:3] )
-    print ("\nconsensus_cube shape: " + str (consensus_cube.shape ))
-    #print ("\nconsensus_cube:\n" + str (consensus_cube ))
 
     # build kdtree and query it for points within radius (radius being the maximum translation that can be detected)
-    scipy_kdtree = scipy.spatial.cKDTree (numpy_cloud[:, 0:3] )
-    #cloud_indices = scipy_kdtree.query_ball_point (compared_cloud[:, 0:3], accumulator_radius )    # memory problem
-    # print ("\ncloud_indices: " + str (cloud_indices ))
+    scipy_kdtree = scipy.spatial.cKDTree (np_pointcloud.get_xyz_coordinates ())
 
-    for i, point in enumerate (compared_cloud[:, 0:3] ):
+    # simplified process:
+    #   for each point in compared_pointcloud:
+    #       Find neighbors within accumulator_radius
+    #       Compute the translations to these neighbors
+    #       Rasterize the translations by matching them with the grid
+    #       When a translation matches a grid cell, increment the consensus counter of that cell
+    for i, point in enumerate (compared_pointcloud.get_xyz_coordinates ()):
 
         point_indices = scipy_kdtree.query_ball_point (point, accumulator_radius )
 
         # Progress Prints every 10 %
-        if (i % int(compared_cloud.shape[0] / 10) == 0):
-            print ("Progress: " + "{:.1f}".format ((i / compared_cloud.shape[0]) * 100.0 ) + " %" )
+        if (i % int(compared_pointcloud.points.shape[0] / 10) == 0):
+            print ("Progress: " + "{:.1f}".format ((i / compared_pointcloud.points.shape[0]) * 100.0 ) + " %" )
 
         if (len(point_indices ) > 0):
 
             # diff all points found near the corresponding point with corresponding point
-            diff_vectors = numpy_cloud[point_indices, 0:3] - point
+            diff_vectors = np_pointcloud.get_xyz_coordinates ()[point_indices, :] - point
             # print ("\n--------------------------------------------------\n\npoint_indices:\n" + str (point_indices ))
             # print ("diff_vectors:\n" + str (diff_vectors ))
 
@@ -271,7 +284,7 @@ def spheric_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
         original_plot_base, algorithmus, accumulator_radius, grid_size, distance_threshold, angle_threshold )
 
     # create the plot
-    display_cube, figure = display_consensus_cube (consensus_cube, compared_cloud.shape[0], best_alignment,
+    display_cube, figure = display_consensus_cube (consensus_cube, compared_pointcloud.points.shape[0], best_alignment,
                                                    plot_title, relative_color_scale )
 
     # save the plot for later reference
@@ -291,7 +304,7 @@ def spheric_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
 
     # display the plot
     if (display_plot ):
-         nothing = plt.show (figure );
+         _ = plt.show (figure );
     plt.close ()
 
     print ("\nOverall Time: " + str (time.time () - start_time ))

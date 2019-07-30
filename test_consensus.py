@@ -1,65 +1,53 @@
-# test consensus
+
+# local modules
+from modules.np_pointcloud import NumpyPointCloud
 from modules import input_output
 from modules import consensus
 from modules.normals import normalize_vector_array
-#from modules import normals
-import numpy as np
-#import random
-import math
 
+# basic imports
+import numpy as np
+
+# plot imports
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 
 
 def prepare_random_cloud ():
 
-    # small cloud
-    numpy_cloud = np.random.uniform (-10, 10, (100, 3 ))
-    numpy_cloud = np.array([[1, 0, 0],
-                            [2, 0, 0],
-                            [0, 1, 0],
-                            [0, 2, 0],
-                            [0, 0, 1],
-                            [0, 0, 2]] )
-
-    numpy_normals = np.array([[1, 0, 0],
-                        [0, 1, 0],
-                        [0, 0, 1],
-                        [1, 0, 1],
-                        [1, 1, 0],
-                        [0, 1, 1]] )
-
     # random values
     numpy_cloud = np.random.uniform (-10, 10, size=(1000, 3 ))
     numpy_normals = normalize_vector_array (np.random.uniform (0, 1, size=(1000, 3 )))
 
-    # concat
-    numpy_cloud_field_labels = corresponding_cloud_field_labels = ['X', 'Y', 'Z', 'Nx ', 'Ny ', 'Nz ']
+    # concat points and normals
     numpy_cloud = np.concatenate ((numpy_cloud, numpy_normals), axis=1)
     print ('numpy_cloud.shape: ' + str (numpy_cloud.shape ))
-    # print ('numpy_cloud:\n' + str (numpy_cloud ))
 
     # displace
-    random1 = np.random.uniform ((-1, -1, -1, 0, 0, 0), (1, 1, 1, 0, 0, 0 ))
-    corresponding_cloud = numpy_cloud + random1
+    random_displacement = np.random.uniform ((-0.8, -0.8, -0.8, 0, 0, 0), (0.8, 0.8, 0.8, 0, 0, 0 ))
+    corresponding_cloud = numpy_cloud + random_displacement
 
     # noise
     numpy_cloud = numpy_cloud + np.random.uniform (-0.01, 0.01, size=(1, 6 ))
     corresponding_cloud = corresponding_cloud + np.random.uniform (-0.01, 0.01, size=(1, 6 ))
 
-    return numpy_cloud, numpy_cloud_field_labels, corresponding_cloud, corresponding_cloud_field_labels, random1
+    # change to NumpyPointCloud
+    np_pointcloud = NumpyPointCloud (numpy_cloud, ['X', 'Y', 'Z', 'Nx ', 'Ny ', 'Nz '] )
+    corresponding_pointcloud = NumpyPointCloud (corresponding_cloud, ['X', 'Y', 'Z', 'Nx ', 'Ny ', 'Nz '] )
+
+    return np_pointcloud, corresponding_pointcloud, random_displacement
 
 
 def load_example_cloud (folder ):
 
     # # big cloud
-    numpy_cloud, numpy_cloud_field_labels = input_output.conditionalized_load(
+    np_pointcloud = input_output.conditionalized_load(
         'clouds/Regions/' + folder + '/ALS16_Cloud_reduced_normals_cleared.asc' )
 
-    corresponding_cloud, corresponding_cloud_field_labels = input_output.conditionalized_load (
+    corresponding_pointcloud = input_output.conditionalized_load (
         'clouds/Regions/' + folder + '/DSM_Cloud_reduced_normals.asc' )
 
-    return numpy_cloud, numpy_cloud_field_labels, corresponding_cloud, corresponding_cloud_field_labels
+    return np_pointcloud, corresponding_pointcloud
 
 
 if __name__ == '__main__':
@@ -68,29 +56,27 @@ if __name__ == '__main__':
         np.random.seed = 1337
         print ("Random Seed set to: " + str(np.random.seed ))
 
-    numpy_cloud, numpy_cloud_field_labels, corresponding_cloud, corresponding_cloud_field_labels, random_offset \
-        = prepare_random_cloud ()
-
-    # numpy_cloud, numpy_cloud_field_labels, corresponding_cloud, corresponding_cloud_field_labels \
-    #     = load_example_cloud ("Yz Houses" )
+    # prepare example clouds, random or from file
+    np_pointcloud, corresponding_pointcloud, random_offset = prepare_random_cloud ()
+    # np_pointcloud, corresponding_pointcloud = load_example_cloud ("Yz Houses" )
 
     # reach consensus
     best_alignment, best_consensus_count, best_alignment_consensus_vector = \
-        consensus.cubic_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
-                               corresponding_cloud, corresponding_cloud_field_labels,
-                               cubus_length=1,
-                               step=.1,
-                               distance_threshold=0.2,
-                               angle_threshold=30,
-                               algorithmus='distance',
-                               plot_title="degree_test",
-                               save_plot=False )
+        consensus.cubic_cloud_consensus (np_pointcloud,
+                                         corresponding_pointcloud,
+                                         cubus_length=1,
+                                         step=.1,
+                                         distance_threshold=0.2,
+                                         angle_threshold=30,
+                                         algorithmus='combined',
+                                         plot_title="combined_test",
+                                         save_plot=False )
 
     # Plot: 0.45, -0.3, -0.3
     # Returned: 0.0, -0.45, 0.9
     # File: 0.45 -0.3 1.05
 
-    print ("Random Offset: " + str(random_offset ))
+    #print ("Random Offset: " + str(random_offset ))
     #print ("Point Picking Offset Xy Tower: (-0.82777023,  0.16250610,  0.19129372)")
     print ("Point Picking Offset Yz Houses: (0.31462097, -0.01929474, -0.03573704)")
 

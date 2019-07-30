@@ -1,45 +1,31 @@
-#from modules import normals
+"""
+Contains a straightforward implementation of the Consensus Algorithm in three Variants. Distance, normal vector angle
+and a combination of these two.
+cubic_cloud_consensus algorithm, distance: Translates compared_cloud in lenghts of step inside a cubus-shaped space and,
+for every step, checks how many points of cloud numpy_cloud have a neighbor within threshold range in compared_cloud.
+"""
+
+# local modules
 from modules import input_output
 from modules import conversions
 from modules.normals import normalize_vector_array
+
+# basic imports
 import numpy as np
 import math
+
+# advanced functionality
+import scipy.spatial
+
+# plot imports
 from mpl_toolkits.mplot3d import Axes3D
 from mpl_toolkits.mplot3d.art3d import Line3D
 from matplotlib.patches import Rectangle    # dummy for legend
 import matplotlib.pyplot as plt
-#import sklearn.neighbors    # kdtree
-import scipy.spatial
-#import itertools            # speed improvement when making a [list] out of a [list of [lists]]
-#import input_output
-#import conversions
-#from modules import conversions
-import time
 from textwrap import wrap
 
-
-# def alternative_angle_between (vector_array_1, vector_array_2, step=58 ):
-#
-#     # prepare results vector with lenght of number of points
-#     results = np.zeros ((vector_array_1.shape[0], 1 ))
-#
-#     # np.dot (vector_array_1[i:], vector_array_2.T) computes a gigantic matrix. In order to save RAM space, it has to
-#     # be done in batches
-#     for i in range (0, vector_array_1.shape[0], step ):
-#         if (i + step > vector_array_1.shape[0]):
-#             results[i:] = np.arccos (
-#                            np.diagonal (
-#                             np.clip (
-#                              np.dot (vector_array_1[i:, :],
-#                                      vector_array_2[i:, :].T ), -1, 1 ))).reshape (-1, 1)
-#         else:
-#             results[i:i+step] = np.arccos (
-#                                  np.diagonal (
-#                                   np.clip (
-#                                    np.dot (vector_array_1[i:i+step, :],
-#                                            vector_array_2[i:i+step, :].T ), -1, 1 ))).reshape (-1, 1)
-#
-#     return results
+# debug
+import time
 
 
 def einsum_angle_between (vector_array_1, vector_array_2 ):
@@ -49,58 +35,32 @@ def einsum_angle_between (vector_array_1, vector_array_2 ):
 
     return np.arccos (diag )
 
-# def get_normals (numpy_cloud, field_labels_list ):
-#
-#     # remove any spaces around the labels
-#     field_labels_list = [label.strip () for label in field_labels_list]
-#
-#     if ('Nx' in field_labels_list
-#        and 'Ny' in field_labels_list
-#        and 'Nz' in field_labels_list ):
-#         indices = []
-#         indices.append (field_labels_list.index('Nz' ))
-#         indices.append (field_labels_list.index('Ny' ))
-#         indices.append (field_labels_list.index('Nx' ))
-#     else:
-#         raise ValueError ("This Cloud is missing one of the required fields: 'Nx', 'Ny', 'Nz'. Compute Normals first.")
-#
-#     return numpy_cloud[:, indices]
 
-
-def get_normal_differences (numpy_cloud, numpy_cloud_field_labels,
-                            corresponding_cloud, corresponding_cloud_field_labels ):
+def get_normal_differences (normals_numpy_cloud, normals_corresponding_cloud ):
     '''
     Computes distances between the vectors of two arrays. Set second array to none to compute magnitudes instead.
     '''
 
-    if (numpy_cloud.shape[0] != corresponding_cloud.shape[0]):
-        print ("Shapes do not match: " + str(numpy_cloud.shape[0] ) + " / " + str(corresponding_cloud.shape[0] ))
+    # check that you got an equal number of normal vectors from each cloud
+    if (normals_numpy_cloud.shape[0] != normals_corresponding_cloud.shape[0]):
+        raise ValueError ("Shapes do not match: "
+                          + str (normals_numpy_cloud.shape[0] )
+                          + " / " + str(normals_corresponding_cloud.shape[0] ))
 
-    # select the normal fiels of the numpy clouds
-    normals_numpy_cloud = conversions.get_fields (numpy_cloud, numpy_cloud_field_labels, ['Nx', 'Ny', 'Nz'] )
-    normals_corresponding_cloud = \
-        conversions.get_fields (corresponding_cloud, corresponding_cloud_field_labels, ['Nx', 'Ny', 'Nz'] )
-
-    # normalize
-    normals_numpy_cloud = normalize_vector_array (normals_numpy_cloud )
-    normals_corresponding_cloud = normalize_vector_array (normals_corresponding_cloud )
-
-    # fast process: compute angles in multiple batches
-    results = einsum_angle_between (normals_numpy_cloud, normals_corresponding_cloud )
-
-    return results
+    # fast process: compute angles with einsum
+    return einsum_angle_between (normals_numpy_cloud, normals_corresponding_cloud )
 
 
-def combined_cloud_consensus (tree_of_numpy_cloud, numpy_cloud, numpy_cloud_field_labels,
-                              corresponding_cloud, corresponding_cloud_field_labels,
+def combined_cloud_consensus (tree_of_np_pointcloud, np_pointcloud,
+                              corresponding_pointcloud, translation,
                               angle_threshold, distance_threshold):
     '''
     Counts points of numpy_cloud that have a neighbor of smaller distance than threshold in the corresponding cloud.
 
     Input:
-        tree (sklearn.neighbors.kd_tree): A kd tree of the reference_cloud
-        numpy_cloud ([n, 3] np.array):
-        corresponding_cloud ([1, 3] np.array):
+        tree_of_np_pointcloud (sklearn.neighbors.kd_tree): A kd tree of the reference_cloud
+        np_pointcloud (NumpyPointCloud):            NumpyPointCloud object containing a numpy array and it's data labels
+        corresponding_pointcloud (NumpyPointCloud): This cloud will translated to match np_pointcloud
         angle_threshold (float):
         distance_threshold (float):
 
@@ -109,14 +69,13 @@ def combined_cloud_consensus (tree_of_numpy_cloud, numpy_cloud, numpy_cloud_fiel
         consensus_vector ([n, 1] np.array):     Contains 1 if the point had a neighbor in threshold range, else 0
     '''
 
-    # query the three, but only take the x,y,z fields into consideration (corresponding_cloud[:, 0:3])
-    #output = tree.query (corresponding_cloud[:, 0:3], k=1, return_distance=True )
-    dists, indices = tree_of_numpy_cloud.query (corresponding_cloud[:, 0:3], k=1 )
-    # # Make a list out of the values of the respective numpy array
-    # distances = list(itertools.chain(*output[0] ))
-    # neighbor_indices = list(itertools.chain(*output[1] ))
-    angle_differences = get_normal_differences (numpy_cloud[indices, :], numpy_cloud_field_labels,
-                                                corresponding_cloud, corresponding_cloud_field_labels)
+    # translate the corresponding_pointcloud and query the tree, but only take the x,y,z fields into consideration
+    dists, indices = tree_of_np_pointcloud.query (
+        corresponding_pointcloud.get_xyz_coordinates () + translation, k=1 )
+
+    # compute the normal vector differences for the matched points
+    angle_differences = get_normal_differences (np_pointcloud.get_fields(["Nx", "Ny", "Nz"] )[indices, :],
+                                                corresponding_pointcloud.get_fields(["Nx", "Ny", "Nz"] ))
     consensus_vector = np.array ([1 if (distance < distance_threshold and angle < angle_threshold) else 0
                         for (distance, angle) in zip (dists, angle_differences)])
 
@@ -124,29 +83,31 @@ def combined_cloud_consensus (tree_of_numpy_cloud, numpy_cloud, numpy_cloud_fiel
 
 
 # refactor: rename tree to tree_of_numpy_cloud
-def normal_vector_cloud_consensus (tree_of_numpy_cloud, numpy_cloud, numpy_cloud_field_labels,
-                                   corresponding_cloud, corresponding_cloud_field_labels,
+def normal_vector_cloud_consensus (tree_of_np_pointcloud, np_pointcloud,
+                                   corresponding_pointcloud, translation,
                                    threshold ):
     '''
     Counts points of numpy_cloud that have a neighbor of smaller distance than threshold in the corresponding cloud.
 
     Input:
-        tree (sklearn.neighbors.kd_tree): A kd tree of the reference_cloud
-        numpy_cloud ([n, 3] np.array):
-        corresponding_cloud ([1, 3] np.array):
+        tree_of_np_pointcloud (sklearn.neighbors.kd_tree):           A kd tree of np_pointcloud
+        np_pointcloud (NumpyPointCloud):            NumpyPointCloud object containing a numpy array and it's data labels
+        corresponding_pointcloud (NumpyPointCloud): This cloud will translated to match np_pointcloud
         threshold (float):
 
     Output:
         consensus_count (int):                  Number of points with neighbors in suitable range
         consensus_vector ([n, 1] np.array):     Contains 1 if the point had a neighbor in threshold range, else 0
     '''
-    #results = tree.query (corresponding_cloud[:, 0:3], k=1, return_distance=False )
-    dists, indices = tree_of_numpy_cloud.query (corresponding_cloud[:, 0:3], k=1 )
-    # get distances to nearest neighbor
-    # correlations = list(itertools.chain(*results))
-    angle_differences = get_normal_differences (numpy_cloud[indices, :], numpy_cloud_field_labels,
-                                                corresponding_cloud, corresponding_cloud_field_labels)
-    #consensus_vector_loop = np.array([1 if (angle_difference < threshold) else 0 for angle_difference in angle_differences_loop ])
+
+    # translate the corresponding_pointcloud and query the tree, but only take the x,y,z fields into consideration
+    dists, indices = tree_of_np_pointcloud.query (
+        corresponding_pointcloud.points.get_xyz_coordinates () + translation, k=1 )
+
+    # compute the normal vector differences for the matched points
+    angle_differences = get_normal_differences (np_pointcloud.get_fields(["Nx", "Ny", "Nz"] )[indices, :],
+                                                corresponding_pointcloud.get_fields(["Nx", "Ny", "Nz"] ))
+
     consensus_vector = np.where(angle_differences < threshold, 1, 0)
 
     return np.sum(consensus_vector), consensus_vector.reshape (-1, 1 )
@@ -164,27 +125,26 @@ def normal_vector_cloud_consensus (tree_of_numpy_cloud, numpy_cloud, numpy_cloud
 #     return (consensus_count, consensus_vector, translation)
 
 
-def point_distance_cloud_consensus (tree_of_numpy_cloud, numpy_cloud, corresponding_cloud, threshold ):
+def point_distance_cloud_consensus (tree_of_reference_cloud, corresponding_pointcloud, translation, threshold ):
     '''
     Counts points of numpy_cloud that have a neighbor of smaller distance than threshold in the corresponding cloud.
 
     Input:
         tree (sklearn.neighbors.kd_tree): A kd tree of the reference_cloud
-        numpy_cloud ([n, 3] np.array):
-        corresponding_cloud ([1, 3] np.array):
+        corresponding_pointcloud (NumpyPointCloud): This cloud will translated to match reference_cloud (tree)
         threshold (float):
 
     Output:
         consensus_count (int):                  Number of points with neighbors in suitable range
         consensus_vector ([n, 1] np.array):     Contains 1 if the point had a neighbor in threshold range, else 0
     '''
-    numpy_cloud = numpy_cloud[:, 0:3]
-    corresponding_cloud = corresponding_cloud[:, 0:3]
-    #list_consensus_counts = tree.query_radius (corresponding_cloud, threshold, return_distance=False, count_only=True)
-    #consensus_counts = tree.query_ball_point (np.ascontiguousarray (corresponding_cloud ), r=threshold, return_length=True )
-    dists, indices = tree_of_numpy_cloud.query (corresponding_cloud[:, 0:3], k=1 )
-    #consensus_vector = np.array ([1 if count > 0 else 0 for count in list_consensus_counts ])
-    consensus_vector = np.where (dists < threshold, 1, 0)
+
+    # query the kdtree of the reference cloud
+    distances, indices = tree_of_reference_cloud.query (
+        corresponding_pointcloud.get_xyz_coordinates () + translation, k=1 )
+
+    # check each result for the distance threshold
+    consensus_vector = np.where (distances < threshold, 1, 0)
 
     return np.sum(consensus_vector), consensus_vector.reshape (-1, 1 )
 
@@ -303,8 +263,6 @@ def display_consensus_cube (consensus_cube, corresponding_cloud_size, best_align
 
     # a call to show () halts code execution. So if you want to make multiple consensus experiments, better call draw ()
     # here and call show () later, if you need to see the plots
-    #plt.show()
-    #plt.ion ()
     plt.draw ()
 
     return original_cube, matplotlib_figure_object
@@ -323,19 +281,18 @@ def create_plot_title (base_title, algorithmus, cubus_length, step, distance_thr
     return plot_title
 
 
-def cubic_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
-                           compared_cloud, compared_cloud_field_labels,
+def cubic_cloud_consensus (np_pointcloud, compared_pointcloud,
                            cubus_length, step, distance_threshold=0.3, angle_threshold=30,
                            algorithmus='distance',
                            display_plot=True, relative_color_scale=False,
                            plot_title="ConsensusCube (TM)", save_plot=False ):
     '''
     Translates compared_cloud in lenghts of step inside a cubus-shaped space and, for every step, checks how many points
-    of cloud numpy_cloud have a neighbor within threshold range in compared_cloud.
+    of cloud np_pointcloud have a neighbor within threshold range in compared_cloud.
 
     Input:
-        numpy_cloud ([n, 3] np.array):
-        compared_cloud ([1, 3] np.array):
+        np_pointcloud (NumpyPointCloud):    NumpyPointCloud object containing a numpy array and it's data labels
+        compared_cloud (NumpyPointCloud):   This cloud will be aligned to match np_pointcloud
         distance_threshold (float):         Threshold that defines the range at which a point is counted as neigbor
         angle_threshold (float, degree):    Angle threshold to define maximum deviation of normal vectors
         cubus_length (float):               Cubus center is (0, 0, 0). Half of cubus_length is backwards, half forwards.
@@ -356,23 +313,19 @@ def cubic_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
 
     start_time = time.time ()
 
-    numpy_cloud = numpy_cloud
-    compared_cloud = compared_cloud
-
     # variables
     steps_number = math.ceil (cubus_length / step + 1 )
     cubus_size = steps_number**3
     #print ("cubus_size: " + str (steps_number**3))
     consensus_cloud = np.zeros ((cubus_size, 4 ))     # empty cloud that will take the shape of the cubus
     best_alignment = (0, 0, 0)
-    best_alignment_consensus_vector = np.zeros ((numpy_cloud.shape[0], 1) )     # field that shows which points consent
+    best_alignment_consensus_vector = np.zeros ((np_pointcloud.points.shape[0], 1) )     # field that shows which points consent
     best_consensus_count = 0  #
     angle_threshold_radians = 0 if angle_threshold is None else angle_threshold * (np.pi/180)
 
     # build a kd tree
-    # but only take the x,y,z fields into consideration (numpy_cloud[:, 0:3])
-    #sklearn_neighbors_kd_tree = sklearn.neighbors.kd_tree.KDTree (numpy_cloud[:, 0:3], leaf_size=40, metric='euclidean')
-    scipy_kdtree = scipy.spatial.cKDTree (numpy_cloud[:, 0:3] )
+    # but only take the x,y,z fields into consideration
+    scipy_kdtree = scipy.spatial.cKDTree (np_pointcloud.get_xyz_coordinates ())
 
     # in the complete space of cubus_length * cubus_length * cubus_length, iterate with the interval of step in x, y and
     # z direction
@@ -392,40 +345,45 @@ def cubic_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
                 translation = [x_iterator * step,
                                y_iterator * step,
                                z_iterator * step]
-                translation = translation + [0] * (compared_cloud.shape[1] - 3)
+                #translation = translation + [0] * (compared_pointcloud.points.shape[1] - 3)
 
                 # Start the computation of the consensus for this translation, using the specified algorithm
                 if (algorithmus == 'distance'):
 
                     consensus_count, consensus_vector = \
-                        point_distance_cloud_consensus (scipy_kdtree, numpy_cloud,
-                                                       compared_cloud + translation,
+                        point_distance_cloud_consensus (scipy_kdtree,
+                                                       compared_pointcloud,
+                                                       translation,
                                                        distance_threshold )
                 elif (algorithmus == 'angle'):
 
                     consensus_count, consensus_vector = \
-                        normal_vector_cloud_consensus (scipy_kdtree, numpy_cloud, numpy_cloud_field_labels,
-                                                       compared_cloud + translation, compared_cloud_field_labels,
+                        normal_vector_cloud_consensus (scipy_kdtree,
+                                                       np_pointcloud,
+                                                       compared_pointcloud,
+                                                       translation,
                                                        angle_threshold_radians )
 
                 else:
 
                     algorithmus = 'combined'
                     consensus_count, consensus_vector = \
-                        combined_cloud_consensus (scipy_kdtree, numpy_cloud, numpy_cloud_field_labels,
-                                                  compared_cloud + translation, compared_cloud_field_labels,
+                        combined_cloud_consensus (scipy_kdtree,
+                                                  np_pointcloud,
+                                                  compared_pointcloud,
+                                                  translation,
                                                   angle_threshold=angle_threshold_radians,
                                                   distance_threshold=distance_threshold )
 
                 # check for a new consensus high
                 if (consensus_count > best_consensus_count ):
                     #best_alignment = [element * -1 for element in translation[0:3]]  # don't know why this is inverted
-                    best_alignment = translation[0:3]
+                    best_alignment = translation
                     best_consensus_count = consensus_count
                     best_alignment_consensus_vector = consensus_vector
 
                 # prepare the ConsensusCube as a numpy cloud with a fourth field that specifies the consensus count
-                if (display_plot):
+                if (display_plot or save_plot ):
                     consensus_cloud[iteration_count, :] = (translation[0],
                                                            translation[1],
                                                            translation[2],
@@ -438,7 +396,7 @@ def cubic_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
     print ("\nbest_alignment: " + str(best_alignment ))
     print ("best_consensus_count: " + str(best_consensus_count ))
 
-    if (display_plot):
+    if (display_plot or save_plot ):
         # put together the plot tile, including the string given as argument to this function and the other algorithmus
         # parameters
         original_plot_base = plot_title
@@ -447,10 +405,10 @@ def cubic_cloud_consensus (numpy_cloud, numpy_cloud_field_labels,
 
         # display the plot
         display_cube, figure = display_consensus_cube (
-                        consensus_cloud, compared_cloud.shape[0], best_alignment,
+                        consensus_cloud, compared_pointcloud.points.shape[0], best_alignment,
                         plot_title, relative_color_scale=relative_color_scale )
 
-        if (save_plot):
+        if (save_plot ):
             figure.savefig (str("docs/logs/unordered_cube_savefiles/" + plot_title + ".png" ), format='png', dpi=220, bbox_inches='tight')
             np.save (str("docs/logs/unordered_cube_savefiles/" + plot_title ),
                 display_cube, allow_pickle=False )

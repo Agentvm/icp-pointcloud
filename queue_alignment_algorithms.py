@@ -1,10 +1,14 @@
+"""Convenient script to compute results of different algorithms and pointclouds based on a dictionary of file paths"""
+
+
+# local modules
 from modules import input_output
 from modules import icp
 from modules import conversions
 from modules import consensus
+
+# basic imports
 import random
-# from mpl_toolkits.mplot3d import Axes3D
-# import matplotlib.pyplot as plt
 
 
 def set_consensus_arguments (distance_threshold=.3, angle_threshold=30,
@@ -33,12 +37,12 @@ def reach_a_consensus (full_path_of_reference_cloud, full_path_of_aligned_cloud,
         raise NameError("Consensus arguments are not defined. Call set_consensus_arguments() first.")
 
     # load clouds
-    reference_cloud, reference_cloud_field_labels = input_output.conditionalized_load (full_path_of_reference_cloud )
-    aligned_cloud, aligned_cloud_field_labels = input_output.conditionalized_load (full_path_of_aligned_cloud )
+    reference_pointcloud = input_output.conditionalized_load (full_path_of_reference_cloud )
+    aligned_pointcloud = input_output.conditionalized_load (full_path_of_aligned_cloud )
 
     best_alignment, best_consensus_count, best_alignment_consensus_vector = \
-        consensus.cubic_cloud_consensus (reference_cloud, reference_cloud_field_labels,
-                                         aligned_cloud, aligned_cloud_field_labels,
+        consensus.cubic_cloud_consensus (reference_pointcloud,
+                                         aligned_pointcloud,
                                          cubus_length=CONSENSUS_CUBUS_LENGHT,
                                          step=CONSENSUS_STEP,
                                          distance_threshold=CONSENSUS_DISTANCE_THRESHOLD,
@@ -48,7 +52,7 @@ def reach_a_consensus (full_path_of_reference_cloud, full_path_of_aligned_cloud,
                                          save_plot=True)
 
     dictionary_line = {(full_path_of_reference_cloud, full_path_of_aligned_cloud):
-                       (best_alignment, (best_consensus_count/aligned_cloud.shape[0], 0, 0))}
+                       (best_alignment, (best_consensus_count/aligned_pointcloud.points.shape[0], 0, 0))}
 
     return dictionary_line
 
@@ -56,10 +60,10 @@ def reach_a_consensus (full_path_of_reference_cloud, full_path_of_aligned_cloud,
 def do_icp (full_path_of_reference_cloud, full_path_of_aligned_cloud, dummy_arg = "" ):
 
     # load reference cloud
-    reference_cloud = input_output.load_ascii_file (full_path_of_reference_cloud )
+    reference_pointcloud = input_output.load_ascii_file (full_path_of_reference_cloud )
 
     if ("DSM_Cloud" in full_path_of_reference_cloud):
-        reference_cloud = conversions.sample_cloud (reference_cloud, 6, deterministic_sampling=False )
+        reference_pointcloud.points = conversions.sample_cloud (reference_pointcloud.points, 6, deterministic_sampling=False )
 
     # load aligned clouds
     aligned_cloud = input_output.load_ascii_file (full_path_of_aligned_cloud )
@@ -68,7 +72,7 @@ def do_icp (full_path_of_reference_cloud, full_path_of_aligned_cloud, dummy_arg 
     if ("DSM_Cloud" in full_path_of_aligned_cloud):
         aligned_cloud = conversions.sample_cloud (aligned_cloud, 6, deterministic_sampling=False )
 
-    translation, mean_squared_error = icp.icp (reference_cloud, aligned_cloud, verbose=False )
+    translation, mean_squared_error = icp.icp (reference_pointcloud.points, aligned_cloud, verbose=False )
 
     dictionary_line = {(full_path_of_reference_cloud, full_path_of_aligned_cloud): (translation, mean_squared_error)}
 
@@ -108,11 +112,11 @@ def compare_results (algorithmus_results, reference_dict, print_csv=True ):
                        + " " + reference_file_name
                        + " " + aligned_file_name
                              + ';{: .8f}'.format(ref_translation[0]) + ';{: .8f}'.format(algorithmus_translation[0])
-                       + '\n;{: .8f}'.format(ref_translation[1]) + ';{: .8f}'.format(algorithmus_translation[1])
-                       + '\n;{: .8f}'.format(ref_translation[2]) + ';{: .8f}'.format(algorithmus_translation[2])
-                       + '\n;{: .8f}'.format(ref_mse) + ';=MAX({: .8f}'.format(algorithmus_mse[0])
-                            + ',{: .8f}'.format(algorithmus_mse[1])
-                            + ',{: .8f}) '.format(algorithmus_mse[2]))
+                            + '\n;{: .8f}'.format(ref_translation[1]) + ';{: .8f}'.format(algorithmus_translation[1])
+                            + '\n;{: .8f}'.format(ref_translation[2]) + ';{: .8f}'.format(algorithmus_translation[2])
+                            + '\n;{: .8f}'.format(ref_mse) + ';=MAX({: .8f}'.format(algorithmus_mse[0])
+                             + ',{: .8f}'.format(algorithmus_mse[1])
+                             + ',{: .8f}) '.format(algorithmus_mse[2]))
             else:
                 # print comparison
                 print ('\n' + folder + "/"
@@ -195,12 +199,14 @@ def get_reference_data_paths (reference_dict ):
     return dict
 
 
+# set the random seed, if not alredy set
 if (random.seed != 1337):
     random.seed = 1337
     print ("Random Seed set to: " + str(random.seed ))
 
 if __name__ == '__main__':
 
+    # set the random seed, if not alredy set
     if (random.seed != 1337):
         random.seed = 1337
         print ("Random Seed set to: " + str(random.seed ))

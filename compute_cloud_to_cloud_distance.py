@@ -1,43 +1,29 @@
+"""Computes C2C_absolute_distances on a cloud compared to another cloud. Mimics CloudCompare behaviour"""
+
+
+# local modules
 from modules import input_output
 from queue_alignment_algorithms import get_reference_data_paths
-# from modules import icp
-# from modules import conversions
-# from modules import consensus
-#from data import transformations
-# from collections import OrderedDict
-import numpy as np
+
+# basic imports
 import os
-#import sklearn.neighbors    # kdtree
+
+# advanced functionality
 import scipy.spatial
-# import random
 
 
-def cloud2cloud (reference_cloud, compared_cloud ):
+def cloud2cloud (reference_pointcloud, compared_pointcloud ):
     ''' Computes field C2C_absolute_distances on compared cloud '''
 
     # make a tree an get a list of distances to the nearest neigbor and his index (which is not needed)
     # but only take the x,y,z fields into consideration (reference_cloud[:, 0:3])
-    scipy_kdtree = scipy.spatial.cKDTree (reference_cloud[:, 0:3] )
-    #tree = sklearn.neighbors.kd_tree.KDTree (reference_cloud[:, 0:3], leaf_size=40, metric='euclidean' )
+    scipy_kdtree = scipy.spatial.cKDTree (reference_pointcloud.get_xyz_coordinates () )
 
-    # query the three, but only take the x,y,z fields into consideration (compared_cloud[:, 0:3])
-    #output = scipy_kdtree.query (compared_cloud[:, 0:3], k=1, return_distance=True )
-    distances, indices = scipy_kdtree.query (compared_cloud[:, 0:3], k=1 )
-
-    # Make a list out of the values of the first numpy array,
-    # Take only the distances ([0]), not the neighbor indices ([1])
-    #distances = list(itertools.chain(*output[0] ))
-    #neighbor_indices = list(itertools.chain(*output[1] ))
-
-    # print ("\nlen(distances_pre): " + str(len(distances_pre)))
-    # print (distances_pre)
-    #
-    # print ("compared_cloud.shape[0]: " + str(compared_cloud.shape[0]))
-    # print ("reference_cloud.shape[0]: " + str(reference_cloud.shape[0]))
-    # print (distances)
+    # query the three, but only take the x,y,z fields into consideration
+    c2c_distances, indices = scipy_kdtree.query (compared_pointcloud.get_xyz_coordinates (), k=1 )
 
     # add a new field containing the distance to the nearest neighbor of each point to the compared_cloud and return it
-    return np.concatenate ((compared_cloud, distances.reshape (-1, 1)), axis=1 )
+    return compared_pointcloud.add_fields (c2c_distances.reshape (-1, 1), ["C2C_absolute_distances"] )
 
 
 def use_c2c_on_dictionary (reference_dictionary_name, descriptive_name ):
@@ -87,24 +73,6 @@ def use_c2c_on_dictionary (reference_dictionary_name, descriptive_name ):
             input_output.save_ascii_file (updated_aligned_cloud, field_labels_list, save_path )
 
     return True
-
-
-# def get_reference_data_paths (input_dictionary ):
-#     '''
-#     Reads input_dictionary to get all transformations currently saved and returns them in a
-#     dictionary that can be directly used with use_algorithmus_on_dictionary()
-#     '''
-#     dict = {}
-#     for key in input_dictionary:
-#
-#         reference_path, aligned_path = key
-#
-#         if (dict.__contains__ (reference_path )):
-#             dict[reference_path].append (aligned_path )
-#         else:
-#             dict.update ({reference_path: [aligned_path]} )
-#
-#     return dict
 
 
 if __name__ == '__main__':
