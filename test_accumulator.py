@@ -9,8 +9,8 @@ from modules.normals import normalize_vector_array
 import numpy as np
 
 # plot imports
-from mpl_toolkits.mplot3d import Axes3D
-import matplotlib.pyplot as plt
+# from mpl_toolkits.mplot3d import Axes3D
+# import matplotlib.pyplot as plt
 
 
 def prepare_random_cloud ():
@@ -80,7 +80,6 @@ if __name__ == '__main__':
 
     # show plot
     #plt.show ()
-
 
 
 # # Gute Werte:

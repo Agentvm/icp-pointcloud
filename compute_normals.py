@@ -195,8 +195,8 @@ def process_clouds_in_folder (path_to_folder,
         # # compute normals on cloud
         if (do_normal_calculation ):
             np_pointcloud, success = compute_normals (np_pointcloud,
-                                                                       complete_file_path,
-                                                                       normals_computation_radius )
+                                                      complete_file_path,
+                                                      normals_computation_radius )
             if (success):
                 print ("Normals successfully computed.\n")
             # don't change the cloud unless all normals have been computed

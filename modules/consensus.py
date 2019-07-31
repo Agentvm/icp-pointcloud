@@ -7,8 +7,6 @@ for every step, checks how many points of cloud numpy_cloud have a neighbor with
 
 # local modules
 from modules import input_output
-from modules import conversions
-from modules.normals import normalize_vector_array
 
 # basic imports
 import numpy as np
@@ -102,7 +100,7 @@ def normal_vector_cloud_consensus (tree_of_np_pointcloud, np_pointcloud,
 
     # translate the corresponding_pointcloud and query the tree, but only take the x,y,z fields into consideration
     dists, indices = tree_of_np_pointcloud.query (
-        corresponding_pointcloud.points.get_xyz_coordinates () + translation, k=1 )
+        corresponding_pointcloud.get_xyz_coordinates () + translation, k=1 )
 
     # compute the normal vector differences for the matched points
     angle_differences = get_normal_differences (np_pointcloud.get_fields(["Nx", "Ny", "Nz"] )[indices, :],
@@ -214,7 +212,7 @@ def display_consensus_cube (consensus_cube, corresponding_cloud_size, best_align
 
     # # create plot objects
     matplotlib_figure_object = plt.figure(num=None, figsize=(6.5, 5.4), dpi=220 )
-    axes = matplotlib_figure_object.add_subplot(111, projection='3d')
+    axes = matplotlib_figure_object.add_subplot(111, projection=Axes3D.name)
 
     # add all values to the scatter plot
     axes.scatter(consensus_cube[:, 0], consensus_cube[:, 1], consensus_cube[:, 2], c=rgba_colors, marker='o')
@@ -319,7 +317,7 @@ def cubic_cloud_consensus (np_pointcloud, compared_pointcloud,
     #print ("cubus_size: " + str (steps_number**3))
     consensus_cloud = np.zeros ((cubus_size, 4 ))     # empty cloud that will take the shape of the cubus
     best_alignment = (0, 0, 0)
-    best_alignment_consensus_vector = np.zeros ((np_pointcloud.points.shape[0], 1) )     # field that shows which points consent
+    best_alignment_consensus_vector = np.zeros ((np_pointcloud.points.shape[0], 1) )     # consens status of points
     best_consensus_count = 0  #
     angle_threshold_radians = 0 if angle_threshold is None else angle_threshold * (np.pi/180)
 
@@ -399,7 +397,6 @@ def cubic_cloud_consensus (np_pointcloud, compared_pointcloud,
     if (display_plot or save_plot ):
         # put together the plot tile, including the string given as argument to this function and the other algorithmus
         # parameters
-        original_plot_base = plot_title
         plot_title = create_plot_title (
             plot_title, algorithmus, cubus_length, step, distance_threshold, angle_threshold )
 
@@ -409,9 +406,17 @@ def cubic_cloud_consensus (np_pointcloud, compared_pointcloud,
                         plot_title, relative_color_scale=relative_color_scale )
 
         if (save_plot ):
-            figure.savefig (str("docs/logs/unordered_cube_savefiles/" + plot_title + ".png" ), format='png', dpi=220, bbox_inches='tight')
+            # save plot image
+            figure.savefig (str("docs/logs/unordered_cube_savefiles/" + plot_title + ".png" ),
+                            format='png',
+                            dpi=220,
+                            bbox_inches='tight')
+
+            # save numpy array of cube
             np.save (str("docs/logs/unordered_cube_savefiles/" + plot_title ),
                 display_cube, allow_pickle=False )
+
+            # save ascii cloud of cube
             input_output.save_ascii_file (display_cube, ["X", "Y", "Z", "Consensus"],
                 str("docs/logs/unordered_cube_savefiles/" + plot_title + ".asc"))
 

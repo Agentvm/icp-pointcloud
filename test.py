@@ -118,7 +118,7 @@ numpy_cloud = np.array([[1.1, 2.1, 3.1],
 #
 #         # diff all points found near the corresponding point with corresponding point
 #         diff_vectors = numpy_cloud[point_indices, 0:3] - compared_cloud[i, 0:3]
-#         print ("\n---------------------------------------------------------\n\npoint_indices:\n" + str (point_indices ))
+#         print ("\n-------------------------------------------------------\n\npoint_indices:\n" + str (point_indices ))
 #         print ("diff_vectors:\n" + str (diff_vectors ))
 #
 #         # rasterize
@@ -199,7 +199,7 @@ numpy_cloud = np.array([[1.1, 2.1, 3.1],
 # # corresponding_cloud = get_points_normals_zero (corresponding_cloud, corresponding_cloud_field_labels )
 #
 # # translate
-# corresponding_cloud = corresponding_cloud + (0.314620971680, -0.019294738770, -0.035737037659, 0, 0, 0, 0, 0, 0, 0, 0 )
+# corresponding_cloud += (0.314620971680, -0.019294738770, -0.035737037659, 0, 0, 0, 0, 0, 0, 0, 0 )
 #
 # # extract normals
 # normals_numpy_cloud = get_fields (numpy_cloud, numpy_cloud_field_labels, ["Nx", "Ny", "Nz"] )
@@ -214,7 +214,8 @@ numpy_cloud = np.array([[1.1, 2.1, 3.1],
 # distances, correspondences = kdtree.query (corresponding_cloud[:, 0:3], k=1 )
 #
 # # get the angle differences between the normal vectors
-# angle_differences = einsum_angle_between (normals_numpy_cloud[correspondences, :], normals_corresponding_cloud ) * (180/np.pi)
+# angle_differences = einsum_angle_between (normals_numpy_cloud[correspondences, :],
+#                                           normals_corresponding_cloud ) * (180/np.pi)
 #
 # # plot
 # plot_histogram (angle_differences, 180 )
@@ -433,12 +434,13 @@ numpy_cloud = np.array([[1.1, 2.1, 3.1],
 #
 # def use_algorithmus_on_dictionary (reference_dictionary_name, algorithmus_function, results_save_name=None ):
 #     '''
-#     Uses a dictionary of reference cloud file_paths as keys and a list of corresponding aligned cloud file_paths as values
+#     Uses a dictionary of reference cloud file_paths as keys and a list of corresponding aligned cloud file_paths as
+#     values
 #
 #     Input:
-#         file_paths_dictionary (string):  Dictionary with reference_paths as keys and paths of aligned clouds as values
-#         algorithmus_function (function): Function that returns dict {(reference path, aligned_path): (translation, mse)}
-#         results_save_name (string):      Results will be saved as data/results_save_path.pkl. Values may be overwritten.
+# file_paths_dictionary (string):  Dictionary with reference_paths as keys and paths of aligned clouds as values
+# algorithmus_function (function): Function that returns dict {(reference path, aligned_path): (translation, mse)}
+# results_save_name (string):      Results will be saved as data/results_save_path.pkl. Values may be overwritten.
 #     '''
 #
 #     # parse the reference values saved in a file
@@ -529,7 +531,8 @@ numpy_cloud = np.array([[1.1, 2.1, 3.1],
 #         indices.append (field_labels_list.index('Ny' ))
 #         indices.append (field_labels_list.index('Nx' ))
 #     else:
-#         raise ValueError ("This Cloud is missing one of the required fields: 'Nx', 'Ny', 'Nz'. Compute Normals first.")
+#         raise ValueError ("This Cloud is missing one of the required fields:
+#                           'Nx', 'Ny', 'Nz'. Compute Normals first.")
 #
 #     return numpy_cloud[:, indices]
 #
@@ -699,28 +702,34 @@ numpy_cloud = np.array([[1.1, 2.1, 3.1],
 #     measure = time.time ()
 #     # slow looped process
 #     results_loop = normals_numpy_cloud.shape[0] * [None]
-#     for index, (vec1, vec2) in enumerate(zip (normals_numpy_cloud, normals_corresponding_cloud[:normals_numpy_cloud.shape[0], :] )):
+#     for index, (vec1, vec2) in enumerate(
+#           zip (normals_numpy_cloud, normals_corresponding_cloud[:normals_numpy_cloud.shape[0], :] )):
 #         results_loop[index] = (angle_between (vec1, vec2 ) )
 #     loop_time += time.time () - measure
 #
 #     measure = time.time ()
-#     results_monolith = alternative_angle_between (normals_numpy_cloud, normals_corresponding_cloud[:normals_numpy_cloud.shape[0], :], step )
+#     results_monolith = alternative_angle_between (
+#                   normals_numpy_cloud, normals_corresponding_cloud[:normals_numpy_cloud.shape[0], :], step )
 #     monolith_time += time.time () - measure
 #
 #     measure = time.time ()
-#     results_nc_monolith = alternative_angle_between_noclip (normals_numpy_cloud, normals_corresponding_cloud[:normals_numpy_cloud.shape[0], :], step )
+#     results_nc_monolith = alternative_angle_between_noclip (
+#                   normals_numpy_cloud, normals_corresponding_cloud[:normals_numpy_cloud.shape[0], :], step )
 #     monolith_nc_time += time.time () - measure
 #
 #     measure = time.time ()
-#     results_nan_monolith = alternative_angle_between_nan (normals_numpy_cloud, normals_corresponding_cloud[:normals_numpy_cloud.shape[0], :], step )
+#     results_nan_monolith = alternative_angle_between_nan (
+#                   normals_numpy_cloud, normals_corresponding_cloud[:normals_numpy_cloud.shape[0], :], step )
 #     monolith_nan_time += time.time () - measure
 #
 #     measure = time.time ()
-#     results_simple_loop = simple_loop_angle (normals_numpy_cloud, normals_corresponding_cloud[:normals_numpy_cloud.shape[0], :] )
+#     results_simple_loop = simple_loop_angle (
+#                   normals_numpy_cloud, normals_corresponding_cloud[:normals_numpy_cloud.shape[0], :] )
 #     simple_loop_time += time.time () - measure
 #
 #     measure = time.time ()
-#     results_einsum = einsum_angle_between (normals_numpy_cloud, normals_corresponding_cloud[:normals_numpy_cloud.shape[0], :] )
+#     results_einsum = einsum_angle_between (#
+#                   normals_numpy_cloud, normals_corresponding_cloud[:normals_numpy_cloud.shape[0], :] )
 #     einsum_time += time.time () - measure
 #
 # #

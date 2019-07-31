@@ -4,7 +4,7 @@ Offers Principal Component Analysis and RANSAC algorithms for normal vector comp
 
 
 # basic imports
-import time
+#import time
 import numpy as np
 import random
 from math import ceil, sqrt

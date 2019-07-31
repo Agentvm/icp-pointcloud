@@ -63,7 +63,8 @@ def do_icp (full_path_of_reference_cloud, full_path_of_aligned_cloud, dummy_arg 
     reference_pointcloud = input_output.load_ascii_file (full_path_of_reference_cloud )
 
     if ("DSM_Cloud" in full_path_of_reference_cloud):
-        reference_pointcloud.points = conversions.sample_cloud (reference_pointcloud.points, 6, deterministic_sampling=False )
+        reference_pointcloud.points = conversions.sample_cloud (
+                                                    reference_pointcloud.points, 6, deterministic_sampling=False )
 
     # load aligned clouds
     aligned_cloud = input_output.load_ascii_file (full_path_of_aligned_cloud )

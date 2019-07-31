@@ -9,7 +9,6 @@ from modules.normals import normalize_vector_array
 import numpy as np
 
 # plot imports
-from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 
 
@@ -66,13 +65,9 @@ if __name__ == '__main__':
                                          step=.1,
                                          distance_threshold=0.2,
                                          angle_threshold=30,
-                                         algorithmus='combined',
+                                         algorithmus='distance',
                                          plot_title="combined_test",
                                          save_plot=False )
-
-    # Plot: 0.45, -0.3, -0.3
-    # Returned: 0.0, -0.45, 0.9
-    # File: 0.45 -0.3 1.05
 
     #print ("Random Offset: " + str(random_offset ))
     #print ("Point Picking Offset Xy Tower: (-0.82777023,  0.16250610,  0.19129372)")
@@ -80,7 +75,6 @@ if __name__ == '__main__':
 
     # show plot
     plt.show ()
-
 
 
 # # Gute Werte:
