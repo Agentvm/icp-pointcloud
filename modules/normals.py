@@ -260,7 +260,5 @@ def ransac_plane_estimation (numpy_cloud, threshold, fixed_point=None, w = .9, z
 
 
 # set the random seed for both the numpy and random module, if it is not already set.
-if (random.seed != 1337 or np.random.seed != 1337):
-    random.seed = 1337
-    np.random.seed = 1337
-    print ("Random Seed set to: " + str(random.seed ))
+random.seed (1337 )
+np.random.seed (1337 )

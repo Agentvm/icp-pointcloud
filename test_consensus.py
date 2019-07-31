@@ -52,9 +52,7 @@ def load_example_cloud (folder ):
 
 if __name__ == '__main__':
 
-    if (np.random.seed != 1337):
-        np.random.seed = 1337
-        print ("Random Seed set to: " + str(np.random.seed ))
+    np.random.seed (1337 )
 
     # prepare example clouds, random or from file
     np_pointcloud, corresponding_pointcloud, random_offset = prepare_random_cloud ()

@@ -199,17 +199,9 @@ def get_reference_data_paths (reference_dict ):
     return dict
 
 
-# set the random seed, if not alredy set
-if (random.seed != 1337):
-    random.seed = 1337
-    print ("Random Seed set to: " + str(random.seed ))
-
 if __name__ == '__main__':
 
-    # set the random seed, if not alredy set
-    if (random.seed != 1337):
-        random.seed = 1337
-        print ("Random Seed set to: " + str(random.seed ))
+    random.seed (1337 )
 
     # # icp
     # print ("\n\nComputing ICP for each cloud pair in reference_translations returns: "

@@ -1,6 +1,12 @@
 import numpy as np
+import random
 
 
+# set random seeds
+np.random.seed (1337 )
+random.seed (1337 )
+
+# prepare cloud
 numpy_cloud = np.array([[1.1, 2.1, 3.1],
                         [1.2, 2.2, 3.2],
                         [1.3, 2.3, 3.3],

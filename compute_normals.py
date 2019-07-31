@@ -221,11 +221,9 @@ def process_clouds_in_folder (path_to_folder,
 
 if __name__ == '__main__':
 
-    # set the random seed for both the numpy and random module, if it is not already set.
-    if (random.seed != 1337 or np.random.seed != 1337):
-        random.seed = 1337
-        np.random.seed = 1337
-        print ("Random Seed set to: " + str(random.seed ))
+    # set the random seed for both the numpy and random module
+    random.seed (1337 )
+    np.random.seed (1337 )
 
     # # normals / reducing clouds
     if (process_clouds_in_folder ('clouds/tmp/',
