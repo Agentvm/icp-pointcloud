@@ -1,6 +1,14 @@
 """
 Module that contains the NumpyPointCloud class, which effectively wraps together a pointcloud and the description of
 it's data fields for precise adressing, addition, replacement and deletion of data rows.
+
+Field naming conventions: Start with a capital letter and separate words with underscores. Examples following.
+    "X", "Y", "Z":              Point coordinates
+    "Nx", "Ny", "Nz":           Normal vector components
+    "Sigma":                    Noise, computed from the smalles eigenvalue in normal computation
+    "Intensity":                Reflection intensity
+    "Classification":           Point class
+    "C2C_absolute_distances":   Distance from a point to it's nearest neigbor
 """
 
 import numpy as np
@@ -10,6 +18,14 @@ import warnings
 class NumpyPointCloud (object ):
     """
     A Class that contains a 2-D numpy.ndarray and field labels describing the content of the arrays rows for easy access
+
+    Field naming conventions: Start with a capital letter and separate words with underscores. Examples following.
+        "X", "Y", "Z":              Point coordinates
+        "Nx", "Ny", "Nz":           Normal vector components
+        "Sigma":                    Noise, computed from the smalles eigenvalue in normal computation
+        "Intensity":                Reflection intensity
+        "Classification":           Point class
+        "C2C_absolute_distances":   Distance from a point to it's nearest neigbor
 
     Functions:
         get_fields (field_labels_list ):    Extract a copy of one or multiple fields

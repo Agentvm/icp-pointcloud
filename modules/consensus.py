@@ -72,8 +72,8 @@ def combined_cloud_consensus (tree_of_np_pointcloud, np_pointcloud,
         corresponding_pointcloud.get_xyz_coordinates () + translation, k=1 )
 
     # compute the normal vector differences for the matched points
-    angle_differences = get_normal_differences (np_pointcloud.get_fields(["Nx", "Ny", "Nz"] )[indices, :],
-                                                corresponding_pointcloud.get_fields(["Nx", "Ny", "Nz"] ))
+    angle_differences = get_normal_differences (np_pointcloud.get_normals ()[indices, :],
+                                                corresponding_pointcloud.get_normals ())
     consensus_vector = np.array ([1 if (distance < distance_threshold and angle < angle_threshold) else 0
                         for (distance, angle) in zip (dists, angle_differences)])
 
@@ -103,8 +103,8 @@ def normal_vector_cloud_consensus (tree_of_np_pointcloud, np_pointcloud,
         corresponding_pointcloud.get_xyz_coordinates () + translation, k=1 )
 
     # compute the normal vector differences for the matched points
-    angle_differences = get_normal_differences (np_pointcloud.get_fields(["Nx", "Ny", "Nz"] )[indices, :],
-                                                corresponding_pointcloud.get_fields(["Nx", "Ny", "Nz"] ))
+    angle_differences = get_normal_differences (np_pointcloud.get_normals ()[indices, :],
+                                                corresponding_pointcloud.get_normals ())
 
     consensus_vector = np.where(angle_differences < threshold, 1, 0)
 
