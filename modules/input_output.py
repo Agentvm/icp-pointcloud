@@ -10,7 +10,7 @@ from modules.np_pointcloud import NumpyPointCloud
 import numpy as np
 import time
 from os import listdir, walk
-from os.path import isfile, join, splitext
+import os.path
 
 # advanced functionality
 from laspy.file import File
@@ -156,7 +156,6 @@ def load_las_file (file_path, dtype=None, return_separate=False ):
             points = np.concatenate((x, y, z, red, green, blue), axis = -1)  # join all values in an np.array
             field_labels_list += ['X', 'Y', 'Z', 'Rf', 'Gf', 'Bf']
 
-
         elif dtype == 'als':
             # extract the scalar fields of the .las cloud
             intensity = np.reshape(inFile.intensity.copy(), (-1, 1))            # add LIDAR intensity
@@ -169,7 +168,6 @@ def load_las_file (file_path, dtype=None, return_separate=False ):
             points = np.concatenate((x, y, z, intensity, num_returns, return_num, point_src_id, raw_class), axis = -1)
             field_labels_list += [
                 'X', 'Y', 'Z', 'Intensity', 'Number_of_Returns', 'Return_Number', 'Point_Source_ID', 'Classification']
-
 
         else:
             points = np.concatenate((x, y, z, raw_class), axis = -1)  # join all values in one np.array
@@ -198,7 +196,7 @@ def conditionalized_load (file_path, return_separate=False ):
 
     np_pointcloud = None
     #field_labels_list = []
-    file_name, file_extension = splitext(file_path )
+    file_name, file_extension = os.path.splitext(file_path )
 
     # # load the file
     if (file_extension == '.las'):
@@ -247,7 +245,7 @@ def join_saved_dictionaries (list_of_dict_names, output_name ):
 
 
 def check_for_file (path ):
-    return isfile(path )
+    return os.path.isfile(path )
 
 
 def get_all_files_in_subfolders (path_to_folder, permitted_file_extension=None ):
@@ -272,7 +270,7 @@ def get_all_files_in_subfolders (path_to_folder, permitted_file_extension=None )
     #for every directory found, find all files inside and append the resulting path to each file to full_paths
     full_paths = []
     for dir_count, directory in enumerate (full_directories ):
-        onlyfiles = [f for f in listdir(directory) if isfile(join(directory, f))]
+        onlyfiles = [f for f in listdir(directory) if os.path.isfile(os.path.join(directory, f))]
         for file in onlyfiles:
             full_paths.append (full_directories[dir_count] + '/' + file )
 
@@ -280,7 +278,7 @@ def get_all_files_in_subfolders (path_to_folder, permitted_file_extension=None )
     paths_to_remove = []
     if (permitted_file_extension is not None ):
         for path in full_paths:
-            file_name, file_extension = splitext(path )
+            file_name, file_extension = os.path.splitext(path )
             if (file_extension != permitted_file_extension):
                 paths_to_remove.append (path )
     full_paths = [path for path in full_paths if path not in paths_to_remove]

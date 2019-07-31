@@ -6,7 +6,7 @@ from modules import input_output
 from queue_alignment_algorithms import get_reference_data_paths
 
 # basic imports
-import os
+import os.path
 
 # advanced functionality
 import scipy.spatial
