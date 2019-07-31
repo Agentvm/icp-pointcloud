@@ -190,7 +190,7 @@ def create_plot_title (base_title, algorithmus, accumulator_radius, grid_size, d
     return plot_title
 
 
-def spheric_cloud_consensus (np_pointcloud, compared_pointcloud,
+def spheric_cloud_consensus (np_pointcloud, corresponding_pointcloud,
                              accumulator_radius=1.2, grid_size=0.1, distance_threshold=0.2, angle_threshold=30,
                              algorithmus='distance',
                              display_plot=True, save_plot=False,
@@ -198,11 +198,11 @@ def spheric_cloud_consensus (np_pointcloud, compared_pointcloud,
                              plot_title="ConsensusCube (TM)"  ):
     '''
     if algorithmus='distance':  Counts how many points of cloud np_pointcloud have a neighbor within threshold range in
-                                compared_cloud.
+                                corresponding_cloud.
 
     Input:
         np_pointcloud (NumpyPointCloud):    NumpyPointCloud object containing a numpy array and it's data labels
-        compared_cloud (NumpyPointCloud):   This cloud will be aligned to match np_pointcloud
+        corresponding_cloud (NumpyPointCloud):   This cloud will be aligned to match np_pointcloud
         distance_threshold (float):         Threshold that defines the range at which a point is counted as neigbor
         angle_threshold (float, degree):    Angle threshold to define maximum deviation of normal vectors
         accumulator_radius (float):         Sphere center is translation (0, 0, 0). Translations are possible in sphere
@@ -241,18 +241,18 @@ def spheric_cloud_consensus (np_pointcloud, compared_pointcloud,
     scipy_kdtree = scipy.spatial.cKDTree (np_pointcloud.get_xyz_coordinates ())
 
     # simplified process:
-    #   for each point in compared_pointcloud:
+    #   for each point in corresponding_pointcloud:
     #       Find neighbors within accumulator_radius
     #       Compute the translations to these neighbors
     #       Rasterize the translations by matching them with the grid
     #       When a translation matches a grid cell, increment the consensus counter of that cell
-    for i, point in enumerate (compared_pointcloud.get_xyz_coordinates ()):
+    for i, point in enumerate (corresponding_pointcloud.get_xyz_coordinates ()):
 
         point_indices = scipy_kdtree.query_ball_point (point, accumulator_radius )
 
         # Progress Prints every 10 %
-        if (i % int(compared_pointcloud.points.shape[0] / 10) == 0):
-            print ("Progress: " + "{:.1f}".format ((i / compared_pointcloud.points.shape[0]) * 100.0 ) + " %" )
+        if (i % int(corresponding_pointcloud.points.shape[0] / 10) == 0):
+            print ("Progress: " + "{:.1f}".format ((i / corresponding_pointcloud.points.shape[0]) * 100.0 ) + " %" )
 
         if (len(point_indices ) > 0):
 
@@ -284,7 +284,7 @@ def spheric_cloud_consensus (np_pointcloud, compared_pointcloud,
         original_plot_base, algorithmus, accumulator_radius, grid_size, distance_threshold, angle_threshold )
 
     # create the plot
-    display_cube, figure = display_consensus_cube (consensus_cube, compared_pointcloud.points.shape[0], best_alignment,
+    display_cube, figure = display_consensus_cube (consensus_cube, corresponding_pointcloud.points.shape[0], best_alignment,
                                                    plot_title, relative_color_scale )
 
     # save the plot for later reference

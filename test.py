@@ -89,14 +89,14 @@ numpy_cloud = np.array([[1.1, 2.1, 3.1],
 #
 # numpy_cloud += np.random.uniform (-0.1, 0.1, size=(numpy_cloud.shape[0], 3 ))
 #
-# compared_cloud = np.array([[1, 2, 0],
+# corresponding_cloud = np.array([[1, 2, 0],
 #                            [10, 2, 0],
 #                            [20, 2, 0],
 #                            [30, 2, 0],
 #                            [40, 2, 0],
 #                            [50, 0, 2]], dtype=float )
 #
-# compared_cloud += np.random.uniform (-0.1, 0.1, size=(compared_cloud.shape[0], 3 ))
+# corresponding_cloud += np.random.uniform (-0.1, 0.1, size=(corresponding_cloud.shape[0], 3 ))
 #
 #
 # accumulator_radius = 2
@@ -110,14 +110,14 @@ numpy_cloud = np.array([[1.1, 2.1, 3.1],
 #
 # # build kdtree and query it for points within radius
 # scipy_kdtree = scipy.spatial.cKDTree (numpy_cloud[:, 0:3] )
-# cloud_indices = scipy_kdtree.query_ball_point (compared_cloud[:, 0:3], accumulator_radius )
+# cloud_indices = scipy_kdtree.query_ball_point (corresponding_cloud[:, 0:3], accumulator_radius )
 # #print ("\ncloud_indices: " + str (cloud_indices ))
 #
 # for i, point_indices in enumerate (cloud_indices ):
 #     if (len(point_indices ) > 0):
 #
 #         # diff all points found near the corresponding point with corresponding point
-#         diff_vectors = numpy_cloud[point_indices, 0:3] - compared_cloud[i, 0:3]
+#         diff_vectors = numpy_cloud[point_indices, 0:3] - corresponding_cloud[i, 0:3]
 #         print ("\n-------------------------------------------------------\n\npoint_indices:\n" + str (point_indices ))
 #         print ("diff_vectors:\n" + str (diff_vectors ))
 #
@@ -334,7 +334,7 @@ numpy_cloud = np.array([[1.1, 2.1, 3.1],
 # if (algorithmus == 'distance'):
 #
 #     arguments_list.append (
-#         [scipy_kdtree, numpy_cloud, compared_cloud, translation, distance_threshold] )
+#         [scipy_kdtree, numpy_cloud, corresponding_cloud, translation, distance_threshold] )
 #
 #
 # out of loop:

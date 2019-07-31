@@ -1,8 +1,8 @@
 """
 Contains a straightforward implementation of the Consensus Algorithm in three Variants. Distance, normal vector angle
 and a combination of these two.
-cubic_cloud_consensus algorithm, distance: Translates compared_cloud in lenghts of step inside a cubus-shaped space and,
-for every step, checks how many points of cloud numpy_cloud have a neighbor within threshold range in compared_cloud.
+cubic_cloud_consensus algorithm, distance: Translates corresponding_cloud in lenghts of step inside a cubus-shaped space and,
+for every step, checks how many points of cloud numpy_cloud have a neighbor within threshold range in corresponding_cloud.
 """
 
 # local modules
@@ -279,18 +279,18 @@ def create_plot_title (base_title, algorithmus, cubus_length, step, distance_thr
     return plot_title
 
 
-def cubic_cloud_consensus (np_pointcloud, compared_pointcloud,
+def cubic_cloud_consensus (np_pointcloud, corresponding_pointcloud,
                            cubus_length, step, distance_threshold=0.3, angle_threshold=30,
                            algorithmus='distance',
                            display_plot=True, relative_color_scale=False,
                            plot_title="ConsensusCube (TM)", save_plot=False ):
     '''
-    Translates compared_cloud in lenghts of step inside a cubus-shaped space and, for every step, checks how many points
-    of cloud np_pointcloud have a neighbor within threshold range in compared_cloud.
+    Translates corresponding_cloud in lenghts of step inside a cubus-shaped space and, for every step, checks how many points
+    of cloud np_pointcloud have a neighbor within threshold range in corresponding_cloud.
 
     Input:
         np_pointcloud (NumpyPointCloud):    NumpyPointCloud object containing a numpy array and it's data labels
-        compared_cloud (NumpyPointCloud):   This cloud will be aligned to match np_pointcloud
+        corresponding_cloud (NumpyPointCloud):   This cloud will be aligned to match np_pointcloud
         distance_threshold (float):         Threshold that defines the range at which a point is counted as neigbor
         angle_threshold (float, degree):    Angle threshold to define maximum deviation of normal vectors
         cubus_length (float):               Cubus center is (0, 0, 0). Half of cubus_length is backwards, half forwards.
@@ -338,19 +338,19 @@ def cubic_cloud_consensus (np_pointcloud, compared_pointcloud,
                 if (iteration_count % int(cubus_size / 10) == 0):
                     print ("Progress: " + "{:.1f}".format ((iteration_count / cubus_size) * 100.0 ) + " %" )
 
-                # Create a list that is as long as compared_cloud has fields, so that addition will work and only the
+                # Create a list that is as long as corresponding_cloud has fields, so that addition will work and only the
                 # first three fields x, y and z are modified
                 translation = [x_iterator * step,
                                y_iterator * step,
                                z_iterator * step]
-                #translation = translation + [0] * (compared_pointcloud.points.shape[1] - 3)
+                #translation = translation + [0] * (corresponding_pointcloud.points.shape[1] - 3)
 
                 # Start the computation of the consensus for this translation, using the specified algorithm
                 if (algorithmus == 'distance'):
 
                     consensus_count, consensus_vector = \
                         point_distance_cloud_consensus (scipy_kdtree,
-                                                       compared_pointcloud,
+                                                       corresponding_pointcloud,
                                                        translation,
                                                        distance_threshold )
                 elif (algorithmus == 'angle'):
@@ -358,7 +358,7 @@ def cubic_cloud_consensus (np_pointcloud, compared_pointcloud,
                     consensus_count, consensus_vector = \
                         normal_vector_cloud_consensus (scipy_kdtree,
                                                        np_pointcloud,
-                                                       compared_pointcloud,
+                                                       corresponding_pointcloud,
                                                        translation,
                                                        angle_threshold_radians )
 
@@ -368,7 +368,7 @@ def cubic_cloud_consensus (np_pointcloud, compared_pointcloud,
                     consensus_count, consensus_vector = \
                         combined_cloud_consensus (scipy_kdtree,
                                                   np_pointcloud,
-                                                  compared_pointcloud,
+                                                  corresponding_pointcloud,
                                                   translation,
                                                   angle_threshold=angle_threshold_radians,
                                                   distance_threshold=distance_threshold )
@@ -402,7 +402,7 @@ def cubic_cloud_consensus (np_pointcloud, compared_pointcloud,
 
         # display the plot
         display_cube, figure = display_consensus_cube (
-                        consensus_cloud, compared_pointcloud.points.shape[0], best_alignment,
+                        consensus_cloud, corresponding_pointcloud.points.shape[0], best_alignment,
                         plot_title, relative_color_scale=relative_color_scale )
 
         if (save_plot ):

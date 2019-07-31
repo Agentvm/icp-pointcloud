@@ -22,7 +22,7 @@ def cloud2cloud (reference_pointcloud, aligned_pointcloud ):
     # query the three, but only take the x,y,z fields into consideration
     c2c_distances, indices = scipy_kdtree.query (aligned_pointcloud.get_xyz_coordinates (), k=1 )
 
-    # add a new field containing the distance to the nearest neighbor of each point to the compared_cloud and return it
+    # add a new field containing the distance to the nearest neighbor of each point to the corresponding_cloud and return it
     return aligned_pointcloud.add_fields (c2c_distances.reshape (-1, 1), ["C2C_absolute_distances"] )
 
 
