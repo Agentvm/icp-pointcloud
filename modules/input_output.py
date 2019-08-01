@@ -88,7 +88,7 @@ def save_ply_file (numpy_cloud, file_name ):
     io.write_point_cloud(file_name, open3d_cloud, write_ascii=True )
 
 
-def load_ply_file (dir_in, file_name ):
+def load_ply_file (path ):
     '''
     Takes a directory path and a filename, then loads a .ply pointcloud file and returns it as numpy array.
 
@@ -102,11 +102,11 @@ def load_ply_file (dir_in, file_name ):
 
     # Load a file
     start_time = time.time()    # measure time
-    print('\nLoading file ' + file_name + ' ...')
+    print('\nLoading file ' + path + ' ...')
 
     # Set Debug log to Error, so it doesn't print a messy loading bar, then read the file content
     set_verbosity_level(VerbosityLevel.Error)
-    open3d_point_cloud = read_point_cloud(dir_in + file_name )
+    open3d_point_cloud = read_point_cloud(path )
 
     # convert to numpy array
     points = np.asarray(open3d_point_cloud.points )
