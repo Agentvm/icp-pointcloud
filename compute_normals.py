@@ -7,6 +7,7 @@ from modules import normals
 import numpy as np
 import random
 import os.path
+import time
 
 # advanced functionality
 import scipy.spatial
@@ -41,6 +42,17 @@ def compute_normals (numpy_pointcloud, file_path, query_radius ):
 
     """
 
+    # outer_iterations = 0
+    # inner_iterations = 0
+    outer_loop_query_time = 0
+    inner_loop_computation_time = 0
+    overall_ransac_time = 0
+    overall_random_plane_time = 0
+    overall_plane_consensus_time = 0
+    overall_pca_time = 0
+    start_time = time.time ()
+    measure = time.time ()
+
     # build a kdtree
     #tree = sklearn.neighbors.kd_tree.KDTree (numpy_cloud[:, 0:3], leaf_size=40, metric='euclidean')
     scipy_kdtree = scipy.spatial.cKDTree (numpy_pointcloud.get_xyz_coordinates () )
@@ -49,56 +61,130 @@ def compute_normals (numpy_pointcloud, file_path, query_radius ):
     additional_values = np.zeros ((numpy_pointcloud.points.shape[0], 4 ))
     success = True
 
+    init_time = time.time () - measure
+    measure = time.time ()
+
     # set radius
-    if ("DSM_Cloud" in file_path):
-        query_radius = 0.8
+    # if ("DSM_Cloud" in file_path):
+    #     query_radius = 0.8
 
     # compute normals for each point
-    for index, point in enumerate (numpy_pointcloud.get_xyz_coordinates () ):
+    #for index, point in enumerate (numpy_pointcloud.get_xyz_coordinates () ):
+    errors = 0
+    step = 10000
+    cloud_points_number = numpy_pointcloud.points.shape[0]
+    for i in range (0, cloud_points_number, step ):
+        interim = time.time ()
+        if (i + step > cloud_points_number):
+            batch_points = numpy_pointcloud.points[i:, 0:3]
+        else:
+            batch_points = numpy_pointcloud.points[i:i+step, 0:3]
 
         # check memory usage
         if (psutil.virtual_memory().percent > 95.0):
             print (print ("!!! Memory Usage too high: "
                           + str(psutil.virtual_memory().percent)
                           + "%. Skipping cloud. There still are "
-                          + str (numpy_pointcloud.points.shape[0] - index)
+                          + str (numpy_pointcloud.points.shape[0] - i)
                           + " normal vectors left to compute. Reduction process might be lost."))
             success = False
             break
 
-        if (numpy_pointcloud.points.shape[0] > 10 and index % int(numpy_pointcloud.points.shape[0] / 10) == 0):
-            print ("Progress: " + "{:.1f}".format ((index / numpy_pointcloud.points.shape[0]) * 100.0 ) + " %" )
+        #if (numpy_pointcloud.points.shape[0] > 10 and i % int(numpy_pointcloud.points.shape[0] / 10) == 0):
+        print ("Progress: " + "{:.1f}".format ((i / numpy_pointcloud.points.shape[0]) * 100.0 ) + " %" )
 
         # kdtree radius search
         #point_neighbor_indices = tree.query_radius(point.reshape (1, -1), r=query_radius )
-        point_neighbor_indices = scipy_kdtree.query_ball_point(point.reshape (1, -1), r=query_radius )
+        batch_point_indices = scipy_kdtree.query_ball_point (np.ascontiguousarray(batch_points ), r=query_radius )
 
-        # just get all indices in the point radius
-        point_neighbor_indices = [nested_value for value in point_neighbor_indices for nested_value in value]
+        # # just get all indices in the point radius
+        # # refactor: This is the problem why batches do not work
 
-        # make kdtree smaller in DSM clouds to avoid too many matches slowing the process down
-        if (len (point_neighbor_indices ) > 500):
-            indices = random.sample(range(0, len (point_neighbor_indices ) ), int (len (point_neighbor_indices ) / 5 ))
-            point_neighbor_indices = [point_neighbor_indices[i] for i in indices]
+        # print ("\n--- --- --- --- --- --step: " + str(batch_point_indices.shape[0] ))
 
-        # you can't estimate a cloud with less than three neighbors
-        if (len (point_neighbor_indices) < 3 ):
-            continue
+        outer_loop_query_time += time.time () - interim
 
-        # do a Principal Component Analysis with the plane points obtained by a RANSAC plane estimation
-        normal_vector, sigma, mass_center = normals.PCA (
-                    normals.ransac_plane_estimation (numpy_pointcloud.points[point_neighbor_indices, :],    # neighbors
-                                                     threshold=0.3,  # max point distance from the plane
-                                                     fixed_point=numpy_pointcloud.points[index, :],
-                                                     w=0.6,         # probability for the point to be an inlier
-                                                     z=0.90)        # desired probability that plane is found
-                                                     [1] )          # only use the second return value, the points
+        for t, point_neighbor_indices in enumerate (batch_point_indices, 0 ):
 
-        # join the normal_vector and sigma value to a 4x1 array and write them to the corresponding position
-        additional_values[index, :] = np.append (normal_vector, sigma )
+            iterator = i + t
+
+            # if (t == 0):
+            #     print ("T stars at 0")
+
+            interim = time.time ()
+
+            # print ("point_indices: " + str(point_neighbor_indices ))
+
+            # diff = numpy_pointcloud.points[point_neighbor_indices, 0:3] - point
+            # print ("max_distance = " + str (np.max (np.sqrt (diff[0]**2 + diff[1]**2 + diff[2]**2 ))))
+
+            # # make kdtree smaller in DSM clouds to avoid too many matches slowing the process down
+            # if (len (point_neighbor_indices ) > 500):
+            #     indices = random.sample(range(0, len (point_neighbor_indices ) ),
+            #                             int (len (point_neighbor_indices ) / 5 ))
+            #     point_neighbor_indices = [point_neighbor_indices[i] for i in indices]
+
+            # you can't estimate a cloud with less than three neighbors
+            if (len (point_neighbor_indices) < 3 ):
+                continue
+
+            # # do a Principal Component Analysis with the plane points obtained by a RANSAC plane estimation
+            # normal_vector, sigma, mass_center, _ = normals.PCA (
+            #             normals.ransac_plane_estimation_new (numpy_pointcloud.points[point_neighbor_indices, :],   # point neighbors
+            #                                              threshold=0.3,  # max point distance from the plane
+            #                                              fixed_point=numpy_pointcloud.points[iterator, :],
+            #                                              w=0.6,         # probability for the point to be an inlier
+            #                                              z=0.90)        # desired probability that plane is found
+            #                                              [1] )          # only use the second return value, the points
+
+            _, points, random_plane_time, plane_consensus_time, ransac_time = normals.ransac_plane_estimation_new (
+                                             numpy_pointcloud.points[point_neighbor_indices, :],
+                                             threshold=0.3,  # max point distance from the plane
+                                             fixed_point=numpy_pointcloud.points[i, :],
+                                             w=0.6,         # probability for the point to be an inlier
+                                             z=0.90)        # desired probability that plane is found
+
+            overall_random_plane_time += random_plane_time
+            overall_plane_consensus_time += plane_consensus_time
+            overall_ransac_time += ransac_time
+
+            # do a Principal Component Analysis with the plane points obtained by a RANSAC plane estimation
+            normal_vector, sigma, mass_center, pca_time = normals.PCA (points )
+            overall_pca_time += pca_time
+
+            if (normal_vector[0] == 0 and normal_vector[1] == 0 and normal_vector[2] ):
+                errors += 1
+
+            # join the normal_vector and sigma value to a 4x1 array and write them to the corresponding position
+            additional_values[iterator, :] = np.append (normal_vector, sigma )
+
+            inner_loop_computation_time += time.time () - interim
+
+        #     inner_iterations += 1
+        #
+        # outer_iterations += 1
+
+    interim = time.time ()
 
     # add the newly computed values to the cloud
     numpy_pointcloud.add_fields (additional_values, ['Nx', 'Ny', 'Nz', 'Sigma'], replace=True )
+
+    outro_time = time.time () - interim
+
+    loop_overall_time = time.time () - measure
+    overall_time = time.time () - start_time
+
+    print ("\nstep:            " + str (step ))
+    print ("Init Time:         " + str (init_time ))
+    print ("Overall Loop Time: " + str (loop_overall_time ))
+    print ("\tOuter Loop Time: " + "{:2f}%".format ((outer_loop_query_time / loop_overall_time ) * 100 ))
+    print ("\tRANSAC all Time:  " + "{:2f}%".format ((overall_ransac_time / loop_overall_time ) * 100 ))
+    print ("\t\tRANSAC rndm Time: " + "{:2f}%".format ((overall_random_plane_time / overall_ransac_time ) * 100 ))
+    print ("\t\tRANSAC cnss Time: " + "{:2f}%".format ((overall_plane_consensus_time / overall_ransac_time ) * 100 ))
+    print ("\tPCA Time:         " + "{:2f}%".format ((overall_pca_time / loop_overall_time ) * 100 ))
+
+    print ("Outro Time:        " + str (outro_time ))
+    print ("Overall Time:      " + str (overall_time ))
 
     return numpy_pointcloud, success
 
@@ -205,7 +291,7 @@ def process_clouds_in_folder (path_to_folder,
         # save the cloud again
         if (cloud_altered):
             alteration_string = "_reduced" if reduce_clouds else ""
-            alteration_string += "_normals" if do_normal_calculation else ""
+            alteration_string += ("_normals_r_" + str (normals_computation_radius )) if do_normal_calculation else ""
             alteration_string += "_cleared" if clear_classes else ""
             filename, file_extension = os.path.splitext(complete_file_path )
             input_output.save_ascii_file (np_pointcloud.points,
@@ -228,11 +314,11 @@ if __name__ == '__main__':
     # # normals / reducing clouds
     if (process_clouds_in_folder ('clouds/tmp/',
                                   permitted_file_extension='.asc',
-                                  string_list_to_ignore=['original_clouds', 'fix', 'fail', '.las'],
+                                  string_list_to_ignore=['original_clouds', '_r_', 'fail', '.las'],
                                   do_normal_calculation=True,
-                                  reduce_clouds=True,
+                                  reduce_clouds=False,
                                   clear_classes=False,
-                                  normals_computation_radius=2.5 )):
+                                  normals_computation_radius=1 )):
         print ("\n\nAll Clouds successfully processed.")
     else:
         print ("Error. Not all clouds could be processed.")
