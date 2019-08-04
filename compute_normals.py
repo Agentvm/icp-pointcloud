@@ -160,7 +160,8 @@ def process_clouds_in_folder (path_to_folder,
             return False
 
     # set process variables
-    previous_folder = ""    # for folder comparison
+    previous_folder = None    # for folder comparison
+    reductions_dictionary = {}
 
     # process clouds
     #for complete_file_path in full_paths[(-6 - steps):(-steps)]:
@@ -178,16 +179,14 @@ def process_clouds_in_folder (path_to_folder,
 
         # # treat clouds folder-specific
         # find folder name
-        if (len(complete_file_path.split ('/')) == 1):
-            current_folder = ""     # no folder
-        else:
-            current_folder = complete_file_path.split ('/')[-2]
+        current_folder = os.path.dirname (complete_file_path.strip ('/' ))
+        # if (len(complete_file_path.split ('/')) == 1):
+        #     current_folder = ""     # no folder
+        # else:
+        #     current_folder = complete_file_path.split ('/')[-2]
 
-        # check if the folder changed
-        if (current_folder != previous_folder and reduce_clouds):
-
-            # all clouds in one folder should get the same trafo
-            min_x, min_y = get_reduction (np_pointcloud.points )
+        print ("complete_file_path: " + str (complete_file_path ))
+        print ("current_folder: " + str (current_folder ))
 
         # # alter cloud
         cloud_altered = False
@@ -200,8 +199,19 @@ def process_clouds_in_folder (path_to_folder,
 
         # reduce cloud
         if (reduce_clouds ):
+
+            # check if the folder changed
+            if (current_folder != previous_folder ):
+
+                # all clouds in one folder should get the same trafo
+                min_x, min_y = get_reduction (np_pointcloud.points )
+
             np_pointcloud.points = apply_reduction (np_pointcloud.points, min_x, min_y )
             print ("Cloud has been reduced by x=" + str(min_x ) + ", y=" + str(min_y ) + ".\n")
+
+            # update the dictionary with the reduction, so the reduction can be undone
+            reductions_dictionary.update ({complete_file_path: (min_x, min_y )} )
+
             cloud_altered = True
 
         # compute normals on cloud
@@ -225,6 +235,10 @@ def process_clouds_in_folder (path_to_folder,
         # set current to previous folder for folder-specific computations
         previous_folder = current_folder
 
+    if (reduce_clouds and cloud_altered ):
+        input_output.save_obj (reductions_dictionary,
+                               str(os.path.basename (path_to_folder.strip('/' )) + "_reductions" ))
+
     print ("\n\nDone.")
     return True
 
@@ -235,10 +249,12 @@ if __name__ == '__main__':
     if (process_clouds_in_folder ('clouds/tmp/',
                                   permitted_file_extension='.asc',
                                   string_list_to_ignore=['original_clouds', '_r_', 'fail', '.las'],
-                                  do_normal_calculation=True,
-                                  reduce_clouds=False,
+                                  do_normal_calculation=False,
+                                  reduce_clouds=True,
                                   clear_classes=False,
                                   normals_computation_radius=1 )):
         print ("\n\nAll Clouds successfully processed.")
     else:
         print ("Error. Not all clouds could be processed.")
+
+    print (input_output.load_obj ("tmp_reductions" ))
