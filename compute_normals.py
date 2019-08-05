@@ -192,7 +192,7 @@ def process_clouds_in_folder (path_to_folder,
         cloud_altered = False
 
         # delete everything that has a value of more or equal to 20 in "Classification" field
-        if (clear_classes ):
+        if (clear_classes and np_pointcloud.has_fields ("Classification" )):
             np_pointcloud = clear_redundand_classes (np_pointcloud )
             print ("Points with class 20 and above have been removed from this cloud.\n")
             cloud_altered = True
@@ -246,15 +246,15 @@ def process_clouds_in_folder (path_to_folder,
 if __name__ == '__main__':
 
     # # normals / reducing clouds / clearing classes
-    if (process_clouds_in_folder ('clouds/tmp/',
-                                  permitted_file_extension='.asc',
-                                  string_list_to_ignore=['original_clouds', '_r_', 'fail', '.las'],
-                                  do_normal_calculation=False,
+    if (process_clouds_in_folder ('clouds/New Regions/',
+                                  permitted_file_extension='.las',
+                                  string_list_to_ignore=['original_clouds'],
+                                  do_normal_calculation=True,
                                   reduce_clouds=True,
-                                  clear_classes=False,
+                                  clear_classes=True,
                                   normals_computation_radius=1 )):
         print ("\n\nAll Clouds successfully processed.")
     else:
         print ("Error. Not all clouds could be processed.")
 
-    print (input_output.load_obj ("tmp_reductions" ))
+    # print (input_output.load_obj ("tmp_reductions" ))

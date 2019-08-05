@@ -302,11 +302,11 @@ def spheric_cloud_consensus (np_pointcloud, corresponding_pointcloud,
         input_output.save_ascii_file (display_cube, ["X", "Y", "Z", "Consensus"],
             str("docs/logs/unordered_cube_savefiles/" + plot_title + ".asc"))
 
+    print ("\nOverall Time: " + str (time.time () - start_time ))
+
     # display the plot
     if (display_plot ):
          _ = plt.show (figure );
     plt.close ()
-
-    print ("\nOverall Time: " + str (time.time () - start_time ))
 
     return best_alignment, best_consensus_count, best_alignment_consensus_vector

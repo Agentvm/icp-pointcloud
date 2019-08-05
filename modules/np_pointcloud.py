@@ -9,6 +9,34 @@ Field naming conventions: Start with a capital letter and separate words with un
     "Intensity":                Reflection intensity
     "Classification":           Point class
     "C2C_absolute_distances":   Distance from a point to it's nearest neigbor
+
+# Example
+import numpy as np
+from modules.np_pointcloud import NumpyPointCloud
+
+## prepare numpy cloud
+numpy_cloud = np.array([[1.1, 2.1, 3.1],
+                        [1.2, 2.2, 3.2],
+                        [1.3, 2.3, 3.3],
+                        [1.4, 2.4, 3.4],
+                        [1.5, 2.5, 3.5],
+                        [1.6, 2.6, 3.6]] )
+
+## create NumpyPointCloud from numpy cloud values
+np_pointcloud = NumpyPointCloud (numpy_cloud, ["X", "Y", "Z"])
+print (np_pointcloud )
+print ("Has Field Classification: " + str (np_pointcloud.has_fields ("Classification" )))
+
+## add data
+np_pointcloud.add_fields ([0, 0, 0, 20, 0, 0], "Classification")
+np_pointcloud.add_fields (np.random.uniform (-1, 1, size=(6, 3)), ["Nx", "Ny", "Nz"] )
+print (np_pointcloud )
+print ("Has Field Classification, Normals: " + str (np_pointcloud.has_fields (["Nx", "Classification", "Ny", "Nz"] )))
+
+## delete data
+np_pointcloud.delete_fields ("Classification")
+np_pointcloud.delete_fields (["Nx", "Ny", "Nz"])
+print (np_pointcloud )
 """
 
 import numpy as np
@@ -29,6 +57,7 @@ class NumpyPointCloud (object ):
 
     Functions:
         get_fields (field_labels_list ):    Extract a copy of one or multiple fields
+        has_fields (field_labels_list ):    See if requested fields are in this cloud
         get_xyz_coordinates ():             shorthand for self.get_fields (["X", "Y", "Z"] )
         get_normals ():                     shorthand for self.get_fields (["Nx", "Ny", "Nz"] )
         get_normals_and_sigma ():           shorthand for self.get_fields (["Nx", "Ny", "Nz", "Sigma"] )
@@ -65,6 +94,16 @@ class NumpyPointCloud (object ):
             indices.append (self.field_labels.index(field ))
 
         return indices
+
+    def has_fields (self, field_labels_list ):
+        """Checks if all given field names are in this cloud"""
+
+        # cast string into list
+        if (type (field_labels_list) is str):
+            field_labels_list = [field_labels_list]
+
+        # See if there is only one entry in the list
+        return all (label in self.field_labels for label in field_labels_list )
 
     def get_fields (self, field_labels_list ):
         """

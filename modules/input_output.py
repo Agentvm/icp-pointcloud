@@ -151,10 +151,11 @@ def load_las_file (file_path, dtype=None, return_separate=False ):
             red = np.reshape(inFile.red.copy() / 65535.0, (-1, 1))
             green = np.reshape(inFile.green.copy() / 65535.0, (-1, 1))
             blue = np.reshape(inFile.blue.copy() / 65535.0, (-1, 1))
+            raw_class = np.reshape(inFile.raw_classification.copy(), (-1, 1))   # add classification channel
 
             # join all values in one np.array and update the field labels to allow safe access of colums
-            points = np.concatenate((x, y, z, red, green, blue), axis = -1)  # join all values in an np.array
-            field_labels_list += ['X', 'Y', 'Z', 'Rf', 'Gf', 'Bf']
+            points = np.concatenate((x, y, z, red, green, blue, raw_class), axis = -1)  # join all values in an np.array
+            field_labels_list += ['X', 'Y', 'Z', 'Rf', 'Gf', 'Bf', 'Classification']
 
         elif dtype == 'als':
             # extract the scalar fields of the .las cloud
@@ -200,7 +201,7 @@ def conditionalized_load (file_path, return_separate=False ):
 
     # # load the file
     if (file_extension == '.las'):
-        if ("DSM_Cloud" in file_path):
+        if ("DSM_Cloud" in os.path.basename (file_path ) or "_dim" in os.path.basename (file_path )):
             # Load DIM cloud
             np_pointcloud = load_las_file (file_path, dtype="dim" )
             #field_labels_list += labels_list_loaded
