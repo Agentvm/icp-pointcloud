@@ -57,16 +57,17 @@ if __name__ == '__main__':
 
     title = "YZ_Houses"
     sigma = True
-    borders = False
+    sigma_value = 0.2
+    borders = True
 
     # prepare example clouds, random or from file
     # np_pointcloud, corresponding_pointcloud, random_offset = prepare_random_cloud ()
     np_pointcloud, corresponding_pointcloud = load_example_cloud ("Yz Houses" )
 
     if (sigma ):
-        title += "_sigma"
-        np_pointcloud.points = np_pointcloud.points[np_pointcloud.get_fields ("Sigma") < 0.1]
-        corresponding_pointcloud.points = corresponding_pointcloud.points[corresponding_pointcloud.get_fields ("Sigma") < 0.1]
+        title += "_sigma_" + str(sigma_value )
+        np_pointcloud.points = np_pointcloud.points[np_pointcloud.get_fields ("Sigma") < sigma_value]
+        corresponding_pointcloud.points = corresponding_pointcloud.points[corresponding_pointcloud.get_fields ("Sigma") < sigma_value]
 
     if (borders ):
         title += "_borders"
