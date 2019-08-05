@@ -1,8 +1,9 @@
 """
 Contains a straightforward implementation of the Consensus Algorithm in three Variants. Distance, normal vector angle
 and a combination of these two.
-cubic_cloud_consensus algorithm, distance: Translates corresponding_cloud in lenghts of step inside a cubus-shaped space and,
-for every step, checks how many points of cloud numpy_cloud have a neighbor within threshold range in corresponding_cloud.
+cubic_cloud_consensus algorithm, distance: Translates corresponding_cloud in lenghts of step inside a cubus-shaped space
+and, for every step, checks how many points of cloud numpy_cloud have a neighbor within threshold range in
+corresponding_cloud.
 """
 
 # local modules
@@ -290,8 +291,8 @@ def cubic_cloud_consensus (np_pointcloud, corresponding_pointcloud,
                            display_plot=True, relative_color_scale=False,
                            plot_title="ConsensusCube (TM)", save_plot=False ):
     '''
-    Translates corresponding_cloud in lenghts of step inside a cubus-shaped space and, for every step, checks how many points
-    of cloud np_pointcloud have a neighbor within threshold range in corresponding_cloud.
+    Translates corresponding_cloud in lenghts of step inside a cubus-shaped space and, for every step, checks how many
+    points of cloud np_pointcloud have a neighbor within threshold range in corresponding_cloud.
 
     Input:
         np_pointcloud (NumpyPointCloud):    NumpyPointCloud object containing a numpy array and it's data labels

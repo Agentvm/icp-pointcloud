@@ -94,9 +94,9 @@ def compute_normals (np_pointcloud, query_radius, batch_size = 10000 ):
 
             # start a RANSAC algorithm to find a fitting plane in the detected neighbor points
             normal_vector, points = normals.ransac_plane_estimation (
-                                 np_pointcloud.points[point_neighbor_indices, :],   # neighbors
-                                 threshold=0.3,                             # max point distance from the plane
-                                 fixed_point=np_pointcloud.points[iterator, :],    # this point will be part of the plane
+                                 np_pointcloud.points[point_neighbor_indices, :],  # neighbors
+                                 threshold=0.3,                                    # max point distance from the plane
+                                 fixed_point=np_pointcloud.points[iterator, :],    # point will be part of the plane
                                  w=0.6,                                     # probability for the point to be an inlier
                                  z=0.90)                                    # desired probability that plane is found
 
