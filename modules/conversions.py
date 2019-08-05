@@ -78,8 +78,8 @@ def get_distance_consensus (ref_pointcloud, corr_pointcloud, radius):
         radius (float):                         Max neighbor distance
 
     Output:
-        consensus_vector_ref (list())
-        consensus_vector_corr
+        consensus_vector_ref (list(int)):       Shows 1 where points of ref_pointcloud have a neighbor, 0 otherwise
+        consensus_vector_corr (list(int)):      Shows 1 where points of corr_pointcloud have a neighbor, 0 otherwise
     """
 
     # build trees
@@ -98,15 +98,47 @@ def get_distance_consensus (ref_pointcloud, corr_pointcloud, radius):
     return consensus_vector_ref, consensus_vector_corr
 
 
-def mask_cloudpoints_without_correspondence (ref_pointcloud, corr_pointcloud, radius = 0.5 ):
+def delete_cloudpoints_without_correspondence (ref_pointcloud, corr_pointcloud, radius = 0.5 ):
     """
     Remove points in ref_pointcloud and corr_pointcloud which have no neighbor in the other cloud that is nearer than
     radius
 
     Input:
-        ref_pointcloud (NumpyPointCloud):    NumpyPointCloud object containing a numpy array and it's data labels
-        corr_pointcloud (NumpyPointCloud):   The cloud corresponding to ref_pointcloud. Both clouds will be modified.
+        ref_pointcloud (NumpyPointCloud):   NumpyPointCloud object containing a numpy array and it's data labels
+        corr_pointcloud (NumpyPointCloud):  The cloud corresponding to ref_pointcloud. Both clouds will be modified.
+        radius (float):                     Max neighbor distance
+
+    Output:
+        ref_pointcloud (NumpyPointCloud):   The altered reference pointcloud
+        corr_pointcloud (NumpyPointCloud):  The altered corresponding pointcloud
     """
+
+    # get consensus column
+    consensus_vector_ref, consensus_vector_corr = get_distance_consensus (ref_pointcloud, corr_pointcloud, radius )
+
+    # delete all points that did not contribute to the consensus
+    truth_vector = consensus_vector_ref == 0
+    ref_pointcloud.points = ref_pointcloud.points[truth_vector, :]
+    truth_vector = consensus_vector_corr == 0
+    corr_pointcloud.points = corr_pointcloud.points[truth_vector, :]
+
+    return ref_pointcloud, corr_pointcloud
+
+
+def mask_cloudpoints_without_correspondence (ref_pointcloud, corr_pointcloud, radius = 0.5 ):
+    """
+    Mask points in ref_pointcloud and corr_pointcloud which have no neighbor in the other cloud that is nearer than
+    radius
+
+    Input:
+        ref_pointcloud (NumpyPointCloud):   NumpyPointCloud object containing a numpy array and it's data labels
+        corr_pointcloud (NumpyPointCloud):  The cloud corresponding to ref_pointcloud. Both clouds will be modified.
+        radius (float):                     Max neighbor distance
+
+    Output:
+        ref_pointcloud (NumpyPointCloud):   The altered reference pointcloud
+        corr_pointcloud (NumpyPointCloud):  The altered corresponding pointcloud
+"""
 
     # get consensus column
     consensus_vector_ref, consensus_vector_corr = get_distance_consensus (ref_pointcloud, corr_pointcloud, radius )
@@ -115,7 +147,7 @@ def mask_cloudpoints_without_correspondence (ref_pointcloud, corr_pointcloud, ra
     ref_pointcloud.add_field (consensus_vector_ref, "Consensus" )
     corr_pointcloud.add_field (consensus_vector_corr, "Consensus" )
 
-    # delete all points that did not contribute to the consensus
+    # mask all points that did not contribute to the consensus
     truth_vector = ref_pointcloud.get_fields (["Consensus"] ) == 0
     ref_pointcloud.points = mask_cloud_rows (ref_pointcloud.points, truth_vector )
     truth_vector = corr_pointcloud.get_fields (["Consensus"] ) == 0

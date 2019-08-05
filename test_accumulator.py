@@ -2,6 +2,7 @@
 # local modules
 from modules.np_pointcloud import NumpyPointCloud
 from modules import input_output
+from modules import conversions
 from modules import accumulator
 from modules.normals import normalize_vector_array
 
@@ -54,23 +55,36 @@ if __name__ == '__main__':
 
     np.random.seed (1337 )
 
+    title = "YZ_Houses"
+    sigma = False
+    borders = False
+
     # prepare example clouds, random or from file
-    np_pointcloud, corresponding_pointcloud, random_offset = prepare_random_cloud ()
-    # np_pointcloud, corresponding_pointcloud = load_example_cloud ("Yz Houses" )
+    # np_pointcloud, corresponding_pointcloud, random_offset = prepare_random_cloud ()
+    np_pointcloud, corresponding_pointcloud = load_example_cloud ("Yz Houses" )
+
+    if (sigma ):
+        title += "_sigma"
+        np_pointcloud.points = np_pointcloud.points[np_pointcloud.get_fields ("Sigma") < 0.1]
+        corresponding_pointcloud.points = corresponding_pointcloud.points[corresponding_pointcloud.get_fields ("Sigma") < 0.1]
+
+    if (borders ):
+        title += "_borders"
+        corresponding_pointcloud.points = conversions.delete_cloud_borders (corresponding_pointcloud.points, 3.0 )
 
     # reach consensus
     best_alignment, best_consensus_count, best_alignment_consensus_vector = \
         accumulator.spheric_cloud_consensus (np_pointcloud,
                                              corresponding_pointcloud,
                                              accumulator_radius=1.0,
-                                             grid_size=0.05,
+                                             grid_size=0.1,
                                              distance_threshold=None,
                                              angle_threshold=None,
                                              algorithmus='distance-accumulator',
                                              display_plot=False,
                                              save_plot=True,
                                              relative_color_scale=True,
-                                             plot_title="some_test" )
+                                             plot_title=title )
 
     print ("best_alignment: \t\t" + str(best_alignment ))
     if ("random_offset" in locals() ):
