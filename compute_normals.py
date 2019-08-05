@@ -30,7 +30,7 @@ def apply_reduction (numpy_cloud, min_x_coordinate, min_y_coordinate ):
     return numpy_cloud
 
 
-def compute_normals (np_pointcloud, query_radius, step = 10000 ):
+def compute_normals (np_pointcloud, query_radius, batch_size = 10000 ):
     """
     Computes Normals Fields and Sigma Field (noise of normal computation) for each point of a NumpyPointCloud and adds
     the newly computed colums to the Cloud.
@@ -38,7 +38,7 @@ def compute_normals (np_pointcloud, query_radius, step = 10000 ):
     Input:
         np_pointcloud (NumpyPointCloud):    NumpyPointCloud object containing a numpy array and it's data labels
         query_radius (float):               The radius in which to search for neighbors belonging to a plane
-        step (integer):                     Number of points per kdtree query. Higher numbers mean higer RAM usage.
+        batch_size (integer):               Number of points per kdtree query. Higher numbers mean higer RAM usage.
 
     Output:
         np_pointcloud (NumpyPointCloud):    The updated NumpyPointCloud
@@ -58,14 +58,14 @@ def compute_normals (np_pointcloud, query_radius, step = 10000 ):
 
     print ("\nStarting normal computation." )
     print ("query_radius = " + str (query_radius ))
-    print ("step = " + str (step ))
+    print ("batch_size = " + str (batch_size ))
 
-    # iterate through the cloud in batches of size 'step'
-    for i in range (0, cloud_points_number, step ):
-        if (i + step > cloud_points_number):
+    # iterate through the cloud in batches of size 'batch_size'
+    for i in range (0, cloud_points_number, batch_size ):
+        if (i + batch_size > cloud_points_number):
             batch_points = np_pointcloud.points[i:, 0:3]
         else:
-            batch_points = np_pointcloud.points[i:i+step, 0:3]
+            batch_points = np_pointcloud.points[i:i+batch_size, 0:3]
 
         # check memory usage
         if (psutil.virtual_memory().percent > 95.0):
@@ -77,7 +77,7 @@ def compute_normals (np_pointcloud, query_radius, step = 10000 ):
             success = False
             break
 
-        # Show Progress every 'step' points
+        # Show Progress every 'batch_size' points
         print ("Progress: " + "{:.1f}".format ((i / cloud_points_number) * 100.0 ) + " %" )
 
         # kdtree radius search for each point in this batch
@@ -96,7 +96,7 @@ def compute_normals (np_pointcloud, query_radius, step = 10000 ):
             normal_vector, points = normals.ransac_plane_estimation (
                                  np_pointcloud.points[point_neighbor_indices, :],   # neighbors
                                  threshold=0.3,                             # max point distance from the plane
-                                 fixed_point=np_pointcloud.points[i, :],    # this point will be part of the plane
+                                 fixed_point=np_pointcloud.points[iterator, :],    # this point will be part of the plane
                                  w=0.6,                                     # probability for the point to be an inlier
                                  z=0.90)                                    # desired probability that plane is found
 
@@ -163,7 +163,6 @@ def process_clouds_in_folder (path_to_folder,
     previous_folder = ""    # for folder comparison
 
     # process clouds
-    #for complete_file_path in full_paths[(-6 - steps):(-steps)]:
     for complete_file_path in full_paths:
 
         # skip file paths containing a string from string_list_to_ignore

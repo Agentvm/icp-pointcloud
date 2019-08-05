@@ -149,6 +149,22 @@ def display_consensus_cube (consensus_cube, corresponding_cloud_size, best_align
     return original_cube, matplotlib_figure_object
 
 
+def create_closed_grid_II (grid_length, step ):
+
+    # borders
+    lmax = grid_length / 2
+    lmin = -grid_length / 2
+
+    # create a 3-d cubic grid with (grid_length / step + 1)**3 grid values
+    # in the space of (-grid_length / 2) to (grid_length / 2)
+    grid = np.transpose (np.reshape(np.mgrid[lmin:lmax+step:step, lmin:lmax+step:step, lmin:lmax+step:step], (3, -1) ))
+
+    # add another row for the consensus values
+    grid = np.concatenate ((grid, np.zeros (shape=(grid.shape[0], 1))), axis=1 )
+
+    return grid
+
+
 def create_closed_grid (grid_length, step ):
 
     # grid variables
@@ -157,16 +173,14 @@ def create_closed_grid (grid_length, step ):
 
     # make a grid in the style of a pointcloud
     grid = np.zeros ((grid_points_number, 4 ))
-    print ("grid_points_number: " + str (grid_points_number ))
-    print ("grid.shape: " + str (grid.shape ))
 
     # in intervals of step, create grid nodes
     general_iterator = 0
-    min = -math.floor (steps_number / 2)
-    max = math.ceil (steps_number / 2 )
-    for x_iterator in range (min, max ):
-        for y_iterator in range (min, max ):
-            for z_iterator in range (min, max ):
+    minimum = -math.floor (steps_number / 2)
+    maximum = math.ceil (steps_number / 2 )
+    for x_iterator in range (minimum, maximum ):
+        for y_iterator in range (minimum, maximum ):
+            for z_iterator in range (minimum, maximum ):
 
                 grid[general_iterator, 0:3] = [x_iterator * step,
                                                y_iterator * step,
@@ -195,7 +209,8 @@ def spheric_cloud_consensus (np_pointcloud, corresponding_pointcloud,
                              algorithmus='distance',
                              display_plot=True, save_plot=False,
                              relative_color_scale=False,
-                             plot_title="ConsensusCube (TM)"  ):
+                             plot_title="ConsensusCube (TM)",
+                             batch_size=10000 ):
     '''
     if algorithmus='distance':  Counts how many points of cloud np_pointcloud have a neighbor within threshold range in
                                 corresponding_cloud.
@@ -220,6 +235,7 @@ def spheric_cloud_consensus (np_pointcloud, corresponding_pointcloud,
     print ("angle_threshold: " + str(angle_threshold ))
     print ("accumulator_radius: " + str(accumulator_radius ))
     print ("grid_size: " + str(grid_size ) + '\n' )
+    print ("batch_size: " + str(batch_size ) + '\n' )
 
     if (display_plot and save_plot):
         message = ("Displaying the plot halts code execution until the plot is closed. This can be a problem when "
@@ -244,7 +260,9 @@ def spheric_cloud_consensus (np_pointcloud, corresponding_pointcloud,
 
     # build kdtree and query it for points within radius (radius being the maximum translation that can be detected)
     scipy_kdtree = scipy.spatial.cKDTree (np_pointcloud.get_xyz_coordinates ())
-    cloud_indices = scipy_kdtree.query_ball_point (np.ascontiguousarray(corresponding_pointcloud.points[:, 0:3]), accumulator_radius )
+
+    # print ("cloud_indices: " + str (cloud_indices ))
+
     init_time = time.time () - interim
     interim_2 = time.time ()
 
@@ -255,47 +273,68 @@ def spheric_cloud_consensus (np_pointcloud, corresponding_pointcloud,
     #       Rasterize the translations by matching them with the grid
     #       When a translation matches a grid cell, increment the consensus counter of that cell
     iterations = 0
-    for i, (point, point_indices) in enumerate (zip (corresponding_pointcloud.get_xyz_coordinates (), cloud_indices )):
-        interim = time.time ()
-    # for i in range (0, cloud_points_number, step ):
-    #     if (i + step > cloud_points_number):
-    #         batch_points = numpy_pointcloud.points[i:, 0:3]
-    #     else:
-    #         batch_points = numpy_pointcloud.points[i:i+step, 0:3]
+    inner_iterations = 0
 
-        # point_indices = scipy_kdtree.query_ball_point (point, accumulator_radius )
+    # iterate through the cloud in batches of size 'batch_size'
+    for i in range (0, corresponding_pointcloud.shape[0], batch_size ):
+        if (i + batch_size > corresponding_pointcloud.shape[0]):
+            batch_points = np.astype (corresponding_pointcloud.points[i:, 0:3])
+        else:
+            batch_points = corresponding_pointcloud.points[i:i+batch_size, 0:3]
+
+        interim = time.time ()
+
+        batch_point_indices = scipy_kdtree.query_ball_point (np.ascontiguousarray(batch_points ), r=accumulator_radius )
+        batch_point_indices = np.array (batch_point_indices, dtype=np.int )
 
         loop_cloud_query_time += time.time () - interim
+        interim = time.time ()
 
-        # Progress Prints every 10 %
-        if (i % int(corresponding_pointcloud.points.shape[0] / 10) == 0):
-            print ("Progress: " + "{:.1f}".format ((i / corresponding_pointcloud.points.shape[0]) * 100.0 ) + " %" )
+        print ("batch_point_indices: " + str (batch_point_indices ))
 
-        if (len(point_indices ) > 0):
-            interim = time.time ()
-            # diff all points found near the corresponding point with corresponding point
-            diff_vectors = np_pointcloud.get_xyz_coordinates ()[point_indices, :] - point
-            # print ("\n--------------------------------------------------\n\npoint_indices:\n" + str (point_indices ))
-            # print ("diff_vectors:\n" + str (diff_vectors ))
-            loop_diff_time += time.time () - interim
-            interim = time.time ()
+        # diff all points found near the corresponding points with the corresponding points
+        diff_vector_array = np_pointcloud.get_xyz_coordinates ()[batch_point_indices, :] - batch_points
 
-            # rasterize by finding nearest grid node (representing a translation)
-            dists, point_matches = grid_kdtree.query (diff_vectors, k=1 )
-            # print ("dists from gridpoints: " + str (dists.T ))
-            # print ("grid point matches: " + str (point_matches.T ))
-            loop_grid_query_time += time.time () - interim
-            interim = time.time ()
+        # print ("\n-----------------------------------------------\n\npoint_indices:\n" + str (indices ))
+        # print ("diff_vectors:\n" + str (diff_vectors ))
+        loop_diff_time += time.time () - interim
+        interim = time.time ()
 
-            # apply distance filter to results
-            if (distance_threshold is not None and distance_threshold > 0 ):
-                point_matches = point_matches[dists < distance_threshold]
+        # rasterize by finding nearest grid node (representing a translation)
+        dists, point_matches = grid_kdtree.query (diff_vector_array, k=1 )
+        # print ("dists from gridpoints: " + str (dists.T ))
+        # print ("grid point matches: " + str (point_matches.T ))
+        loop_grid_query_time += time.time () - interim
+        interim = time.time ()
 
-            # update the cube with the results of this point, ignore multiple hits
-            consensus_cube[np.unique (point_matches ), 3] += 1
-            # print ("\nupdated consensus_cube >0:\n" + str (consensus_cube[consensus_cube[:, 3] > 0, :] ))
-            rasterization_time += time.time () - interim
-            iterations = i
+        # apply distance filter to results
+        if (distance_threshold is not None and distance_threshold > 0 ):
+            point_matches = point_matches[dists < distance_threshold]
+
+        # update the cube with the results of this point, ignore multiple hits
+        consensus_cube[np.unique (point_matches ), 3] += 1
+        # print ("\nupdated consensus_cube >0:\n" + str (consensus_cube[consensus_cube[:, 3] > 0, :] ))
+        rasterization_time += time.time () - interim
+
+        # # iterate through the query results of this batch, processing the result of each point individually (slow)
+        # for t, point_neighbor_indices in enumerate (batch_point_indices, 0 ):
+        #     iterator = i + t    # batch iterator + in-batch iterator
+        #
+        #     # Progress Prints every 10 %
+        #     if (iterator % int(corresponding_pointcloud.points.shape[0] / 10) == 0 ):
+        #         print ("Progress: " + "{:.1f}".format (
+        #                                     (iterator / corresponding_pointcloud.points.shape[0]) * 100.0 ) + " %" )
+        #
+        #     #print ("point_neighbor_indices: " + str (point_neighbor_indices ))
+        #
+        #     if (len(point_neighbor_indices ) > 0):
+        #
+        #
+        #
+        #
+        #
+        #         inner_iterations += 1
+        iterations += 1
 
     overall_loop_time = time.time () - interim_2
     interim = time.time ()
@@ -333,7 +372,7 @@ def spheric_cloud_consensus (np_pointcloud, corresponding_pointcloud,
 
     outro_time = time.time () - interim
 
-    print ("iters: " + str(iterations))
+    print ("batch_size: " + str(batch_size ))
 
     # print (loop_cloud_query_time)
     # print (loop_diff_time)
