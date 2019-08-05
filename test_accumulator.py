@@ -56,7 +56,7 @@ if __name__ == '__main__':
     np.random.seed (1337 )
 
     title = "YZ_Houses"
-    sigma = False
+    sigma = True
     borders = False
 
     # prepare example clouds, random or from file
@@ -73,18 +73,15 @@ if __name__ == '__main__':
         corresponding_pointcloud.points = conversions.delete_cloud_borders (corresponding_pointcloud.points, 3.0 )
 
     # reach consensus
-    best_alignment, best_consensus_count, best_alignment_consensus_vector = \
-        accumulator.spheric_cloud_consensus (np_pointcloud,
-                                             corresponding_pointcloud,
-                                             accumulator_radius=1.0,
-                                             grid_size=0.1,
-                                             distance_threshold=None,
-                                             angle_threshold=None,
-                                             algorithmus='distance-accumulator',
-                                             display_plot=False,
-                                             save_plot=True,
-                                             relative_color_scale=True,
-                                             plot_title=title )
+    best_alignment, best_consensus_count, = accumulator.spheric_cloud_consensus (np_pointcloud,
+                                                                                 corresponding_pointcloud,
+                                                                                 accumulator_radius=1.0,
+                                                                                 grid_size=0.1,
+                                                                                 distance_threshold=None,
+                                                                                 display_plot=False,
+                                                                                 save_plot=True,
+                                                                                 relative_color_scale=True,
+                                                                                 plot_title=title )
 
     print ("best_alignment: \t\t" + str(best_alignment ))
     if ("random_offset" in locals() ):
