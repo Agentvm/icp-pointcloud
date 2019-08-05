@@ -189,6 +189,7 @@ def create_closed_grid (grid_length, grid_size ):
 def create_plot_title (base_title, accumulator_radius, grid_size, distance_threshold ):
     """Simple concatenation of strings to make a structured accumulator plot title"""
     plot_title = str(base_title
+            + "_distance-accumulator"
             + "_sphere_radius_" + '{:.1f}'.format (accumulator_radius )
             + "_step_" + '{:.2f}'.format (grid_size ))
     if (distance_threshold is not None and distance_threshold > 0 ):
@@ -302,9 +303,7 @@ def spheric_cloud_consensus (np_pointcloud, corresponding_pointcloud,
     best_consensus_count = np.max (consensus_cube[:, 3] ).copy ()
 
     # put together the plot title from the string given as argument to this function and the algorithmus parameters
-    original_plot_base = plot_title
-    plot_title = create_plot_title (
-        original_plot_base, accumulator_radius, grid_size, distance_threshold, 0 )
+    plot_title = create_plot_title (plot_title, accumulator_radius, grid_size, distance_threshold )
 
     # create the plot
     display_cube, figure = display_consensus_cube (consensus_cube,
