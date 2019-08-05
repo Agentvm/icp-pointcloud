@@ -180,13 +180,6 @@ def process_clouds_in_folder (path_to_folder,
         # # treat clouds folder-specific
         # find folder name
         current_folder = os.path.dirname (complete_file_path.strip ('/' ))
-        # if (len(complete_file_path.split ('/')) == 1):
-        #     current_folder = ""     # no folder
-        # else:
-        #     current_folder = complete_file_path.split ('/')[-2]
-
-        print ("complete_file_path: " + str (complete_file_path ))
-        print ("current_folder: " + str (current_folder ))
 
         # # alter cloud
         cloud_altered = False

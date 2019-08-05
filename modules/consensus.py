@@ -20,7 +20,7 @@ from mpl_toolkits.mplot3d import Axes3D
 from mpl_toolkits.mplot3d.art3d import Line3D
 from matplotlib.patches import Rectangle    # dummy for legend
 import matplotlib.pyplot as plt
-import textwrap.wrap
+import textwrap
 
 # debug
 import time
@@ -343,12 +343,10 @@ def cubic_cloud_consensus (np_pointcloud, corresponding_pointcloud,
                 if (iteration_count % int(cubus_size / 10) == 0):
                     print ("Progress: " + "{:.1f}".format ((iteration_count / cubus_size) * 100.0 ) + " %" )
 
-                # Create a list that is as long as corresponding_cloud has fields, so that addition will work and only the
-                # first three fields x, y and z are modified
+                # Create a list that contains the translation
                 translation = [x_iterator * step,
                                y_iterator * step,
                                z_iterator * step]
-                #translation = translation + [0] * (corresponding_pointcloud.points.shape[1] - 3)
 
                 # Start the computation of the consensus for this translation, using the specified algorithm
                 if (algorithmus == 'distance'):
