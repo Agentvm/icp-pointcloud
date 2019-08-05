@@ -44,6 +44,8 @@ def display_consensus_cube (consensus_cube, corresponding_cloud_size, best_align
         matplotlib_figure_object (matplotlib.pyplot): Figure object containing the plot for further use
     '''
 
+    maximum_consensus = (np.max (consensus_cube[:, 3] / corresponding_cloud_size )) * 100
+
     # normalize consensus field
     if (relative_color_scale):
         consensus_cube[:, 3] = consensus_cube[:, 3] / np.max (consensus_cube[:, 3] )
@@ -92,7 +94,7 @@ def display_consensus_cube (consensus_cube, corresponding_cloud_size, best_align
 
     # # create plot objects
     matplotlib_figure_object = plt.figure (num=None, figsize=(7.0, 5.4), dpi=220 )
-    axes = matplotlib_figure_object.add_subplot(111, projection='3d')
+    axes = matplotlib_figure_object.add_subplot(111, projection=Axes3D.name )
 
     # add all values to the scatter plot
     axes.scatter(consensus_cube[:, 0], consensus_cube[:, 1], consensus_cube[:, 2], c=rgba_colors, marker='o')
@@ -136,7 +138,7 @@ def display_consensus_cube (consensus_cube, corresponding_cloud_size, best_align
     # add an explanatory legend to the plot. Mention the lines marking the best consensus and the translation that lead
     # to this result
     plt.legend ([line, extra],
-                ("Maximum Consensus: " + "{:.2f} %".format(consensus_cube[-1, 3] * 100), best_alignment_string ),
+                ("Maximum Consensus: " + "{:.2f} %".format(maximum_consensus ), best_alignment_string ),
                 loc=(-0.28, 0) )
 
     # a call to show () halts code execution. So if you want to make multiple consensus experiments, better call draw ()
