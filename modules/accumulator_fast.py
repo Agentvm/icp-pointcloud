@@ -39,20 +39,10 @@ def create_line (point1, point2 ):
 def display_consensus_cube (consensus_cube, corresponding_cloud_size, best_alignment, plot_title="ConsensusCube (TM)",
                             relative_color_scale=True ):
     '''
-    Displays the results of the accumulator algorithm in a cube shaped plot
-
-    Input:
-        consensus_cube ((n, 4) np.ndarray):             First 3 columns: X, Y, Z translations, last: consensus_counts
-        corresponding_cloud_size (int):                 Point Number of the cloud compared in accumulator algorithm
-        best_alignment (3-tuple):                       Alignment result of the accumulator algorithm
-        plot_title (string):                            The Header of the Plot
-        relative_color_scale (boolean):                 If True, the maximum consensus will mark the top of the scale
     Output:
-        consensus_cube ((n, 4) np.ndarray):             Normalized consensus_cube
-        matplotlib_figure_object (matplotlib.pyplot):   Figure object containing the plot for further use
+        consensus_cube ((n, 4) np.array):   Display-ready consensus_cube
+        matplotlib_figure_object (matplotlib.pyplot): Figure object containing the plot for further use
     '''
-
-    maximum_consensus = (np.max (consensus_cube[:, 3] / corresponding_cloud_size )) * 100
 
     # normalize consensus field
     if (relative_color_scale):
@@ -74,7 +64,7 @@ def display_consensus_cube (consensus_cube, corresponding_cloud_size, best_align
     # sort by best consensus and remove the first values
     index = -math.floor (500 )
 
-    # sort the 4th column, containing the consensus values, best values last
+    # sort the 4th row, containing the consensus values, best values last
     consensus_cube.view('i8,i8,i8,i8').sort(order=['f3'], axis=0 )
 
     # filter the values
@@ -146,92 +136,112 @@ def display_consensus_cube (consensus_cube, corresponding_cloud_size, best_align
     # add an explanatory legend to the plot. Mention the lines marking the best consensus and the translation that lead
     # to this result
     plt.legend ([line, extra],
-                ("Maximum Consensus: " + "{:.2f} %".format(maximum_consensus ), best_alignment_string ),
+                ("Maximum Consensus: " + "{:.2f} %".format(consensus_cube[-1, 3] * 100), best_alignment_string ),
                 loc=(-0.28, 0) )
 
     # a call to show () halts code execution. So if you want to make multiple consensus experiments, better call draw ()
     # here and call show () later, if you need to see the plots
+    #plt.show()
+    #plt.ion ()
+    #matplotlib_figure_object = plt.show ()
     plt.draw ()
 
     return original_cube, matplotlib_figure_object
 
 
-def create_closed_grid (grid_length, grid_size ):
-    """
-    Returns a (n, 4) numpy.ndarray which contains translations in x, y, z dimensions, spaced in gaps of grid_size and a
-    forth, column filled with zeros to contain the consensus counts.
-    """
+def create_closed_grid_II (grid_length, step ):
+
+    # borders
+    lmax = grid_length / 2
+    lmin = -grid_length / 2
+
+    # create a 3-d cubic grid with (grid_length / step + 1)**3 grid values
+    # in the space of (-grid_length / 2) to (grid_length / 2)
+    grid = np.transpose (np.reshape(np.mgrid[lmin:lmax+step:step, lmin:lmax+step:step, lmin:lmax+step:step], (3, -1) ))
+
+    # add another row for the consensus values
+    grid = np.concatenate ((grid, np.zeros (shape=(grid.shape[0], 1))), axis=1 )
+
+    return grid
+
+
+def create_closed_grid (grid_length, step ):
 
     # grid variables
-    steps_number = math.ceil (grid_length / grid_size + 1 )
+    steps_number = math.ceil (grid_length / step + 1 )
     grid_points_number = steps_number**3
 
     # make a grid in the style of a pointcloud
     grid = np.zeros ((grid_points_number, 4 ))
 
-    # in intervals of grid_size, create grid nodes
+    # in intervals of step, create grid nodes
     general_iterator = 0
-    min = -math.floor (steps_number / 2)
-    max = math.ceil (steps_number / 2 )
-    for x_iterator in range (min, max ):
-        for y_iterator in range (min, max ):
-            for z_iterator in range (min, max ):
+    minimum = -math.floor (steps_number / 2)
+    maximum = math.ceil (steps_number / 2 )
+    for x_iterator in range (minimum, maximum ):
+        for y_iterator in range (minimum, maximum ):
+            for z_iterator in range (minimum, maximum ):
 
-                grid[general_iterator, 0:3] = [x_iterator * grid_size,
-                                               y_iterator * grid_size,
-                                               z_iterator * grid_size]
+                grid[general_iterator, 0:3] = [x_iterator * step,
+                                               y_iterator * step,
+                                               z_iterator * step]
 
                 general_iterator += 1
 
     return grid
 
 
-def create_plot_title (base_title, accumulator_radius, grid_size, distance_threshold ):
-    """Simple concatenation of strings to make a structured accumulator plot title"""
+def create_plot_title (base_title, algorithmus, accumulator_radius, grid_size, distance_threshold, angle_threshold ):
     plot_title = str(base_title
+            + "_" + str(algorithmus ) + "-consensus"
             + "_sphere_radius_" + '{:.1f}'.format (accumulator_radius )
             + "_step_" + '{:.2f}'.format (grid_size ))
-    if (distance_threshold is not None and distance_threshold > 0 ):
+    if (algorithmus == 'distance' or algorithmus == 'combined'):
         plot_title = str(plot_title + "_distance_threshold_" + '{:.3f}'.format (distance_threshold ))
+    if (algorithmus == 'angle' or algorithmus == 'combined'):
+        plot_title = str(plot_title + "_angle_threshold_" + '{:.3f}'.format (angle_threshold))
 
     return plot_title
 
 
 def spheric_cloud_consensus (np_pointcloud, corresponding_pointcloud,
-                             accumulator_radius=1.2, grid_size=0.1, distance_threshold=0.2,
+                             accumulator_radius=1.2, grid_size=0.1, distance_threshold=0.2, angle_threshold=30,
+                             algorithmus='distance',
                              display_plot=True, save_plot=False,
                              relative_color_scale=False,
-                             plot_title="ConsensusCube (TM)"  ):
+                             plot_title="ConsensusCube (TM)",
+                             batch_size=10000 ):
     '''
-    Counts how many points of cloud np_pointcloud have a neighbor within threshold range in corresponding_cloud.
+    if algorithmus='distance':  Counts how many points of cloud np_pointcloud have a neighbor within threshold range in
+                                corresponding_cloud.
 
     Input:
-        np_pointcloud (NumpyPointCloud):            NumpyPointCloud object containing a numpy array and it's data labels
-        corresponding_pointcloud (NumpyPointCloud): This cloud will be aligned to match np_pointcloud
-        accumulator_radius (float):                 Sphere center is (0,0,0). Determines maximum detectable translation
-        grid_size (float):                          Rasterization of results. May give unsatisfying results if too small
-        distance_threshold (float):                 Defines the range at which a point is counted as neighbor
-        save_plot (boolean):                        Whether to save the plot of the results for later use
-        display_plot (boolean):                     Whether to show the plot of the results
-        relative_color_scale (boolean):             See display_consensus_cube ()
-        plot_title (string):                        How to title the plot of the results
+        np_pointcloud (NumpyPointCloud):    NumpyPointCloud object containing a numpy array and it's data labels
+        corresponding_cloud (NumpyPointCloud):   This cloud will be aligned to match np_pointcloud
+        distance_threshold (float):         Threshold that defines the range at which a point is counted as neigbor
+        angle_threshold (float, degree):    Angle threshold to define maximum deviation of normal vectors
+        accumulator_radius (float):         Sphere center is translation (0, 0, 0). Translations are possible in sphere
+        grid_size (float):                  Rasterization of results. May yield unsatisfying results if too small
+        algorithmus (string):               'distance', 'angle' or 'combined'
 
     Output:
-        best_alignment ((x, y, z) tuple ):          The resulting alignment of corresponding_pointcloud
-        best_consensus_count (int):                 The maximum consensus count
+        best_alignment ((x, y, z) tuple ):
+        best_alignment_consensus_count (int):
+        consensus_cube ((n, 4) numpy array):
     '''
 
-    print ("\nStarting Distance Accumulator Consensus" )
+    print ("\nStarting " + algorithmus + " Accumulator Consensus" )
     print ("distance_threshold: " + str(distance_threshold ))
+    print ("angle_threshold: " + str(angle_threshold ))
     print ("accumulator_radius: " + str(accumulator_radius ))
     print ("grid_size: " + str(grid_size ) + '\n' )
+    print ("batch_size: " + str(batch_size ) + '\n' )
 
     if (display_plot and save_plot):
         message = ("Displaying the plot halts code execution until the plot is closed. This can be a problem when "
                   + "multiple computations are queued.")
         warnings.warn (message)
 
-    # timing variables
     loop_cloud_query_time = 0
     loop_diff_time = 0
     loop_grid_query_time = 0
@@ -239,14 +249,20 @@ def spheric_cloud_consensus (np_pointcloud, corresponding_pointcloud,
     start_time = time.time ()
     interim = time.time ()
 
+    # variables
+    # field that shows which points consent
+    best_alignment_consensus_vector = np.zeros ((np_pointcloud.points.shape[0], 1) )
+    # angle_threshold_radians = 0 if angle_threshold is None else angle_threshold * (np.pi/180)
+
     # build a grid as a kdtree to discretize the results
     consensus_cube = create_closed_grid (accumulator_radius * 2, grid_size )
     grid_kdtree = scipy.spatial.cKDTree (consensus_cube[:, 0:3] )
 
     # build kdtree and query it for points within radius (radius being the maximum translation that can be detected)
     scipy_kdtree = scipy.spatial.cKDTree (np_pointcloud.get_xyz_coordinates ())
-    # cloud_indices = scipy_kdtree.query_ball_point (
-    #     np.ascontiguousarray(corresponding_pointcloud.points[:, 0:3]), accumulator_radius )   # memory problem
+
+    # print ("cloud_indices: " + str (cloud_indices ))
+
     init_time = time.time () - interim
     interim_2 = time.time ()
 
@@ -257,54 +273,80 @@ def spheric_cloud_consensus (np_pointcloud, corresponding_pointcloud,
     #       Rasterize the translations by matching them with the grid
     #       When a translation matches a grid cell, increment the consensus counter of that cell
     iterations = 0
-    for i, point in enumerate (corresponding_pointcloud.get_xyz_coordinates ()):
+    inner_iterations = 0
+
+    # iterate through the cloud in batches of size 'batch_size'
+    for i in range (0, corresponding_pointcloud.shape[0], batch_size ):
+        if (i + batch_size > corresponding_pointcloud.shape[0]):
+            batch_points = np.astype (corresponding_pointcloud.points[i:, 0:3])
+        else:
+            batch_points = corresponding_pointcloud.points[i:i+batch_size, 0:3]
+
         interim = time.time ()
 
-        point_indices = scipy_kdtree.query_ball_point (point, accumulator_radius )
+        batch_point_indices = scipy_kdtree.query_ball_point (np.ascontiguousarray(batch_points ), r=accumulator_radius )
+        batch_point_indices = np.array (batch_point_indices, dtype=np.int )
 
         loop_cloud_query_time += time.time () - interim
+        interim = time.time ()
 
-        # Progress Prints every 10 %
-        if (i % int(corresponding_pointcloud.points.shape[0] / 10) == 0):
-            print ("Progress: " + "{:.1f}".format ((i / corresponding_pointcloud.points.shape[0]) * 100.0 ) + " %" )
+        print ("batch_point_indices: " + str (batch_point_indices ))
 
-        if (len(point_indices ) > 0):
-            interim = time.time ()
-            # diff all points found near the corresponding point with corresponding point
-            diff_vectors = np_pointcloud.points[point_indices, 0:3] - point
-            # print ("\n--------------------------------------------------\n\npoint_indices:\n" + str (point_indices ))
-            # print ("diff_vectors:\n" + str (diff_vectors ))
-            loop_diff_time += time.time () - interim
-            interim = time.time ()
+        # diff all points found near the corresponding points with the corresponding points
+        diff_vector_array = np_pointcloud.get_xyz_coordinates ()[batch_point_indices, :] - batch_points
 
-            # rasterize by finding nearest grid node (representing a translation)
-            dists, point_matches = grid_kdtree.query (diff_vectors, k=1 )
-            # print ("dists from gridpoints: " + str (dists.T ))
-            # print ("grid point matches: " + str (point_matches.T ))
-            loop_grid_query_time += time.time () - interim
-            interim = time.time ()
+        # print ("\n-----------------------------------------------\n\npoint_indices:\n" + str (indices ))
+        # print ("diff_vectors:\n" + str (diff_vectors ))
+        loop_diff_time += time.time () - interim
+        interim = time.time ()
 
-            # apply distance filter to results
-            if (distance_threshold is not None and distance_threshold > 0 ):
-                point_matches = point_matches[dists < distance_threshold]
+        # rasterize by finding nearest grid node (representing a translation)
+        dists, point_matches = grid_kdtree.query (diff_vector_array, k=1 )
+        # print ("dists from gridpoints: " + str (dists.T ))
+        # print ("grid point matches: " + str (point_matches.T ))
+        loop_grid_query_time += time.time () - interim
+        interim = time.time ()
 
-            # update the cube with the results of this point, ignore multiple hits
-            consensus_cube[np.unique (point_matches ), 3] += 1
-            # print ("\nupdated consensus_cube >0:\n" + str (consensus_cube[consensus_cube[:, 3] > 0, :] ))
-            rasterization_time += time.time () - interim
-            iterations = i
+        # apply distance filter to results
+        if (distance_threshold is not None and distance_threshold > 0 ):
+            point_matches = point_matches[dists < distance_threshold]
+
+        # update the cube with the results of this point, ignore multiple hits
+        consensus_cube[np.unique (point_matches ), 3] += 1
+        # print ("\nupdated consensus_cube >0:\n" + str (consensus_cube[consensus_cube[:, 3] > 0, :] ))
+        rasterization_time += time.time () - interim
+
+        # # iterate through the query results of this batch, processing the result of each point individually (slow)
+        # for t, point_neighbor_indices in enumerate (batch_point_indices, 0 ):
+        #     iterator = i + t    # batch iterator + in-batch iterator
+        #
+        #     # Progress Prints every 10 %
+        #     if (iterator % int(corresponding_pointcloud.points.shape[0] / 10) == 0 ):
+        #         print ("Progress: " + "{:.1f}".format (
+        #                                     (iterator / corresponding_pointcloud.points.shape[0]) * 100.0 ) + " %" )
+        #
+        #     #print ("point_neighbor_indices: " + str (point_neighbor_indices ))
+        #
+        #     if (len(point_neighbor_indices ) > 0):
+        #
+        #
+        #
+        #
+        #
+        #         inner_iterations += 1
+        iterations += 1
 
     overall_loop_time = time.time () - interim_2
     interim = time.time ()
 
-    # save the results
     best_alignment = consensus_cube[np.argmax (consensus_cube[:, 3] ), 0:3].copy ()
     best_consensus_count = np.max (consensus_cube[:, 3] ).copy ()
 
-    # put together the plot title from the string given as argument to this function and the algorithmus parameters
+    # put together the plot title, including the string given as argument to this function and the other algorithmus
+    # parameters
     original_plot_base = plot_title
     plot_title = create_plot_title (
-        original_plot_base, accumulator_radius, grid_size, distance_threshold, 0 )
+        original_plot_base, algorithmus, accumulator_radius, grid_size, distance_threshold, angle_threshold )
 
     # create the plot
     display_cube, figure = display_consensus_cube (consensus_cube,
@@ -330,9 +372,14 @@ def spheric_cloud_consensus (np_pointcloud, corresponding_pointcloud,
 
     outro_time = time.time () - interim
 
-    print ("iters: " + str(iterations))
+    print ("batch_size: " + str(batch_size ))
 
-    # normalizing the timing
+    # print (loop_cloud_query_time)
+    # print (loop_diff_time)
+    # print (loop_grid_query_time)
+    # print (rasterization_time)
+
+    # normalizing
     loop_cloud_query_time /= iterations
     loop_diff_time /= iterations
     loop_grid_query_time /= iterations
@@ -341,6 +388,7 @@ def spheric_cloud_consensus (np_pointcloud, corresponding_pointcloud,
     print ("\nInit Time: " + str (init_time ))
     print ("Overall Loop Time: " + str (overall_loop_time ))
     average_loop_time = overall_loop_time / iterations
+    #print ("Average Loop Time: " + str (average_loop_time ))
     print ("\tLoop Cloud Query Time: " + "{:.2f}%".format ((loop_cloud_query_time / average_loop_time) * 100 ))
     print ("\tLoop Diff Time: " + "{:.2f}%".format ((loop_diff_time / average_loop_time) * 100 ))
     print ("\tLoop Grid Query Time: " + "{:.2f}%".format ((loop_grid_query_time / average_loop_time) * 100 ))
@@ -353,4 +401,4 @@ def spheric_cloud_consensus (np_pointcloud, corresponding_pointcloud,
          _ = plt.show (figure );
     plt.close ()
 
-    return best_alignment, best_consensus_count
+    return best_alignment, best_consensus_count, best_alignment_consensus_vector
