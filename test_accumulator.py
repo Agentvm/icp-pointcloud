@@ -79,8 +79,6 @@ if __name__ == '__main__':
                                              accumulator_radius=1.0,
                                              grid_size=0.1,
                                              distance_threshold=None,
-                                             angle_threshold=None,
-                                             algorithmus='distance-accumulator',
                                              display_plot=False,
                                              save_plot=True,
                                              relative_color_scale=True,
