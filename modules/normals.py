@@ -87,7 +87,7 @@ def PCA (numpy_cloud ):
     the given point cloud in respect to this plane.
 
     Input:
-        numpy_cloud (np.ndarray):           Numpy array with data points, only the first 3 rows are used
+        numpy_cloud (np.ndarray):           Numpy array with data points, only the first 3 columns are used
 
     Output:
         normal_vector ([1, 3] np.array):    The normal vector of the computed plane

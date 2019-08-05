@@ -1,5 +1,5 @@
 """
-This module contains various pointcloud operations including masking certain rows, sampling and reducing the x, y
+This module contains various pointcloud operations including masking certain columns, sampling and reducing the x, y
 coordinated to zero
 """
 
@@ -12,6 +12,30 @@ import random
 
 # advanced functionality
 import scipy.spatial
+
+
+def delete_cloud_borders (numpy_cloud, distance ):
+    """Delete points at the clouds borders in range of distance"""
+
+    # get min/max of cloud
+    cloud_max_x = np.max (numpy_cloud[:, 0])
+    cloud_min_x = np.min (numpy_cloud[:, 0])
+    cloud_max_y = np.max (numpy_cloud[:, 1])
+    cloud_min_y = np.min (numpy_cloud[:, 1])
+
+    # define 4 borders
+    borders = [cloud_max_x - distance, cloud_min_x + distance,
+               cloud_max_y - distance, cloud_min_y + distance]
+
+    # index all points within borders
+    numpy_cloud = numpy_cloud[numpy_cloud[:, 0] < borders[0]]
+    numpy_cloud = numpy_cloud[numpy_cloud[:, 0] > borders[1]]
+    numpy_cloud = numpy_cloud[numpy_cloud[:, 1] < borders[2]]
+    numpy_cloud = numpy_cloud[numpy_cloud[:, 1] > borders[3]]
+
+    print (numpy_cloud.shape )
+
+    return numpy_cloud
 
 
 def mask_cloud_rows (numpy_cloud, condition_column ):
@@ -43,6 +67,37 @@ def mask_cloud_rows (numpy_cloud, condition_column ):
     return np.ma.masked_array (numpy_cloud, mask=mask_boolean_values )
 
 
+def get_distance_consensus (ref_pointcloud, corr_pointcloud, radius):
+    """
+    Show which points of ref_pointcloud and corr_pointcloud have no neighbor in the other cloud that is nearer than
+    radius
+
+    Input:
+        ref_pointcloud (NumpyPointCloud):       NumpyPointCloud object containing a numpy array and it's data labels
+        corr_pointcloud (NumpyPointCloud):      The cloud corresponding to ref_pointcloud.
+        radius (float):                         Max neighbor distance
+
+    Output:
+        consensus_vector_ref (list())
+        consensus_vector_corr
+    """
+
+    # build trees
+    scipy_kdtree_ref = scipy.spatial.cKDTree (ref_pointcloud.points[:, 0:3] )
+    scipy_kdtree_corr = scipy.spatial.cKDTree (corr_pointcloud.points[:, 0:3] )
+
+    # # determine the consensus in the current aligment of clouds
+    # reference: ref_pointcloud -> consensus_vector: consensus_vector_corr
+    _, consensus_vector_corr = consensus.point_distance_cloud_consensus (
+        scipy_kdtree_ref, ref_pointcloud, corr_pointcloud, radius )
+
+    # reference: corr_pointcloud  -> consensus_vector: consensus_vector_ref
+    _, consensus_vector_ref = consensus.point_distance_cloud_consensus (
+        scipy_kdtree_corr, corr_pointcloud, ref_pointcloud, radius )
+
+    return consensus_vector_ref, consensus_vector_corr
+
+
 def mask_cloudpoints_without_correspondence (ref_pointcloud, corr_pointcloud, radius = 0.5 ):
     """
     Remove points in ref_pointcloud and corr_pointcloud which have no neighbor in the other cloud that is nearer than
@@ -53,18 +108,8 @@ def mask_cloudpoints_without_correspondence (ref_pointcloud, corr_pointcloud, ra
         corr_pointcloud (NumpyPointCloud):   The cloud corresponding to ref_pointcloud. Both clouds will be modified.
     """
 
-    # build trees
-    scipy_kdtree_ref = scipy.spatial.cKDTree (ref_pointcloud[:, 0:3] )
-    scipy_kdtree_corr = scipy.spatial.cKDTree (corr_pointcloud[:, 0:3] )
-
-    # # determine the consensus in the current aligment of clouds
-    # reference: ref_pointcloud -> consensus_vector: consensus_vector_corr
-    _, consensus_vector_corr = consensus.point_distance_cloud_consensus (
-        scipy_kdtree_ref, ref_pointcloud, corr_pointcloud, radius )
-
-    # reference: corr_pointcloud  -> consensus_vector: consensus_vector_ref
-    _, consensus_vector_ref = consensus.point_distance_cloud_consensus (
-        scipy_kdtree_corr, corr_pointcloud, ref_pointcloud, radius )
+    # get consensus column
+    consensus_vector_ref, consensus_vector_corr = get_distance_consensus (ref_pointcloud, corr_pointcloud, radius )
 
     # attach the consensus_vector to the clouds
     ref_pointcloud.add_field (consensus_vector_ref, "Consensus" )

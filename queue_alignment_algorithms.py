@@ -6,9 +6,47 @@ from modules import input_output
 from modules import icp
 from modules import conversions
 from modules import consensus
+from modules import accumulator
 
 # basic imports
 import random
+
+
+def set_accumulator_arguments (accumulator_radius=1.0, grid_size=0.05 ):
+    """Set Search Radius and grid size for accumulator algorithm"""
+    global ACCUMULATOR_RADIUS
+    global ACCUMULATOR_GRID_SIZE
+
+    ACCUMULATOR_RADIUS = accumulator_radius
+    ACCUMULATOR_GRID_SIZE = grid_size
+
+
+def accumulate (full_path_of_reference_cloud, full_path_of_aligned_cloud, plot_title ):
+
+    if ('CONSENSUS_DISTANCE_THRESHOLD' not in globals()
+            or 'CONSENSUS_ANGLE_THRESHOLD' not in globals()
+            or 'CONSENSUS_CUBUS_LENGHT' not in globals()
+            or 'CONSENSUS_STEP' not in globals()
+            or 'CONSENSUS_ALGORITHM' not in globals() ):
+        raise NameError("Consensus arguments are not defined. Call set_consensus_arguments() first.")
+
+    # load clouds
+    reference_pointcloud = input_output.conditionalized_load (full_path_of_reference_cloud )
+    aligned_pointcloud = input_output.conditionalized_load (full_path_of_aligned_cloud )
+
+    # reach consensus by accumulation of results
+    best_alignment, best_consensus_count, best_alignment_consensus_vector = \
+        accumulator.spheric_cloud_consensus (reference_pointcloud,
+                                             aligned_pointcloud,
+                                             accumulator_radius=1.0,
+                                             grid_size=0.05,
+                                             distance_threshold=None,
+                                             angle_threshold=None,
+                                             algorithmus='distance-accumulator',
+                                             display_plot=False,
+                                             save_plot=True,
+                                             relative_color_scale=False,
+                                             plot_title=plot_title )
 
 
 def set_consensus_arguments (distance_threshold=.3, angle_threshold=30,
@@ -211,17 +249,25 @@ if __name__ == '__main__':
     # compare_results (do_icp ('clouds/Regions/Xy Tower/ALS16_Cloud_reduced_normals_cleared.asc',
     #                          'clouds/Regions/Xy Tower/DSM_Cloud_reduced_normals.asc' ), print_csv=True)
 
-    # # consensus
-    set_consensus_arguments (distance_threshold=0.3,
-                             angle_threshold=None,
-                             cubus_length=2,
-                             step=0.15,
-                             algorithm='distance' )
+    # # # consensus
+    # set_consensus_arguments (distance_threshold=0.3,
+    #                          angle_threshold=None,
+    #                          cubus_length=2,
+    #                          step=0.15,
+    #                          algorithm='distance' )
+    #
+    # print ("\n\nComputing Consensus for each cloud pair in reference_translations_part_3_dict returns: "
+    #        + str(use_algorithmus_on_dictionary (reference_dictionary_name="reference_translations_dict",
+    #                                             algorithmus_function=reach_a_consensus,
+    #                                             results_save_name="distance_consensus_translations_dict" )))
+
+    # # accumulator
+    set_accumulator_arguments ()
 
     print ("\n\nComputing Consensus for each cloud pair in reference_translations_part_3_dict returns: "
-           + str(use_algorithmus_on_dictionary ("reference_translations_part_3_dict",
-                                                reach_a_consensus,
-                                                "output_dict_3" )))
+           + str(use_algorithmus_on_dictionary (reference_dictionary_name="reference_translations_dict",
+                                                algorithmus_function=accumulate,
+                                                results_save_name="accumulator_translations_dict" )))
 
     #print (str(input_output.load_obj ("last_output_dict" )).replace (")), ", ")),\n" ))
 
