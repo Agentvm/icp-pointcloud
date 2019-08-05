@@ -186,7 +186,7 @@ def display_consensus_cube (consensus_cube, corresponding_cloud_size, best_align
     # sort by best consensus and remove the first values
     index = -math.floor (500 )
 
-    # sort the 4th row, containing the consensus values, best values last
+    # sort the 4th column, containing the consensus values, best values last
     consensus_cube.view('i8,i8,i8,i8').sort(order=['f3'], axis=0 )
 
     # filter the values

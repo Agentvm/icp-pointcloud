@@ -1,6 +1,6 @@
 """
 Module that contains the NumpyPointCloud class, which effectively wraps together a pointcloud and the description of
-it's data fields for precise adressing, addition, replacement and deletion of data rows.
+it's data fields for precise adressing, addition, replacement and deletion of data columns.
 
 Field naming conventions: Start with a capital letter and separate words with underscores. Examples following.
     "X", "Y", "Z":              Point coordinates
@@ -45,7 +45,8 @@ import warnings
 
 class NumpyPointCloud (object ):
     """
-    A Class that contains a 2-D numpy.ndarray and field labels describing the content of the arrays rows for easy access
+    A Class that contains a 2-D numpy.ndarray and field labels describing the content of the arrays columns for easy
+    access
 
     Field naming conventions: Start with a capital letter and separate words with underscores. Examples following.
         "X", "Y", "Z":              Point coordinates
@@ -68,11 +69,11 @@ class NumpyPointCloud (object ):
     def __init__(self, numpy_ndarray=None, field_labels_list=[] ):
         """
         Constructor. Creates a cloud consisting of an numpy.ndarray data matrix and a list of field labels to describe
-        the data contained in each matrix row.
+        the data contained in each matrix column.
 
         Input:
             numpy_ndarray (np.ndarray):         Input Cloud. Minimum size is (n, 3) for the X, Y, Z point data
-            field_labels_list (list(string)):   Labels of the rows of this cloud, describing the type of data contained
+            field_labels_list (list(string)):   Labels of the columns of this cloud, describing the type of data
         """
 
         # # Inheritance
@@ -107,13 +108,13 @@ class NumpyPointCloud (object ):
 
     def get_fields (self, field_labels_list ):
         """
-        Extract one or multiple rows (fields) of this cloud by name. Returns a copy.
+        Extract one or multiple columns (fields) of this cloud by name. Returns a copy.
 
         Input:
             field_labels_list (list(string)):    The names of the fields to be returned, in a list
 
         Output:
-            data (numpy.ndarray):   The requested row(s). If only one row is fetched, it's shape will be 1 dimensional
+            data (numpy.ndarray):   The requested column(s). If one single column, it's shape will be 1 dimensional
         """
 
         if (type (field_labels_list) is str):
@@ -134,7 +135,7 @@ class NumpyPointCloud (object ):
         # return a copy of the requested data
         data = self.points[:, indices].copy ()
 
-        # if only one row is requested, reshape it to 1-D, so boolean comparison doesn't throw an error
+        # if only one column is requested, reshape it to 1-D, so boolean comparison doesn't throw an error
         if (data.shape[1] == 1):
             data = data[:, 0]
 
@@ -220,7 +221,7 @@ class NumpyPointCloud (object ):
 
     def delete_fields (self, field_labels_list, warn=True ):
         """
-        Delete one or multiple rows of this cloud by name.
+        Delete one or multiple columns of this cloud by name.
 
         Input:
             field_labels_list (list(string)):   The names of the fields to be deleted, in a list
@@ -252,7 +253,7 @@ class NumpyPointCloud (object ):
             field_labels_list = np.array (field_labels_list)[truth_array].tolist ()     # convert to array and back
             indices = self.__get_indices (field_labels_list )
 
-        # remove rows and their labels
+        # remove columns and their labels
         self.points = np.delete(self.points, indices, axis=1 )
         for field_to_delete in field_labels_list:
             self.field_labels.remove (field_to_delete )
