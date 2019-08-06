@@ -39,7 +39,7 @@ def prepare_random_cloud ():
     return np_pointcloud, corresponding_pointcloud, random_displacement
 
 
-def load_example_cloud (folder ):
+def load_example_cloud_old (folder ):
 
     # # big cloud
     np_pointcloud = input_output.conditionalized_load(
@@ -51,23 +51,42 @@ def load_example_cloud (folder ):
     return np_pointcloud, corresponding_pointcloud
 
 
+def load_example_cloud (folder ):
+
+    # # big cloud
+    np_pointcloud = input_output.conditionalized_load(
+        'clouds/New Regions/' + folder + '/Yz Houses_als16_reduced_normals_r_1_cleared.asc' )
+
+    corresponding_pointcloud = input_output.conditionalized_load (
+        'clouds/New Regions/' + folder + '/Yz Houses_als16_reduced_normals_r_1_cleared.asc' )
+
+    return np_pointcloud, corresponding_pointcloud
+
+
 if __name__ == '__main__':
 
     np.random.seed (1337 )
 
-    title = "YZ_Houses"
-    sigma = True
-    sigma_value = 0.05
+    title = "New_Regions_YZ_Houses"
+    sigma = False
+    filter_sigma_only_on_corresponding_cloud = False
+    sigma_value = 0.2
     borders = True
 
     # prepare example clouds, random or from file
     # np_pointcloud, corresponding_pointcloud, random_offset = prepare_random_cloud ()
-    np_pointcloud, corresponding_pointcloud = load_example_cloud ("Yz Houses" )
+    np_pointcloud, corresponding_pointcloud = load_example_cloud_old ("Yz Houses" )
+    np_pointcloud, corresponding_pointcloud = load_example_cloud ("Yz_Houses" )
 
     if (sigma ):
-        title += "_sigma_corr_" + str(sigma_value )
-        #np_pointcloud.points = np_pointcloud.points[np_pointcloud.get_fields ("Sigma") < sigma_value]
+        title += "_sigma_"
+
+        if (filter_sigma_only_on_corresponding_cloud ):
+            title += "corr_only_"
+        else:
+            np_pointcloud.points = np_pointcloud.points[np_pointcloud.get_fields ("Sigma") < sigma_value]
         corresponding_pointcloud.points = corresponding_pointcloud.points[corresponding_pointcloud.get_fields ("Sigma") < sigma_value]
+        title += str(sigma_value )
 
     if (borders ):
         title += "_borders"

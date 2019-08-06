@@ -41,10 +41,10 @@ def load_example_cloud (folder ):
 
     # # big cloud
     np_pointcloud = input_output.conditionalized_load(
-        'clouds/Regions/' + folder + '/ALS16_Cloud_reduced_normals_cleared.asc' )
+        'clouds/New Regions/' + folder + '/Yz Houses_als16_reduced_normals_r_1_cleared.asc' )
 
     corresponding_pointcloud = input_output.conditionalized_load (
-        'clouds/Regions/' + folder + '/DSM_Cloud_reduced_normals.asc' )
+        'clouds/New Regions/' + folder + '/Yz Houses_als16_reduced_normals_r_1_cleared.asc' )
 
     return np_pointcloud, corresponding_pointcloud
 
@@ -54,8 +54,8 @@ if __name__ == '__main__':
     np.random.seed (1337 )
 
     # prepare example clouds, random or from file
-    np_pointcloud, corresponding_pointcloud, random_offset = prepare_random_cloud ()
-    # np_pointcloud, corresponding_pointcloud = load_example_cloud ("Yz Houses" )
+    # np_pointcloud, corresponding_pointcloud, random_offset = prepare_random_cloud ()
+    np_pointcloud, corresponding_pointcloud = load_example_cloud ("Yz_Houses" )
 
     # reach consensus
     best_alignment, best_consensus_count, best_alignment_consensus_vector = \
@@ -66,8 +66,9 @@ if __name__ == '__main__':
                                          distance_threshold=0.2,
                                          angle_threshold=30,
                                          algorithmus='distance',
-                                         plot_title="combined_test",
-                                         save_plot=False )
+                                         plot_title="New_Regions_YZ_Houses",
+                                         relative_color_scale=False,
+                                         save_plot=True )
 
     #print ("Random Offset: " + str(random_offset ))
     #print ("Point Picking Offset Xy Tower: (-0.82777023,  0.16250610,  0.19129372)")
