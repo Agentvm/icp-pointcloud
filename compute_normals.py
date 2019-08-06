@@ -132,6 +132,66 @@ def clear_redundand_classes (np_pointcloud ):
     return np_pointcloud
 
 
+def process_cloud (np_pointcloud,
+                   complete_file_path,
+                   reductions_dictionary={},
+                   previous_folder="",
+                   clear_classes=False,
+                   reduce_clouds=False,
+                   do_normal_calculation=False,
+                   normals_computation_radius = 1.0 ):
+
+    # # alter cloud
+    cloud_altered = False
+
+    # # treat clouds folder-specific
+    # find folder name
+    current_folder = os.path.dirname (complete_file_path.strip ('/' ))
+
+    # delete everything that has a value of more or equal to 20 in "Classification" field
+    if (clear_classes and np_pointcloud.has_fields ("Classification" )):
+        np_pointcloud = clear_redundand_classes (np_pointcloud )
+        print ("Points with class 20 and above have been removed from this cloud.\n")
+        cloud_altered = True
+
+    # reduce cloud
+    if (reduce_clouds ):
+
+        # check if the folder changed
+        if (current_folder != previous_folder ):
+
+            # all clouds in one folder should get the same trafo
+            min_x, min_y = get_reduction (np_pointcloud.points )
+
+        np_pointcloud.points = apply_reduction (np_pointcloud.points, min_x, min_y )
+        print ("Cloud has been reduced by x=" + str(min_x ) + ", y=" + str(min_y ) + ".\n")
+
+        # update the dictionary with the reduction, so the reduction can be undone
+        reductions_dictionary.update ({complete_file_path: (min_x, min_y )} )
+
+        cloud_altered = True
+
+    # compute normals on cloud
+    if (do_normal_calculation ):
+        np_pointcloud, success = compute_normals (np_pointcloud, normals_computation_radius )
+
+        # don't change the cloud unless all normals have been computed
+        cloud_altered = success
+
+    # save the cloud again
+    if (cloud_altered):
+        # add a tag for every action performed
+        alteration_string = "_reduced" if reduce_clouds else ""
+        alteration_string += ("_normals_r_" + str (normals_computation_radius )) if do_normal_calculation else ""
+        alteration_string += "_cleared" if clear_classes else ""
+        filename, file_extension = os.path.splitext(complete_file_path )
+        input_output.save_ascii_file (np_pointcloud.points,
+                                      np_pointcloud.field_labels,
+                                      filename + alteration_string + ".asc" )
+
+    return np_pointcloud, reductions_dictionary, current_folder
+
+
 def process_clouds_in_folder (path_to_folder,
                               permitted_file_extension=None,
                               string_list_to_ignore="",
@@ -176,58 +236,20 @@ def process_clouds_in_folder (path_to_folder,
         # # load
         np_pointcloud = input_output.conditionalized_load (complete_file_path )
 
-        # # treat clouds folder-specific
-        # find folder name
-        current_folder = os.path.dirname (complete_file_path.strip ('/' ))
-
-        # # alter cloud
-        cloud_altered = False
-
-        # delete everything that has a value of more or equal to 20 in "Classification" field
-        if (clear_classes and np_pointcloud.has_fields ("Classification" )):
-            np_pointcloud = clear_redundand_classes (np_pointcloud )
-            print ("Points with class 20 and above have been removed from this cloud.\n")
-            cloud_altered = True
-
-        # reduce cloud
-        if (reduce_clouds ):
-
-            # check if the folder changed
-            if (current_folder != previous_folder ):
-
-                # all clouds in one folder should get the same trafo
-                min_x, min_y = get_reduction (np_pointcloud.points )
-
-            np_pointcloud.points = apply_reduction (np_pointcloud.points, min_x, min_y )
-            print ("Cloud has been reduced by x=" + str(min_x ) + ", y=" + str(min_y ) + ".\n")
-
-            # update the dictionary with the reduction, so the reduction can be undone
-            reductions_dictionary.update ({complete_file_path: (min_x, min_y )} )
-
-            cloud_altered = True
-
-        # compute normals on cloud
-        if (do_normal_calculation ):
-            np_pointcloud, success = compute_normals (np_pointcloud, normals_computation_radius )
-
-            # don't change the cloud unless all normals have been computed
-            cloud_altered = success
-
-        # save the cloud again
-        if (cloud_altered):
-            # add a tag for every action performed
-            alteration_string = "_reduced" if reduce_clouds else ""
-            alteration_string += ("_normals_r_" + str (normals_computation_radius )) if do_normal_calculation else ""
-            alteration_string += "_cleared" if clear_classes else ""
-            filename, file_extension = os.path.splitext(complete_file_path )
-            input_output.save_ascii_file (np_pointcloud.points,
-                                          np_pointcloud.field_labels,
-                                          filename + alteration_string + ".asc" )
+        np_pointcloud, reductions_dictionary, current_folder = process_cloud (
+                                                               np_pointcloud,
+                                                               complete_file_path,
+                                                               reductions_dictionary=reductions_dictionary,
+                                                               previous_folder=previous_folder,
+                                                               clear_classes=clear_classes,
+                                                               reduce_clouds=reduce_clouds,
+                                                               do_normal_calculation=do_normal_calculation,
+                                                               normals_computation_radius=normals_computation_radius )
 
         # set current to previous folder for folder-specific computations
         previous_folder = current_folder
 
-    if (reduce_clouds and cloud_altered ):
+    if (reduce_clouds ):
         input_output.save_obj (reductions_dictionary,
                                str(os.path.basename (path_to_folder.strip('/' )) + "_reductions" ))
 
@@ -237,16 +259,24 @@ def process_clouds_in_folder (path_to_folder,
 
 if __name__ == '__main__':
 
-    # # normals / reducing clouds / clearing classes
-    if (process_clouds_in_folder ('clouds/New Regions/',
-                                  permitted_file_extension='.las',
-                                  string_list_to_ignore=['original_clouds'],
-                                  do_normal_calculation=True,
-                                  reduce_clouds=True,
-                                  clear_classes=True,
-                                  normals_computation_radius=1 )):
-        print ("\n\nAll Clouds successfully processed.")
-    else:
-        print ("Error. Not all clouds could be processed.")
+    # # # normals / reducing clouds / clearing classes
+    # if (process_clouds_in_folder ('clouds/New Regions/',
+    #                               permitted_file_extension='.las',
+    #                               string_list_to_ignore=['original_clouds'],
+    #                               do_normal_calculation=True,
+    #                               reduce_clouds=True,
+    #                               clear_classes=True,
+    #                               normals_computation_radius=1 )):
+    #     print ("\n\nAll Clouds successfully processed.")
+    # else:
+    #     print ("Error. Not all clouds could be processed.")
+
+    # single cloud
+    complete_file_path = "clouds/New Regions/Missing_Building/Missing Building_dim16_reduced_normals_r_1_cleared.asc"
+    np_pointcloud = input_output.conditionalized_load (complete_file_path )
+    np_pointcloud, reductions_dictionary, current_folder = process_cloud (np_pointcloud,
+                                                                          complete_file_path,
+                                                                          do_normal_calculation=True,
+                                                                          normals_computation_radius = 1.0 )
 
     # print (input_output.load_obj ("tmp_reductions" ))
