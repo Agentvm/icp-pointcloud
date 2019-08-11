@@ -256,40 +256,48 @@ if __name__ == '__main__':
     #                          step=0.15,
     #                          algorithm='distance' )
     #
-    # print ("\n\nComputing Consensus for each cloud pair in reference_translations_part_3_dict returns: "
+    # print ("\n\nComputing Consensus for each cloud pair in reference_translations_dict returns: "
     #        + str(use_algorithmus_on_dictionary (reference_dictionary_name="reference_translations_dict",
     #                                             algorithmus_function=reach_a_consensus,
     #                                             results_save_name="distance_consensus_translations_dict" )))
 
-    # # accumulator
-    set_accumulator_arguments ()
+    # # # accumulator
+    # set_accumulator_arguments ()
+    #
+    # print ("\n\nComputing Accumulator Consensus for each cloud pair in reference_translations_dict returns: "
+    #        + str(use_algorithmus_on_dictionary (reference_dictionary_name="reference_translations_dict",
+    #                                             algorithmus_function=accumulate,
+    #                                             results_save_name="accumulator_translations_dict" )))
 
-    print ("\n\nComputing Consensus for each cloud pair in reference_translations_part_3_dict returns: "
-           + str(use_algorithmus_on_dictionary (reference_dictionary_name="reference_translations_dict",
-                                                algorithmus_function=accumulate,
-                                                results_save_name="accumulator_translations_dict" )))
+    # get folder structure
+    print (input_output.get_all_files_in_subfolders("clouds/New Regions/", ".asc" ))
+    for path in input_output.get_all_files_in_subfolders("clouds/New Regions/", ".asc" ):
+        print (path )
+
+    # Make a dict of test cases (tuple of paths) as keys
+    # and the corresponding results (tuple of translation and mse) as values
+    dict = \
+        {
+            ("path1", "path2"): ((0, 0, 0), 0),
+            ("path1", "path2"): ((0, 0, 0), 0),
+            ("path1", "path2"): ((0, 0, 0), 0),
+            ("path1", "path2"): ((0, 0, 0), 0),
+            ("path1", "path2"): ((0, 0, 0), 0),
+            ("path1", "path2"): ((0, 0, 0), 0),
+            ("path1", "path2"): ((0, 0, 0), 0),
+            ("path1", "path2"): ((0, 0, 0), 0),
+            ("path1", "path2"): ((0, 0, 0), 0),
+        }
+
+    input_output.save_obj(dict, "no_translations_dict" )
+
+    # # # icp
+    # print ("\n\nComputing ICP for each cloud pair in reference_translations_dict returns: "
+    #        + str(use_algorithmus_on_dictionary (reference_dictionary_name="reference_translations_dict",
+    #                                             algorithmus_function=do_icp,
+    #                                             results_save_name="icp_translations_dict" )))
 
     #print (str(input_output.load_obj ("last_output_dict" )).replace (")), ", ")),\n" ))
 
     # compare_results (reach_a_consensus ('clouds/Regions/Xy Tower/ALS16_Cloud_reduced_normals_cleared.asc',
     #                                     'clouds/Regions/Xy Tower/DSM_Cloud_reduced_normals.asc' ), print_csv=False)
-
-    # #############plt.show ()
-
-    # # tests
-
-    # print_files_dict_of_folder(folder)
-
-    # print (get_icp_data_paths ())
-
-    # if (use_icp_on_folder ('clouds/Regions/',
-    #                        reference_file_tag='ALS16',
-    #                        aligned_file_tag='DIM_Cloud',
-    #                        permitted_file_extension='.asc' )
-    #    and use_algorithmus_on_dictionary ({})
-    #    and use_algorithmus_on_dictionary ({})
-    #    and use_algorithmus_on_dictionary ({}) ):
-    #
-    #     print ("\n\nAll Clouds successfully processed.")
-    # else:
-    #     print ("Error. Not all clouds could be processed.")
