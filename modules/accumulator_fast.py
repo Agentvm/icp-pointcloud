@@ -44,7 +44,7 @@ def display_consensus_cube (consensus_cube, corresponding_cloud_size, best_align
     '''
     Output:
         consensus_cube ((n, 4) np.array):   Display-ready consensus_cube
-        matplotlib_figure_object (matplotlib.pyplot): Figure object containing the plot for further use
+        matplotlib_figure_object: (matplotlib.pyplot) Figure object containing the plot for further use
     '''
 
     # normalize consensus field
@@ -219,18 +219,18 @@ def spheric_cloud_consensus (np_pointcloud, corresponding_pointcloud,
                                 corresponding_cloud.
 
     Input:
-        np_pointcloud (NumpyPointCloud):    NumpyPointCloud object containing a numpy array and it's data labels
+        np_pointcloud: (NumpyPointCloud)    NumpyPointCloud object containing a numpy array and it's data labels
         corresponding_cloud (NumpyPointCloud):   This cloud will be aligned to match np_pointcloud
-        distance_threshold (float):         Threshold that defines the range at which a point is counted as neigbor
+        distance_threshold: (float)         Threshold that defines the range at which a point is counted as neigbor
         angle_threshold (float, degree):    Angle threshold to define maximum deviation of normal vectors
-        accumulator_radius (float):         Sphere center is translation (0, 0, 0). Translations are possible in sphere
-        grid_size (float):                  Rasterization of results. May yield unsatisfying results if too small
+        accumulator_radius: (float)         Sphere center is translation (0, 0, 0). Translations are possible in sphere
+        grid_size: (float)                  Rasterization of results. May yield unsatisfying results if too small
         algorithmus (string):               'distance', 'angle' or 'combined'
 
     Output:
-        best_alignment ((x, y, z) tuple ):
-        best_alignment_consensus_count (int):
-        consensus_cube ((n, 4) numpy array):
+        best_alignment: ((x, y, z) tuple )
+        best_alignment_consensus_count: (int)
+        consensus_cube: ((n, 4) numpy array)
     '''
 
     print ("\nStarting " + algorithmus + " Accumulator Consensus" )

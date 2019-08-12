@@ -41,13 +41,13 @@ def compute_normals (np_pointcloud, query_radius, batch_size = 10000 ):
     the newly computed colums to the Cloud.
 
     Input:
-        np_pointcloud (NumpyPointCloud):    NumpyPointCloud object containing a numpy array and it's data labels
-        query_radius (float):               The radius in which to search for neighbors belonging to a plane
+        np_pointcloud: (NumpyPointCloud)    NumpyPointCloud object containing a numpy array and it's data labels
+        query_radius: (float)               The radius in which to search for neighbors belonging to a plane
         batch_size (integer):               Number of points per kdtree query. Higher numbers mean higer RAM usage.
 
     Output:
-        np_pointcloud (NumpyPointCloud):    The updated NumpyPointCloud
-        success (boolean):                  Whether this worked, or rather not
+        np_pointcloud: (NumpyPointCloud)    The updated NumpyPointCloud
+        success: (boolean)                  Whether this worked, or rather not
     """
 
     # build a kdtree
@@ -148,12 +148,12 @@ def process_cloud (np_pointcloud,
     Process one cloud by doing a combination of class clearing, coordinate reduction and normal computation
 
     Input:
-        np_pointcloud (NumpyPointCloud):    The NumpyPointCloud to process
-        complete_file_path (String):        The complete file path of the cloud, including file extension
+        np_pointcloud: (NumpyPointCloud)    The NumpyPointCloud to process
+        complete_file_path: (string)        The complete file path of the cloud, including file extension
         clear_classes (boolean):            Wheather to clear all points with "Classification" >= 20
         reduce_clouds (boolean):            Wheather to reduce the x, y, z coordinates to be close to zero
         do_normal_calculation (boolean):    Wheather to compute normals and sigma values on this cloud
-        normals_computation_radius (float): The radius for neighbor search around each point for normal computation
+        normals_computation_radius: (float) The radius for neighbor search around each point for normal computation
 
     Output:
         sucess (boolean):                   True, if everything worked just fine
@@ -217,10 +217,10 @@ def process_clouds_in_folder (path_to_folder,
         reduce_clouds (boolean):                Wheather to reduce the x, y, z coordinates to be close to zero
         clear_classes (boolean):                Wheather to clear all points with "Classification" >= 20
         do_normal_calculation (boolean):        Wheather to compute normals and sigma values on this cloud
-        normals_computation_radius (float):     The radius for neighbor search around each point for normal computation
+        normals_computation_radius: (float)     The radius for neighbor search around each point for normal computation
 
     Output:
-        success (boolean):                      If this worked, or rather not
+        success: (boolean)                      If this worked, or rather not
     """
 
     # crawl path

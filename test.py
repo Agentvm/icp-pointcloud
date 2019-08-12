@@ -492,7 +492,7 @@ numpy_cloud = np.array([[1.1, 2.1, 3.1],
 #     values
 #
 #     Input:
-# file_paths_dictionary (string):  Dictionary with reference_paths as keys and paths of aligned clouds as values
+# file_paths_dictionary: (string)  Dictionary with reference_paths as keys and paths of aligned clouds as values
 # algorithmus_function (function): Function that returns dict {(reference path, aligned_path): (translation, mse)}
 # results_save_name (string):      Results will be saved as data/results_save_path.pkl. Values may be overwritten.
 #     '''

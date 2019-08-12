@@ -45,16 +45,16 @@ def combined_cloud_consensus (tree_of_np_pointcloud, np_pointcloud,
     smaller normal angle difference in np_pointcloud.
 
     Input:
-        tree_of_np_pointcloud (scipy.spatial.kd_tree):  A kd tree of the xyz_coordinates of corresponding_pointcloud
-        np_pointcloud (NumpyPointCloud):                NumpyPointCloud object with a numpy array and it's data labels
-        corresponding_pointcloud (NumpyPointCloud):     This cloud will translated to match np_pointcloud
-        translation ((1, 3) numpy.ndarray):             This translation will be applied to corresponding_pointcloud
-        angle_threshold (float):                        Angle difference lower than this (in rad) are considered inliers
-        distance_threshold (float):                     Defines the range below which a point is counted as neighbor
+        tree_of_np_pointcloud: (scipy.spatial.kd_tree)  A kd tree of the xyz_coordinates of corresponding_pointcloud
+        np_pointcloud: (NumpyPointCloud)                NumpyPointCloud object with a numpy array and it's data labels
+        corresponding_pointcloud: (NumpyPointCloud)     This cloud will translated to match np_pointcloud
+        translation: ((1, 3) numpy.ndarray)             This translation will be applied to corresponding_pointcloud
+        angle_threshold: (float)                        Angle difference lower than this (in rad) are considered inliers
+        distance_threshold: (float)                     Defines the range below which a point is counted as neighbor
 
     Output:
-        consensus_count (int):                          Number of points with neighbors with suitable range and angle
-        consensus_vector ([n, 1] np.array):             Reads 1 if the point is an inlier, else 0
+        consensus_count: (int)                          Number of points with neighbors with suitable range and angle
+        consensus_vector: ([n, 1] np.array)             Reads 1 if the point is an inlier, else 0
     """
 
     # translate the corresponding_pointcloud and query the tree, but only take the x,y,z fields into consideration
@@ -77,15 +77,15 @@ def normal_vector_cloud_consensus (tree_of_np_pointcloud, np_pointcloud,
     Counts points of corresponding_pointcloud that have a neighbor of smaller normal angle difference in np_pointcloud.
 
     Input:
-        tree_of_np_pointcloud (scipy.spatial.kd_tree):  A kd tree of the xyz_coordinates of corresponding_pointcloud
-        np_pointcloud (NumpyPointCloud):                NumpyPointCloud object with a numpy array and it's data labels
-        corresponding_pointcloud (NumpyPointCloud):     This cloud will translated to match np_pointcloud
-        translation ((1, 3) numpy.ndarray):             This translation will be applied to corresponding_pointcloud
-        threshold (float):                              Angle difference lower than this (in rad) are considered inliers
+        tree_of_np_pointcloud: (scipy.spatial.kd_tree)  A kd tree of the xyz_coordinates of corresponding_pointcloud
+        np_pointcloud: (NumpyPointCloud)                NumpyPointCloud object with a numpy array and it's data labels
+        corresponding_pointcloud: (NumpyPointCloud)     This cloud will translated to match np_pointcloud
+        translation: ((1, 3) numpy.ndarray)             This translation will be applied to corresponding_pointcloud
+        threshold: (float)                              Angle difference lower than this (in rad) are considered inliers
 
     Output:
-        consensus_count (int):                          Number of points with neighbors with suitable range and angle
-        consensus_vector ([n, 1] np.array):             Reads 1 if the point is an inlier, else 0
+        consensus_count: (int)                          Number of points with neighbors with suitable range and angle
+        consensus_vector: ([n, 1] np.array)             Reads 1 if the point is an inlier, else 0
     """
 
     # translate the corresponding_pointcloud and query the tree, but only take the x,y,z fields into consideration
@@ -107,15 +107,15 @@ def point_distance_cloud_consensus (tree_of_reference_cloud, corresponding_point
     np_pointcloud.
 
     Input:
-        tree_of_np_pointcloud (scipy.spatial.kd_tree):  A kd tree of the xyz_coordinates of corresponding_pointcloud
-        np_pointcloud (NumpyPointCloud):                NumpyPointCloud object with a numpy array and it's data labels
-        corresponding_pointcloud (NumpyPointCloud):     This cloud will translated to match np_pointcloud
-        translation ((1, 3) numpy.ndarray):             This translation will be applied to corresponding_pointcloud
-        threshold (float):                              Defines the range below which a point is counted as neighbor
+        tree_of_np_pointcloud: (scipy.spatial.kd_tree)  A kd tree of the xyz_coordinates of corresponding_pointcloud
+        np_pointcloud: (NumpyPointCloud)                NumpyPointCloud object with a numpy array and it's data labels
+        corresponding_pointcloud: (NumpyPointCloud)     This cloud will translated to match np_pointcloud
+        translation: ((1, 3) numpy.ndarray)             This translation will be applied to corresponding_pointcloud
+        threshold: (float)                              Defines the range below which a point is counted as neighbor
 
     Output:
-        consensus_count (int):                          Number of points with neighbors with suitable range and angle
-        consensus_vector ([n, 1] np.array):             Reads 1 if the point is an inlier, else 0
+        consensus_count: (int)                          Number of points with neighbors with suitable range and angle
+        consensus_vector: ([n, 1] np.array)             Reads 1 if the point is an inlier, else 0
     """
 
     # query the kdtree of the reference cloud using only the xyz_coordinates
@@ -143,14 +143,14 @@ def display_consensus_cube (consensus_cube, corresponding_cloud_size, best_align
     Displays the results of the consensus algorithm in a cube shaped plot
 
     Input:
-        consensus_cube ((n, 4) np.ndarray):             First 3 columns: X, Y, Z translations, last: consensus_counts
-        corresponding_cloud_size (int):                 Point Number of the cloud compared in accumulator algorithm
-        best_alignment (3-tuple):                       Alignment result of the accumulator algorithm
-        plot_title (string):                            The Header of the Plot
-        relative_color_scale (boolean):                 If True, the maximum consensus will mark the top of the scale
+        consensus_cube: ((n, 4) np.ndarray)             First 3 columns: X, Y, Z translations, last: consensus_counts
+        corresponding_cloud_size: (int)                 Point Number of the cloud compared in accumulator algorithm
+        best_alignment: (3-tuple)                       Alignment result of the accumulator algorithm
+        plot_title: (string)                            The Header of the Plot
+        relative_color_scale: (boolean)                 If True, the maximum consensus will mark the top of the scale
     Output:
-        consensus_cube ((n, 4) np.ndarray):             Normalized consensus_cube
-        matplotlib_figure_object (matplotlib.pyplot):   Figure object containing the plot for further use
+        consensus_cube: ((n, 4) np.ndarray)             Normalized consensus_cube
+        matplotlib_figure_object: (matplotlib.pyplot)   Figure object containing the plot for further use
     """
 
     maximum_consensus = (np.max (consensus_cube[:, 3] / corresponding_cloud_size )) * 100
@@ -282,22 +282,22 @@ def cubic_cloud_consensus (np_pointcloud, corresponding_pointcloud,
     points of cloud np_pointcloud have a neighbor within distance threshold range in corresponding_cloud.
 
     Input:
-        np_pointcloud (NumpyPointCloud):        NumpyPointCloud object containing a numpy array and it's data labels
-        corresponding_cloud (NumpyPointCloud):  This cloud will be aligned to match np_pointcloud
-        distance_threshold (float):             Defines the range below which a point is counted as neighbor
-        angle_threshold (float):                Angle difference lower than this (in rad) are considered inliers
-        cubus_length (float):                   Cubus center is (0,0,0). Determines maximum detectable translation
-        step (float):                           Changes accuracy/resolution of resulting translation. Impact on runtime
-        algorithmus (string):                   Sets consensus variant
+        np_pointcloud: (NumpyPointCloud)        NumpyPointCloud object containing a numpy array and it's data labels
+        corresponding_pointcloud: (NumpyPointCloud)  This cloud will be aligned to match np_pointcloud
+        distance_threshold: (float)             Defines the range below which a point is counted as neighbor
+        angle_threshold: (float)                Angle difference lower than this (in rad) are considered inliers
+        cubus_length: (float)                   Cubus center is (0,0,0). Determines maximum detectable translation
+        step: (float)                           Changes accuracy/resolution of resulting translation. Impact on runtime
+        algorithmus: (string)                   Sets consensus variant
             if dtype = 'distance':  Neigbors are compared based on their distance using distance_threshold
             if dtype = 'angle':     Neigbors are compared based on their normal vector angles using angle_threshold
             if dtype = 'combined':  Both criterions are combined using 'and'
         default: 'distance'
 
     Output:
-        best_alignment ((x, y, z) tuple ):      The resulting alignment of corresponding_pointcloud
-        highest_consensus_count (int):          The maximum consensus count
-        consensus_cube ((n, 4) numpy array):    An overview of results. Contains translations and their consensus counts
+        best_alignment: ((x, y, z) tuple )      The resulting alignment of corresponding_pointcloud
+        highest_consensus_count: (int)          The maximum consensus count
+        consensus_cube: ((n, 4) numpy array)    An overview of results. Contains translations and their consensus counts
     """
 
     # printing the argument of this consensus run for later reference

@@ -72,8 +72,8 @@ class NumpyPointCloud (object ):
         the data contained in each matrix column.
 
         Input:
-            numpy_ndarray (np.ndarray):         Input Cloud. Minimum size is (n, 3) for the X, Y, Z point data
-            field_labels_list (list(string)):   Labels of the columns of this cloud, describing the type of data
+            numpy_ndarray: (np.ndarray)         Input Cloud. Minimum size is (n, 3) for the X, Y, Z point data
+            field_labels_list: (list(string))   Labels of the columns of this cloud, describing the type of data
         """
 
         # # Inheritance
@@ -111,7 +111,7 @@ class NumpyPointCloud (object ):
         Extract one or multiple columns (fields) of this cloud by name. Returns a copy.
 
         Input:
-            field_labels_list (list(string)):    The names of the fields to be returned, in a list
+            field_labels_list: (list(string))    The names of the fields to be returned, in a list
 
         Output:
             data (numpy.ndarray):   The requested column(s). If one single column, it's shape will be 1 dimensional
@@ -158,12 +158,12 @@ class NumpyPointCloud (object ):
         Add one or more data fields to this cloud, optionally replacing existing fields.
 
         Input:
-            field_data (np.ndarray):            Data in the shape of (n, m), where n = number of points in cloud
-            field_labels_list (list(string)):   Labels of field_data, length of list = m
-            replace (boolean):                  If True, fields already contained in this cloud are replaced
+            field_data: (np.ndarray)            Data in the shape of (n, m), where n = number of points in cloud
+            field_labels_list: (list(string))   Labels of field_data, length of list = m
+            replace: (boolean)                  If True, fields already contained in this cloud are replaced
 
         Output:
-            self (NumpyPointCloud):             The object of this cloud (optional)
+            self: (NumpyPointCloud)             The object of this cloud (optional)
         """
 
         # # input checks
@@ -224,11 +224,11 @@ class NumpyPointCloud (object ):
         Delete one or multiple columns of this cloud by name.
 
         Input:
-            field_labels_list (list(string)):   The names of the fields to be deleted, in a list
-            warn (boolean):                     If True, prints a warning if fields to be deleted could not be found
+            field_labels_list: (list(string))   The names of the fields to be deleted, in a list
+            warn: (boolean)                     If True, prints a warning if fields to be deleted could not be found
 
         Output:
-            self (NumpyPointCloud):             The object of this cloud (optional)
+            self: (NumpyPointCloud)             The object of this cloud (optional)
         """
 
         if (type (field_labels_list) is str):

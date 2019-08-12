@@ -130,7 +130,7 @@ def print_reference_dict (reference_dictionary_name ):
     Load a reference dictionary in the data/ folder by name (excluding extension) and print it's innards
 
     Input:
-        reference_dictionary_name (String):   Name of a dict located in 'data/' of shape {("",""): ((x,y,z), mse)}
+        reference_dictionary_name: (String)   Name of a dict located in 'data/' of shape {("",""): ((x,y,z), mse)}
     """
 
     # parse the reference values saved in a file
@@ -164,9 +164,9 @@ def compare_results (algorithmus_results, reference_dict, print_csv=True ):
     Given a dictionary of results, this compares the results against a dictionary of reference values
 
     Input:
-        algorithmus_results (dictionary):   A dictionary of str tuples and translation results {("",""): ((x,y,z), mse)}
-        reference_dict (dictionary):        Contains cloud paths tuples and tranlation results {("",""): ((x,y,z), mse)}
-        print_csv (boolean):                If True, the output is separated by ';' and can be easily processed further
+        algorithmus_results: (dictionary)   A dictionary of str tuples and translation results {("",""): ((x,y,z), mse)}
+        reference_dict: (dictionary)        Contains cloud paths tuples and tranlation results {("",""): ((x,y,z), mse)}
+        print_csv: (boolean)                If True, the output is separated by ';' and can be easily processed further
     """
 
     # # sort the results
@@ -225,9 +225,9 @@ def use_algorithmus_on_dictionary (reference_dictionary_name, algorithmus_functi
     and a list of corresponding aligned cloud file_paths as values
 
     Input:
-        file_paths_dictionary (string):  Dictionary with reference_paths as keys and paths of aligned clouds as values
-        algorithmus_function (function): Function that returns dict {(reference path, aligned_path): (translation, mse)}
-        results_save_name (string):      Results will be saved as data/results_save_path.pkl. Values may be overwritten.
+        file_paths_dictionary: (string)  Dictionary with reference_paths as keys and paths of aligned clouds as values
+        algorithmus_function: (function) Function that returns dict {(reference path, aligned_path): (translation, mse)}
+        results_save_name: (string)      Results will be saved as data/results_save_path.pkl. Values may be overwritten.
     """
 
     # parse the reference values saved in a file

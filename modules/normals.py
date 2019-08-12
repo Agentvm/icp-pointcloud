@@ -87,12 +87,12 @@ def PCA (numpy_cloud ):
     the given point cloud in respect to this plane.
 
     Input:
-        numpy_cloud (np.ndarray):           Numpy array with data points, only the first 3 columns are used
+        numpy_cloud: (np.ndarray)           Numpy array with data points, only the first 3 columns are used
 
     Output:
-        normal_vector ([1, 3] np.array):    The normal vector of the computed plane
-        sigma (float):                      The noise as given by the smallest eigenvalue, normalized by point number
-        mass_center ([1, 3] np.array):      Centre of mass
+        normal_vector: ([1, 3] np.array)    The normal vector of the computed plane
+        sigma: (float)                      The noise as given by the smallest eigenvalue, normalized by point number
+        mass_center: ([1, 3] np.array)      Centre of mass
     """
 
     # abort, if there are no points
@@ -125,13 +125,13 @@ def random_plane_estimation (numpy_cloud, number_of_planes, fixed_point=None ):
     Generates a number of planes from randomly chosen triples of points from numpy_cloud.
 
     Input:
-        numpy_cloud (np.ndarray):       The Point Cloud in which to find random planes
-        number_of_planes (int):         Sets how many planes are to be determined. Must be a multiple of 3.
-        fixed_point ([1, 3]np.ndarray): It is possible to set one angle point that is part of every determined plane
+        numpy_cloud: (np.ndarray)       The Point Cloud in which to find random planes
+        number_of_planes: (int)         Sets how many planes are to be determined. Must be a multiple of 3.
+        fixed_point: ([1, 3]np.ndarray) It is possible to set one angle point that is part of every determined plane
 
     Output:
-        normal_vectors ([number_of_planes, 3] np.ndarray):      The computed normal vectors, one for each plane
-        plane_parameter_d ([number_of_planes, ] np.ndarray):    The plane paramters d, one for each plane
+        normal_vectors: ([number_of_planes, 3] np.ndarray)      The computed normal vectors, one for each plane
+        plane_parameter_d: ([number_of_planes, ] np.ndarray)    The plane paramters d, one for each plane
     '''
 
     # get random indices and extract the corresponding point from the cloud (casting to int as a safety measure)
@@ -167,14 +167,14 @@ def plane_consensus (points, normal_vector, d, threshold ):
     Counts points that have a smaller distance than threshold from a given plane
 
     Input:
-        points ([n, 3] np.ndarray):             The points which to test
-        normal_vector ([1, 3] np.ndarray):      Normal vector of plane
-        d (float):                              Plane parameter d
-        threshold (float):                      Distance at which a point is no longer part of the plane
+        points: ([n, 3] np.ndarray)             The points which to test
+        normal_vector: ([1, 3] np.ndarray)      Normal vector of plane
+        d: (float)                              Plane parameter d
+        threshold: (float)                      Distance at which a point is no longer part of the plane
 
     Output:
-        consensus_count (int):                  Count of consenting points (points that are part of the plane)
-        consensus_points ([x, 3] np.ndarray):   Plane points
+        consensus_count: (int)                  Count of consenting points (points that are part of the plane)
+        consensus_points: ([x, 3] np.ndarray)   Plane points
     '''
 
     distances = (normal_vector[0] * points[:, 0]
@@ -194,15 +194,15 @@ def ransac_plane_estimation (numpy_cloud, threshold, fixed_point=None, w = .9, z
     Returns points and normal vector of the detected plane.
 
     Input:
-        numpy_cloud (np.ndarray):               Input cloud
-        threshold (float, in m):                Points closer to the plane than this value are counted as inliers
-        fixed_point (int):                      This point will be used for every plane estimation
-        w (float between 0 and 1):              Probability that any observation belongs to the model
-        z (float between 0 and 1):              Desired probability that the model is found
+        numpy_cloud: (np.ndarray)               Input cloud
+        threshold: (float, in m)                Points closer to the plane than this value are counted as inliers
+        fixed_point: ([1, 3]np.ndarray)         This point will be used for every plane estimation
+        w: (float between 0 and 1)              Probability that any observation belongs to the model
+        z: (float between 0 and 1)              Desired probability that the model is found
 
     Output:
-        best_normal_vector ([1, 3] np.array):   The resulting normal vector
-        consensus_points (np.ndarray):          Points that are part of the estimated plane
+        best_normal_vector: ([1, 3] np.array)   The resulting normal vector
+        consensus_points: (np.ndarray)          Points that are part of the estimated plane
     """
 
     # variables

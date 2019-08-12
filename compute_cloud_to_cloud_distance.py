@@ -32,11 +32,11 @@ def use_c2c_on_dictionary (reference_dictionary_name, descriptive_name ):
     Computes Cloud2Cloud Distance column for every cloud in reference_dictionary_name
 
     Input:
-        reference_dictionary_name (String): The name of the reference dictionary to load, excluding file extension
-        descriptive_name (String):          This will be added to the name of each cloud when saved again
+        reference_dictionary_name: (String) The name of the reference dictionary to load, excluding file extension
+        descriptive_name: (String)          This will be added to the name of each cloud when saved again
 
     Output:
-        success (boolean):                  True if successful
+        success: (boolean)                  True if successful
     """
 
     # refactor, iterate through reference_dictionary instead

@@ -73,13 +73,13 @@ def get_distance_consensus (ref_pointcloud, corr_pointcloud, radius):
     radius
 
     Input:
-        ref_pointcloud (NumpyPointCloud):           NumpyPointCloud object containing a numpy array and it's data labels
-        corr_pointcloud (NumpyPointCloud):          The cloud corresponding to ref_pointcloud.
-        radius (float):                             Max neighbor distance
+        ref_pointcloud: (NumpyPointCloud)           NumpyPointCloud object containing a numpy array and it's data labels
+        corr_pointcloud: (NumpyPointCloud)          The cloud corresponding to ref_pointcloud.
+        radius: (float)                             Max neighbor distance
 
     Output:
-        consensus_vector_ref ([n, 1] np.array):     Shows 1 where points of ref_pointcloud have a neighbor, 0 otherwise
-        consensus_vector_corr ([n, 1] np.array):    Shows 1 where points of corr_pointcloud have a neighbor, 0 otherwise
+        consensus_vector_ref: ([n, 1] np.array)     Shows 1 where points of ref_pointcloud have a neighbor, 0 otherwise
+        consensus_vector_corr: ([n, 1] np.array)    Shows 1 where points of corr_pointcloud have a neighbor, 0 otherwise
     """
 
     # build trees
@@ -104,13 +104,13 @@ def delete_cloudpoints_without_correspondence (ref_pointcloud, corr_pointcloud, 
     radius
 
     Input:
-        ref_pointcloud (NumpyPointCloud):   NumpyPointCloud object containing a numpy array and it's data labels
-        corr_pointcloud (NumpyPointCloud):  The cloud corresponding to ref_pointcloud. Both clouds will be modified.
-        radius (float):                     Max neighbor distance
+        ref_pointcloud: (NumpyPointCloud)   NumpyPointCloud object containing a numpy array and it's data labels
+        corr_pointcloud: (NumpyPointCloud)  The cloud corresponding to ref_pointcloud. Both clouds will be modified.
+        radius: (float)                     Max neighbor distance
 
     Output:
-        ref_pointcloud (NumpyPointCloud):   The altered reference pointcloud
-        corr_pointcloud (NumpyPointCloud):  The altered corresponding pointcloud
+        ref_pointcloud: (NumpyPointCloud)   The altered reference pointcloud
+        corr_pointcloud: (NumpyPointCloud)  The altered corresponding pointcloud
     """
 
     # get consensus column
@@ -131,13 +131,13 @@ def mask_cloudpoints_without_correspondence (ref_pointcloud, corr_pointcloud, ra
     radius
 
     Input:
-        ref_pointcloud (NumpyPointCloud):   NumpyPointCloud object containing a numpy array and it's data labels
-        corr_pointcloud (NumpyPointCloud):  The cloud corresponding to ref_pointcloud. Both clouds will be modified.
-        radius (float):                     Max neighbor distance
+        ref_pointcloud: (NumpyPointCloud)   NumpyPointCloud object containing a numpy array and it's data labels
+        corr_pointcloud: (NumpyPointCloud)  The cloud corresponding to ref_pointcloud. Both clouds will be modified.
+        radius: (float)                     Max neighbor distance
 
     Output:
-        ref_pointcloud (NumpyPointCloud):   The altered reference pointcloud
-        corr_pointcloud (NumpyPointCloud):  The altered corresponding pointcloud
+        ref_pointcloud: (NumpyPointCloud)   The altered reference pointcloud
+        corr_pointcloud: (NumpyPointCloud)  The altered corresponding pointcloud
     """
 
     # get consensus column
@@ -186,12 +186,12 @@ def reduce_cloud (input_cloud_numpy, copy=True, return_transformation=False ):
     zero
 
     Input:
-        input_cloud_numpy (numpy.ndarray):  The Point Cloud
-        copy (boolean):                     Wheather to copy the array before alteration
-        return_transformation (boolean):    If true, numpy_cloud, min_x_coordinate and min_y_coordinate are returned
+        input_cloud_numpy: (numpy.ndarray)  The Point Cloud
+        copy: (boolean)                     Wheather to copy the array before alteration
+        return_transformation: (boolean)    If true, numpy_cloud, min_x_coordinate and min_y_coordinate are returned
 
     Output:
-        numpy_cloud (numpy.ndarray):        The altered points
+        numpy_cloud: (numpy.ndarray)        The altered points
     """
 
     # copy to avoid reference disaster

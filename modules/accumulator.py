@@ -42,14 +42,14 @@ def display_consensus_cube (consensus_cube, corresponding_cloud_size, best_align
     Displays the results of the accumulator algorithm in a cube shaped plot
 
     Input:
-        consensus_cube ((n, 4) np.ndarray):             First 3 columns: X, Y, Z translations, last: consensus_counts
-        corresponding_cloud_size (int):                 Point Number of the cloud compared in accumulator algorithm
-        best_alignment (3-tuple):                       Alignment result of the accumulator algorithm
-        plot_title (string):                            The Header of the Plot
-        relative_color_scale (boolean):                 If True, the maximum consensus will mark the top of the scale
+        consensus_cube: ((n, 4) np.ndarray)             First 3 columns: X, Y, Z translations, last: consensus_counts
+        corresponding_cloud_size: (int)                 Point Number of the cloud compared in accumulator algorithm
+        best_alignment: (3-tuple)                       Alignment result of the accumulator algorithm
+        plot_title: (string)                            The Header of the Plot
+        relative_color_scale: (boolean)                 If True, the maximum consensus will mark the top of the scale
     Output:
-        consensus_cube ((n, 4) np.ndarray):             Normalized consensus_cube
-        matplotlib_figure_object (matplotlib.pyplot):   Figure object containing the plot for further use
+        consensus_cube: ((n, 4) np.ndarray)             Normalized consensus_cube
+        matplotlib_figure_object: (matplotlib.pyplot)   Figure object containing the plot for further use
     """
 
     maximum_consensus = (np.max (consensus_cube[:, 3] / corresponding_cloud_size )) * 100
@@ -207,19 +207,19 @@ def spheric_cloud_consensus (np_pointcloud, corresponding_pointcloud,
     Counts how many points of cloud np_pointcloud have a neighbor within threshold range in corresponding_cloud.
 
     Input:
-        np_pointcloud (NumpyPointCloud):            NumpyPointCloud object containing a numpy array and it's data labels
-        corresponding_pointcloud (NumpyPointCloud): This cloud will be aligned to match np_pointcloud
-        accumulator_radius (float):                 Sphere center is (0,0,0). Determines maximum detectable translation
-        grid_size (float):                          Rasterization of results. May give unsatisfying results if too small
-        distance_threshold (float):                 Defines the range below which a point is counted as neighbor
-        save_plot (boolean):                        Whether to save the plot of the results for later use
-        display_plot (boolean):                     Whether to show the plot of the results
-        relative_color_scale (boolean):             See display_consensus_cube ()
-        plot_title (string):                        How to title the plot of the results
+        np_pointcloud: (NumpyPointCloud)            NumpyPointCloud object containing a numpy array and it's data labels
+        corresponding_pointcloud: (NumpyPointCloud) This cloud will be aligned to match np_pointcloud
+        accumulator_radius: (float)                 Sphere center is (0,0,0). Determines maximum detectable translation
+        grid_size: (float)                          Rasterization of results. May give unsatisfying results if too small
+        distance_threshold: (float)                 Defines the range below which a point is counted as neighbor
+        save_plot: (boolean)                        Whether to save the plot of the results for later use
+        display_plot: (boolean)                     Whether to show the plot of the results
+        relative_color_scale: (boolean)             See display_consensus_cube ()
+        plot_title: (string)                        How to title the plot of the results
 
     Output:
-        best_alignment ((x, y, z) tuple ):          The resulting alignment of corresponding_pointcloud
-        highest_consensus_count (int):              The maximum consensus count
+        best_alignment: ((x, y, z) tuple )          The resulting alignment of corresponding_pointcloud
+        highest_consensus_count: (int)              The maximum consensus count
     """
 
     print ("\nStarting Distance Accumulator Consensus" )

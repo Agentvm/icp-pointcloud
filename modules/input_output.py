@@ -23,9 +23,9 @@ def save_ascii_file (numpy_cloud, field_labels, file_path ):
     Saves Pointcloud as ASCII file
 
     Input:
-        numpy_cloud (np.ndarray):           Input Cloud. Minimum size is (n, 3) for the X, Y, Z point dat
-        field_labels_list (list(string)):   Labels of the columns of this cloud, describing the type of data
-        file_path (string):                 The full path including filename and extension
+        numpy_cloud: (np.ndarray)           Input Cloud. Minimum size is (n, 3) for the X, Y, Z point data
+        field_labels: (list(string))        Labels of the columns of this cloud, describing the type of data
+        file_path: (string)                 The full path including filename and extension
     """
 
     print('\nSaving file ' + file_path )
@@ -52,13 +52,13 @@ def load_ascii_file (file_path, return_separate=False ):
     Loads an ASCII pointcloud and returns a NumpyPointCloud object
 
     Input:
-        file_path (string):         The full path including filename and extension
-        return_separate (boolean):  If True, returns a numpy.ndarray and a list of field labels
+        file_path: (string)                 The full path including filename and extension
+        return_separate: (boolean)          If True, returns a numpy.ndarray and a list of field labels
 
     Output:
         NumpyPointCloud, containing:
-            points (np.ndarray):            Point Cloud data. Point coordinates and additional colums (fields)
-            field_labels (list(string)):    Labels of the columns of the cloud, describing the type of data
+            points: (np.ndarray)            Point Cloud data. Point coordinates and additional colums (fields)
+            field_labels: (list(string))    Labels of the columns of the cloud, describing the type of data
     """
 
     start_time = time.time()    # measure time
@@ -84,9 +84,9 @@ def save_ply_file (numpy_cloud, file_path ):
     Takes a file_path, then loads a .ply pointcloud file and returns it as numpy array.
 
     Input:
-        numpy_cloud (np.ndarray):   The cloud to save
-        file_path (String):         The relative path to the folder that the file to be loaded is in
-        file_name (String):         The name of the file to be loaded, including it's file type extension (.ply)
+        numpy_cloud: (np.ndarray)   The cloud to save
+        file_path: (string)         The relative path to the folder that the file to be loaded is in
+        file_name: (String)         The name of the file to be loaded, including it's file type extension (.ply)
     """
 
     # Save a file
@@ -109,10 +109,10 @@ def load_ply_file (file_path ):
     Takes a file_path, then loads a .ply pointcloud file and returns it as numpy array.
 
     Input:
-        file_path (string):     The full path including filename and extension
+        file_path: (string)     The full path including filename and extension
 
     Output:
-        points (np.ndarray):    The numpy array containing the loaded points is of shape (n, 3).
+        points: (np.ndarray)    The numpy array containing the loaded points is of shape (n, 3).
     """
 
     # Load a file
@@ -137,8 +137,8 @@ def load_las_file (file_path, dtype=None, return_separate=False ):
     Loads .las data and returns it as NumpyPointCloud
 
     Inputs:
-        file_path (String):                 The path to the file, including extension
-        return_separate (boolean):          If True, returns a numpy.ndarray and a list of field labels
+        file_path: (string)                 The path to the file, including extension
+        return_separate: (boolean)          If True, returns a numpy.ndarray and a list of field labels
         dtype (String):                     Method of scan
             if dtype = 'als': function will return points as ['X', 'Y', 'Z', I, Nr, Rn, Id, 'Classification']
             if dtype = 'dim': function will return points as ['X', 'Y', 'Z', 'Rf', 'Gf', 'Bf', 'Classification']
@@ -147,8 +147,8 @@ def load_las_file (file_path, dtype=None, return_separate=False ):
 
     Output:
         NumpyPointCloud, containing:
-            points (np.ndarray):            Point Cloud data. Point coordinates and additional colums (fields)
-            field_labels (list(string)):    Labels of the columns of the cloud, describing the type of data
+            points: (np.ndarray)            Point Cloud data. Point coordinates and additional colums (fields)
+            field_labels: (list(string))    Labels of the columns of the cloud, describing the type of data
     """
 
     start_time = time.time()    # measure time
@@ -211,13 +211,13 @@ def conditionalized_load (file_path, return_separate=False ):
     Loads .las and .asc files.
 
     Input:
-        file_path (String):                 The path to the file, including extension
-        return_separate (boolean):          If True, returns a numpy.ndarray and a list of field labels
+        file_path: (String)                 The path to the file, including extension
+        return_separate: (boolean)          If True, returns a numpy.ndarray and a list of field labels
 
     Output:
         NumpyPointCloud, containing:
-            points (np.ndarray):            Point Cloud data. Point coordinates and additional colums (fields)
-            field_labels (list(string)):    Labels of the columns of the cloud, describing the type of data
+            points: (np.ndarray)            Point Cloud data. Point coordinates and additional colums (fields)
+            field_labels: (list(string))    Labels of the columns of the cloud, describing the type of data
     """
 
     file_name, file_extension = os.path.splitext(file_path )
@@ -260,8 +260,8 @@ def join_saved_dictionaries (list_of_dict_names, output_name ):
     'data/output_name'
 
     Input:
-        list_of_dict_names (list(String)):  A list of dictionary names to load, excluding their extensions
-        output_name (String):               The dictionary name to save the results under, excluding extension
+        list_of_dict_names: (list(String))  A list of dictionary names to load, excluding their extensions
+        output_name: (String)               The dictionary name to save the results under, excluding extension
     """
 
     resulting_dictionary = {}
@@ -337,10 +337,10 @@ def get_matching_filenames(filename ):
     Finds matching filenames from one point cloud to another. Matches ALS16 to DIM16
 
     Inputs:
-        filename: string; filename of the original file to split
+        filename: (string) filename of the original file to split
 
     Outputs:
-        [s1, s2, s3, s4]: list of string;
+        [s1, s2, s3, s4]: (list of string)
         s1: xmin and ymin
         s2: xmin and ymean
         s3: xmean and ymin
