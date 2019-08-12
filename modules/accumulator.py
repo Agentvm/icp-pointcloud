@@ -349,7 +349,7 @@ def spheric_cloud_consensus (np_pointcloud, corresponding_pointcloud,
 
     # display the plot
     if (display_plot ):
-        _ = plt.show (figure );
+        _ = plt.show (figure )
     plt.close ()
 
     return best_alignment, highest_consensus_count
