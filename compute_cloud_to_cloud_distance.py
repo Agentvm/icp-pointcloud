@@ -39,7 +39,7 @@ def use_c2c_on_dictionary (reference_dictionary_name, descriptive_name ):
         success: (boolean)                  True if successful
     """
 
-    # refactor, iterate through reference_dictionary instead
+    # iterate through reference_dictionary
     reference_dictionary = input_output.load_obj (reference_dictionary_name )
     file_paths_dictionary = get_reference_data_paths (reference_dictionary )
 

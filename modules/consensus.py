@@ -69,7 +69,6 @@ def combined_cloud_consensus (tree_of_np_pointcloud, np_pointcloud,
     return np.sum(consensus_vector ), consensus_vector.reshape (-1, 1 )
 
 
-# refactor: rename tree to tree_of_numpy_cloud
 def normal_vector_cloud_consensus (tree_of_np_pointcloud, np_pointcloud,
                                    corresponding_pointcloud, translation,
                                    threshold ):
