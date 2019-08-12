@@ -1,25 +1,26 @@
 """Import this for a simple iterative closest point algorithm"""
 
-#import sklearn.neighbors    # kdtree
-import scipy.spatial
+# basic imports
 import numpy as np
-import time                 # measure time
-import itertools            # speed improvement when making a [list] out of a [list of [lists]]
+import time
+
+# advanced functionality
+import scipy.spatial
 
 
 def icp (numpy_reference_cloud, numpy_aligned_cloud, accuracy=0.000000001, verbose=False ):
-    '''
+    """
     Iterative closest point algorithm that computes the translation from numpy_aligned_cloud to numpy_reference_cloud.
 
     Input:
-        input_reference_cloud (np.array):       Input Cloud. This Cloud will stay fixed in place.
-        input_aligned_cloud (np.array):         Input Cloud. This Cloud will be moved to match the reference cloud.
-        accuracy (float):                       The desired accuracy of alignment in meters
+        input_reference_cloud: (np.ndarray)       Input Cloud. This Cloud will stay fixed in place.
+        input_aligned_cloud: (np.ndarray)         Input Cloud. This Cloud will be moved to match the reference cloud.
+        accuracy: (float)                         The desired accuracy of alignment in meters
 
     Output:
-        translation ((x, y, z) tuple):          The estimated translation between aligned_cloud and reference_cloud.
-        mean_squared_error ((x, y, z) tuple):   The remaining MSE in x, y and z direction
-    '''
+        translation: ((x, y, z) tuple)          The estimated translation between aligned_cloud and reference_cloud.
+        mean_squared_error: ((x, y, z) tuple)   The remaining MSE in x, y and z direction
+    """
 
     start_time = time.time()    # measure time
 

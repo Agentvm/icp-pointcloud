@@ -1,6 +1,14 @@
+"""This file contains various code snippets with varying relevance focused on numpy point clouds"""
+
 import numpy as np
+import random
 
 
+# set random seeds
+np.random.seed (1337 )
+random.seed (1337 )
+
+# prepare cloud
 numpy_cloud = np.array([[1.1, 2.1, 3.1],
                         [1.2, 2.2, 3.2],
                         [1.3, 2.3, 3.3],
@@ -9,97 +17,182 @@ numpy_cloud = np.array([[1.1, 2.1, 3.1],
                         [1.6, 2.6, 3.6]] )
 
 #
-import math
-import scipy.spatial
-from modules import input_output
 
 
-def create_closed_grid (grid_length, step ):
-
-    # grid variables
-    steps_number = math.ceil (grid_length / step + 1 )
-    grid_points_number = steps_number**3
-
-    # make a grid in the style of a pointcloud
-    grid = np.zeros ((grid_points_number, 4 ))
-
-    # in intervals of step, create grid nodes
-    general_iterator = 0
-    min = -math.floor (steps_number / 2)
-    max = math.ceil (steps_number / 2 )
-    for x_iterator in range (min, max ):
-        for y_iterator in range (min, max ):
-            for z_iterator in range (min, max ):
-
-                grid[general_iterator, 0:3] = [x_iterator * step,
-                                               y_iterator * step,
-                                               z_iterator * step]
-
-                general_iterator += 1
-
-    return grid
-
-
-numpy_cloud = np.array([[1, 0, 0],
-                        [1, 0, 0],
-                        [20, 0, 0],
-                        [30, 0, 0],
-                        [40, 0, 0],
-                        [50, 0, 0]], dtype=float )
-
-numpy_cloud += np.random.uniform (-0.1, 0.1, size=(numpy_cloud.shape[0], 3 ))
-
-compared_cloud = np.array([[1, 2, 0],
-                           [10, 2, 0],
-                           [20, 2, 0],
-                           [30, 2, 0],
-                           [40, 2, 0],
-                           [50, 0, 2]], dtype=float )
-
-compared_cloud += np.random.uniform (-0.1, 0.1, size=(compared_cloud.shape[0], 3 ))
-
-
-accumulator_radius = 2
-grid_size = 0.1
-
-# build a grid as a kdtree to discretize the results
-consensus_cube = create_closed_grid (accumulator_radius * 2, grid_size )
-grid_kdtree = scipy.spatial.cKDTree (consensus_cube[:, 0:3] )
-print ("\nconsensus_cube shape: " + str (consensus_cube.shape ))
-#print ("\nconsensus_cube:\n" + str (consensus_cube ))
-
-# build kdtree and query it for points within radius
-scipy_kdtree = scipy.spatial.cKDTree (numpy_cloud[:, 0:3] )
-cloud_indices = scipy_kdtree.query_ball_point (compared_cloud[:, 0:3], accumulator_radius )
-#print ("\ncloud_indices: " + str (cloud_indices ))
-
-for i, point_indices in enumerate (cloud_indices ):
-    if (len(point_indices ) > 0):
-
-        # diff all points found near the corresponding point with corresponding point
-        diff_vectors = numpy_cloud[point_indices, 0:3] - compared_cloud[i, 0:3]
-        print ("\n---------------------------------------------------------\n\npoint_indices:\n" + str (point_indices ))
-        print ("diff_vectors:\n" + str (diff_vectors ))
-
-        # rasterize
-        dists, point_matches = grid_kdtree.query (diff_vectors, k=1 )
-        print ("dists from gridpoints: " + str (dists.T ))
-        print ("grid point matches: " + str (point_matches.T ))
-
-        # update the cube with the results of this point, ignore multiple hits
-        consensus_cube[np.unique (point_matches ), 3] += 1
-        print ("\nupdated consensus_cube >0:\n" + str (consensus_cube[consensus_cube[:, 3] > 0, :] ))
+# # speed test accumulator init
+# import math
+# import time
+#
+#
+# def create_closed_grid (grid_length, step ):
+#
+#     # grid variables
+#     steps_number = math.ceil (grid_length / step + 1 )
+#     grid_points_number = steps_number**3
+#
+#     # make a grid in the style of a pointcloud
+#     grid = np.zeros ((grid_points_number, 4 ))
+#
+#     # in intervals of step, create grid nodes
+#     general_iterator = 0
+#     minimum = -math.floor (steps_number / 2)
+#     maximum = math.ceil (steps_number / 2 )
+#     for x_iterator in range (minimum, maximum ):
+#         for y_iterator in range (minimum, maximum ):
+#             for z_iterator in range (minimum, maximum ):
+#
+#                 grid[general_iterator, 0:3] = [x_iterator * step,
+#                                                y_iterator * step,
+#                                                z_iterator * step]
+#
+#                 general_iterator += 1
+#
+#     return grid
+#
+#
+# measure = time.time ()
+# grid = create_closed_grid (2, 0.1 )
+# grid_time = time.time - measure
+#
+# print ("grid.shape: " + str (grid.shape ))
+# # print ("grid:\n" + str (grid ))
+#
+# measure = time.time ()
+# lmax = 1
+# lmin = -lmax
+# step = 0.1
+# xyz = np.transpose(np.reshape(np.mgrid[lmin:lmax+step:step, lmin:lmax+step:step, lmin:lmax+step:step], (-1, 4)))
+# print ("\nxyz.shape: " + str (grid.shape ))
+# # print ("xyz:\n" + str (grid ))
+# xyz = time.time - measure
 
 
+# # Test np_pointcloud class NumpyPointCloud - This will throw warnings (and expected errors, if # are removed )
+# from modules.np_pointcloud import NumpyPointCloud
+#
+# numpy_cloud = np.concatenate ((numpy_cloud, numpy_cloud), axis=1 )
+# my_cloud = NumpyPointCloud (numpy_cloud, ["X", "Y", "Z", "I", "Don't", "Know"] )
 
-best_alignment = consensus_cube[np.argmax (consensus_cube[:, 3] ), 0:3]
-print ("\nbest_alignment: \t" + str (best_alignment ))
-#print ("random_offset: \t\t" + str (random_offset ))
+# #
+# # print ("Test: Wrong Get." + str (my_cloud.get_fields (["X", "Y", "Z", "I", "Dont", "Know"] )))
+# # print ("Test: Wrong Get." + str (my_cloud.get_fields (["Dont"] )))
+# print ("\nTest: Get." + str (my_cloud.get_fields (["X", "Y", "Z", "I", "Don't", "Know"] )))
+#
+# # wrong replace
+# # my_cloud.add_fields (np.array([1.1, 2.1, 3.1, 1.1, 2.1, 3.1]).reshape (-1, 1), "Know" )
+# # my_cloud.add_fields (numpy_cloud[:, 2], "Know" )
+# print ("\nTest: Wrong Replace." + str (my_cloud ))
+#
+# print (my_cloud.shape)
+# # replace
+# my_cloud.add_fields (np.array ([1.1, 2.1, 1337, 1.1, 2.1, 3.1]).reshape(-1, 1), "aaa", replace=True )
+# my_cloud.add_fields (numpy_cloud[:, 1], "I", replace=True )
+# print ("\nTest: Replace." + str (my_cloud ))
+#
+# print (my_cloud.shape)
+#
+# # add
+# my_cloud.add_fields ([1.1, 2.1, 3.1, 1337, 2.1, 3.1], "Test1" )
+# print ("\nTest: Add." + str (my_cloud ))
+#
+# my_cloud.delete_fields (["I", "Dont", "Know"] )
+# print ("\nTest: Wrong Delete." + str (my_cloud ))
+#
+# my_cloud.delete_fields (["Test1"] )
+# print ("\nTest: Delete." + str (my_cloud ))
+
+
+# # basic accumulator
+# import math
+# import scipy.spatial
+# from modules import input_output
+#
+#
+# def create_closed_grid (grid_length, step ):
+#
+#     # grid variables
+#     steps_number = math.ceil (grid_length / step + 1 )
+#     grid_points_number = steps_number**3
+#
+#     # make a grid in the style of a pointcloud
+#     grid = np.zeros ((grid_points_number, 4 ))
+#
+#     # in intervals of step, create grid nodes
+#     general_iterator = 0
+#     min = -math.floor (steps_number / 2)
+#     max = math.ceil (steps_number / 2 )
+#     for x_iterator in range (min, max ):
+#         for y_iterator in range (min, max ):
+#             for z_iterator in range (min, max ):
+#
+#                 grid[general_iterator, 0:3] = [x_iterator * step,
+#                                                y_iterator * step,
+#                                                z_iterator * step]
+#
+#                 general_iterator += 1
+#
+#     return grid
+#
+#
+# numpy_cloud = np.array([[1, 0, 0],
+#                         [1, 0, 0],
+#                         [20, 0, 0],
+#                         [30, 0, 0],
+#                         [40, 0, 0],
+#                         [50, 0, 0]], dtype=float )
+#
+# numpy_cloud += np.random.uniform (-0.1, 0.1, size=(numpy_cloud.shape[0], 3 ))
+#
+# corresponding_cloud = np.array([[1, 2, 0],
+#                            [10, 2, 0],
+#                            [20, 2, 0],
+#                            [30, 2, 0],
+#                            [40, 2, 0],
+#                            [50, 0, 2]], dtype=float )
+#
+# corresponding_cloud += np.random.uniform (-0.1, 0.1, size=(corresponding_cloud.shape[0], 3 ))
+#
+#
+# accumulator_radius = 2
+# grid_size = 0.1
+#
+# # build a grid as a kdtree to discretize the results
+# consensus_cube = create_closed_grid (accumulator_radius * 2, grid_size )
+# grid_kdtree = scipy.spatial.cKDTree (consensus_cube[:, 0:3] )
+# print ("\nconsensus_cube shape: " + str (consensus_cube.shape ))
+# #print ("\nconsensus_cube:\n" + str (consensus_cube ))
+#
+# # build kdtree and query it for points within radius
+# scipy_kdtree = scipy.spatial.cKDTree (numpy_cloud[:, 0:3] )
+# cloud_indices = scipy_kdtree.query_ball_point (corresponding_cloud[:, 0:3], accumulator_radius )
+# #print ("\ncloud_indices: " + str (cloud_indices ))
+#
+# for i, point_indices in enumerate (cloud_indices ):
+#     if (len(point_indices ) > 0):
+#
+#         # diff all points found near the corresponding point with corresponding point
+#         diff_vectors = numpy_cloud[point_indices, 0:3] - corresponding_cloud[i, 0:3]
+#         print ("\n-------------------------------------------------------\n\npoint_indices:\n" + str (point_indices ))
+#         print ("diff_vectors:\n" + str (diff_vectors ))
+#
+#         # rasterize
+#         dists, point_matches = grid_kdtree.query (diff_vectors, k=1 )
+#         print ("dists from gridpoints: " + str (dists.T ))
+#         print ("grid point matches: " + str (point_matches.T ))
+#
+#         # update the cube with the results of this point, ignore multiple hits
+#         consensus_cube[np.unique (point_matches ), 3] += 1
+#         print ("\nupdated consensus_cube >0:\n" + str (consensus_cube[consensus_cube[:, 3] > 0, :] ))
+#
+#
+#
+# best_alignment = consensus_cube[np.argmax (consensus_cube[:, 3] ), 0:3]
+# print ("\nbest_alignment: \t" + str (best_alignment ))
+# #print ("random_offset: \t\t" + str (random_offset ))
 
 
 # # Plot an angle histogram of the differences of normal vectors
 # from modules import input_output
-# from modules.conversions import get_fields
 # from modules.normals import normalize_vector_array, normalize_vector
 # import matplotlib.pyplot as plt
 # import scipy.spatial
@@ -108,13 +201,13 @@ print ("\nbest_alignment: \t" + str (best_alignment ))
 # def load_example_cloud (folder ):
 #
 #     # # big cloud
-#     numpy_cloud, numpy_cloud_field_labels = input_output.conditionalized_load(
+#     numpy_pointcloud = input_output.conditionalized_load(
 #         'clouds/Regions/' + folder + '/ALS16_Cloud_reduced_normals_cleared.asc' )
 #
-#     corresponding_cloud, corresponding_cloud_field_labels = input_output.conditionalized_load (
+#     corresponding_pointcloud = input_output.conditionalized_load (
 #         'clouds/Regions/' + folder + '/DSM_Cloud_reduced_normals.asc' )
 #
-#     return numpy_cloud, numpy_cloud_field_labels, corresponding_cloud, corresponding_cloud_field_labels
+#     return numpy_pointcloud, corresponding_pointcloud
 #
 #
 # def einsum_angle_between (vector_array_1, vector_array_2 ):
@@ -125,59 +218,61 @@ print ("\nbest_alignment: \t" + str (best_alignment ))
 #     return np.arccos (diag )
 #
 #
-# def plot_histogram (data, bins ):
+# def plot_histogram (data, numer_of_bins, maximum ):
 #     # the histogram of the data
-#     n, bins, patches = plt.hist(data, bins, density=False, range=(0, 180), facecolor='g', alpha=0.75 )
+#     n, bins, patches = plt.hist(data, numer_of_bins, density=False, range=(0, 180), facecolor='g', alpha=0.75 )
 #
 #     plt.xlabel('angle' )
 #     plt.ylabel('count' )
 #     plt.title('Histogram of Angle Differences Yz Houses translated' )
 #     #plt.text(60, .025, r'$\mu=100,\ \sigma=15$')
-#     plt.axis([0, 180, 0, 200000] )
+#     plt.axis([0, numer_of_bins, 0, maximum] )
 #     plt.grid(True )
 #     plt.show()
 #
 #
-# def get_points_normals_zero (numpy_cloud, field_labels_list):
-#     normals = get_fields (numpy_cloud, field_labels_list, ["Nx", "Ny", "Nz"] )
+# def get_points_normals_zero (numpy_pointcloud, field_labels_list):
+#     normals = numpy_pointcloud.get_normals ()
 #     normals = np.absolute (normals )
 #
 #     sqrt = np.sqrt (normals[:, 0]**2 + normals[:, 1]**2 + normals[:, 2]**2 )
 #
 #     a = np.where (sqrt > 0.5, True, False )
 #
-#     return numpy_cloud[a, :]
-#
-#     #return points
+#     return numpy_pointcloud.points[a, :]
 #
 #
 # # load clouds
-# numpy_cloud, numpy_cloud_field_labels, corresponding_cloud, corresponding_cloud_field_labels \
-#      = load_example_cloud ("Yz Houses" )
+# # numpy_pointcloud, corresponding_pointcloud = load_example_cloud ("Yz Houses" )
 #
-# # numpy_cloud = get_points_normals_zero (numpy_cloud, numpy_cloud_field_labels )
-# # corresponding_cloud = get_points_normals_zero (corresponding_cloud, corresponding_cloud_field_labels )
+# numpy_pointcloud = input_output.load_ascii_file ("clouds/tmp/fail/normals_fixpoint_2.asc" )
+# corresponding_pointcloud = input_output.load_ascii_file ("clouds/tmp/fail/normals_fixpoint_3.asc" )
+#
+# # numpy_pointcloud.points = get_points_normals_zero (numpy_pointcloud.points, numpy_cloud_field_labels )
+# # corresponding_pointcloud.points = get_points_normals_zero (
+# #                                       corresponding_pointcloud.points, corresponding_cloud_field_labels )
 #
 # # translate
-# corresponding_cloud = corresponding_cloud + (0.314620971680, -0.019294738770, -0.035737037659, 0, 0, 0, 0, 0, 0, 0, 0 )
+# corresponding_pointcloud.points[:, 0:3] += (0.314620971680, -0.019294738770, -0.035737037659 )
 #
 # # extract normals
-# normals_numpy_cloud = get_fields (numpy_cloud, numpy_cloud_field_labels, ["Nx", "Ny", "Nz"] )
-# normals_corresponding_cloud = get_fields (corresponding_cloud, corresponding_cloud_field_labels, ["Nx", "Ny", "Nz"] )
+# normals_numpy_cloud = numpy_pointcloud.get_normals ()
+# normals_corresponding_cloud = corresponding_pointcloud.get_normals ()
 #
 # # normalize
 # normals_numpy_cloud = normalize_vector_array (normals_numpy_cloud )
 # normals_corresponding_cloud = normalize_vector_array (normals_corresponding_cloud )
 #
 # # build a kdtree and query it
-# kdtree = scipy.spatial.cKDTree (numpy_cloud[:, 0:3] )
-# distances, correspondences = kdtree.query (corresponding_cloud[:, 0:3], k=1 )
+# kdtree = scipy.spatial.cKDTree (numpy_pointcloud.points[:, 0:3] )
+# distances, correspondences = kdtree.query (corresponding_pointcloud.points[:, 0:3], k=1 )
 #
 # # get the angle differences between the normal vectors
-# angle_differences = einsum_angle_between (normals_numpy_cloud[correspondences, :], normals_corresponding_cloud ) * (180/np.pi)
+# angle_differences = einsum_angle_between (normals_numpy_cloud[correspondences, :],
+#                                           normals_corresponding_cloud ) * (180/np.pi)
 #
 # # plot
-# plot_histogram (angle_differences, 180 )
+# plot_histogram (angle_differences, 180, 12000 )
 #
 # # corresponding_cloud = np.concatenate (
 # #     (corresponding_cloud, angle_differences.reshape (-1, 1 )), axis=1 )
@@ -293,7 +388,7 @@ print ("\nbest_alignment: \t" + str (best_alignment ))
 # if (algorithmus == 'distance'):
 #
 #     arguments_list.append (
-#         [scipy_kdtree, numpy_cloud, compared_cloud, translation, distance_threshold] )
+#         [scipy_kdtree, numpy_cloud, corresponding_cloud, translation, distance_threshold] )
 #
 #
 # out of loop:
@@ -393,12 +488,13 @@ print ("\nbest_alignment: \t" + str (best_alignment ))
 #
 # def use_algorithmus_on_dictionary (reference_dictionary_name, algorithmus_function, results_save_name=None ):
 #     '''
-#     Uses a dictionary of reference cloud file_paths as keys and a list of corresponding aligned cloud file_paths as values
+#     Uses a dictionary of reference cloud file_paths as keys and a list of corresponding aligned cloud file_paths as
+#     values
 #
 #     Input:
-#         file_paths_dictionary (string):  Dictionary with reference_paths as keys and paths of aligned clouds as values
-#         algorithmus_function (function): Function that returns dict {(reference path, aligned_path): (translation, mse)}
-#         results_save_name (string):      Results will be saved as data/results_save_path.pkl. Values may be overwritten.
+# file_paths_dictionary: (string)  Dictionary with reference_paths as keys and paths of aligned clouds as values
+# algorithmus_function (function): Function that returns dict {(reference path, aligned_path): (translation, mse)}
+# results_save_name (string):      Results will be saved as data/results_save_path.pkl. Values may be overwritten.
 #     '''
 #
 #     # parse the reference values saved in a file
@@ -489,7 +585,8 @@ print ("\nbest_alignment: \t" + str (best_alignment ))
 #         indices.append (field_labels_list.index('Ny' ))
 #         indices.append (field_labels_list.index('Nx' ))
 #     else:
-#         raise ValueError ("This Cloud is missing one of the required fields: 'Nx', 'Ny', 'Nz'. Compute Normals first.")
+#         raise ValueError ("This Cloud is missing one of the required fields:
+#                           'Nx', 'Ny', 'Nz'. Compute Normals first.")
 #
 #     return numpy_cloud[:, indices]
 #
@@ -659,28 +756,34 @@ print ("\nbest_alignment: \t" + str (best_alignment ))
 #     measure = time.time ()
 #     # slow looped process
 #     results_loop = normals_numpy_cloud.shape[0] * [None]
-#     for index, (vec1, vec2) in enumerate(zip (normals_numpy_cloud, normals_corresponding_cloud[:normals_numpy_cloud.shape[0], :] )):
+#     for index, (vec1, vec2) in enumerate(
+#           zip (normals_numpy_cloud, normals_corresponding_cloud[:normals_numpy_cloud.shape[0], :] )):
 #         results_loop[index] = (angle_between (vec1, vec2 ) )
 #     loop_time += time.time () - measure
 #
 #     measure = time.time ()
-#     results_monolith = alternative_angle_between (normals_numpy_cloud, normals_corresponding_cloud[:normals_numpy_cloud.shape[0], :], step )
+#     results_monolith = alternative_angle_between (
+#                   normals_numpy_cloud, normals_corresponding_cloud[:normals_numpy_cloud.shape[0], :], step )
 #     monolith_time += time.time () - measure
 #
 #     measure = time.time ()
-#     results_nc_monolith = alternative_angle_between_noclip (normals_numpy_cloud, normals_corresponding_cloud[:normals_numpy_cloud.shape[0], :], step )
+#     results_nc_monolith = alternative_angle_between_noclip (
+#                   normals_numpy_cloud, normals_corresponding_cloud[:normals_numpy_cloud.shape[0], :], step )
 #     monolith_nc_time += time.time () - measure
 #
 #     measure = time.time ()
-#     results_nan_monolith = alternative_angle_between_nan (normals_numpy_cloud, normals_corresponding_cloud[:normals_numpy_cloud.shape[0], :], step )
+#     results_nan_monolith = alternative_angle_between_nan (
+#                   normals_numpy_cloud, normals_corresponding_cloud[:normals_numpy_cloud.shape[0], :], step )
 #     monolith_nan_time += time.time () - measure
 #
 #     measure = time.time ()
-#     results_simple_loop = simple_loop_angle (normals_numpy_cloud, normals_corresponding_cloud[:normals_numpy_cloud.shape[0], :] )
+#     results_simple_loop = simple_loop_angle (
+#                   normals_numpy_cloud, normals_corresponding_cloud[:normals_numpy_cloud.shape[0], :] )
 #     simple_loop_time += time.time () - measure
 #
 #     measure = time.time ()
-#     results_einsum = einsum_angle_between (normals_numpy_cloud, normals_corresponding_cloud[:normals_numpy_cloud.shape[0], :] )
+#     results_einsum = einsum_angle_between (#
+#                   normals_numpy_cloud, normals_corresponding_cloud[:normals_numpy_cloud.shape[0], :] )
 #     einsum_time += time.time () - measure
 #
 # #
@@ -784,63 +887,46 @@ print ("\nbest_alignment: \t" + str (best_alignment ))
 # from modules import normals
 # from modules import input_output
 # import sys
-#
-# # ply files
-# numpy_cloud_1 = input_output.load_ply_file ('clouds/laserscanning/', 'plane1.ply')    # 3806 points
-# #numpy_cloud_2 = input_output.load_ply_file ('clouds/laserscanning/', 'plane2.ply')    # 3806 points
-#
-# # las files
-# #numpy_cloud_1 = input_output.load_las_file ('clouds/laserscanning/plane1.las')    # 3806 points
-# #numpy_cloud_2 = input_output.load_las_file ('clouds/laserscanning/plane2.las')    # 3806 points
-#
-# # # simple plane
-# # numpy_cloud_1 = np.array ([[1, 0, 0],   # +x
-# #                           [2, 1, 0],  # -x
-# #                           [0, 1, 0],
-# #                           [3, 1.5, 0],
-# #                           [-2, 1.5, 0],
-# #                           [3, 1, 0.51]])  # +y
-#
-# # Simple plane OUTPUT
-# # executed with python version 3.5
-# # PCA completed in 0.00033354759216308594 seconds.
 # #
-# # PCA, Cloud 1:
-# # normal_vector: [-0.0400096  -0.10263703  0.99391392]
-# # sigma: 0.17782724826887134
-# # mass_center: [ 1.5   0.5  -0.05]
+# # # ply files
+# # # numpy_cloud_1 = input_output.load_ply_file ('clouds/laserscanning/', 'plane1.ply')    # 3806 points
+# # #numpy_cloud_2 = input_output.load_ply_file ('clouds/laserscanning/', 'plane2.ply')    # 3806 points
 # #
-# # index: [2, 3, 1]
-# # index: [0, 2, 1]
-# # RANSAC completed in 0.0004112720489501953 seconds.
+# # # las files
+# # #numpy_cloud_1 = input_output.load_las_file ('clouds/laserscanning/plane1.las')    # 3806 points
+# # #numpy_cloud_2 = input_output.load_las_file ('clouds/laserscanning/plane2.las')    # 3806 points
 # #
-# # RANSAC, Cloud 1:
-# # normal_vector: [0.18814417 0.28221626 0.94072087]
-# # consensus_points:
-# # [[1.0, 0.0, 0.0], [2.0, 0.0, -0.2], [0.0, 1.0, -0.1], [3.0, 1.0, 0.1]]
-# # OUTPUT END
+# # simple plane
+# # numpy_cloud_1 = np.array ([[-1, 0, 0],   # +x
+# #                           [2, 0, 0],  # -x
+# #                           [0, 2, 0]
+# #                           [2, 0, 200]])  # +y
 #
-# #                                                                 matlab: 7926 points
+# numpy_cloud_1 = np.array ([[-1, 0, 0],   # +x
+#                           [2, 0, 0],  # -x
+#                           [0, 2, 0],
+#                           [0, 3, 0],
+#                           [0, 4, 0],
+#                           [0, 5, 0],
+#                           [-1, 0, 200],   # +x
+#                           [2, 0, 200],  # -x
+#                           [0, 2, 200],
+#                           [0, 3, 200],
+#                           [0, 4, 200],
+#                           [0, 5, 200]])  # +y
 #
+# # numpy_cloud_1 = np.random.uniform (-10, 10, (300, 3))
+# #
 # # 1st cloud
-# normal_vector, sigma, mass_center = normals.PCA (numpy_cloud_1 )
-# print ('PCA, Cloud 1:\nnormal_vector: ' + str(normal_vector ))
+# normal_vector, consensus_points, _, _, _ = \
+#     normals.ransac_plane_estimation (numpy_cloud_1, 0.1, fixed_point=numpy_cloud_1[0, :], w=0.8 )
+# print ('\nRANSAC, Cloud 1:\nnormal_vector: ' + str(normal_vector ))
+# print ('consensus_points:\n' + str(consensus_points ) + '\n')
+# #
+# normal_vector, sigma, mass_center, _ = normals.PCA (consensus_points )
+# print ('\nPCA, Cloud 1:\nnormal_vector: ' + str(normal_vector ))
 # print ('sigma: ' + str(sigma ))
 # print ('mass_center: ' + str(mass_center ) + '\n')
-#
-# normal_vector, consensus_points = normals.ransac_plane_estimation (numpy_cloud_1, 0.5 )
-# print ('RANSAC, Cloud 1:\nnormal_vector: ' + str(normal_vector ))
-# print ('consensus_points:\n' + str(consensus_points ) + '\n')
-#
-# # # 2nd cloud
-# # normal_vector, sigma, mass_center = normals.PCA (numpy_cloud_2 )
-# # print ('PCA, Cloud 2:\nnormal_vector: ' + str(normal_vector ))
-# # print ('sigma: ' + str(sigma ))
-# # print ('mass_center: ' + str(mass_center ))
-# #
-# # normal_vector, consensus_points = normals.ransac_plane_estimation (numpy_cloud_2, 0.5 )
-# # print ('RANSAC, Cloud 2:\nnormal_vector: ' + str(normal_vector ))
-# # print ('consensus_points:\n' + str(consensus_points ) + '\n')
 
 
 # corresponding_cloud = np.array([[1.1, 0, 0],
@@ -1047,99 +1133,6 @@ print ("\nbest_alignment: \t" + str (best_alignment ))
 # print (file_path)
 # print (len(file_path.split ('/')))
 # print (file_path.split ('/')[-2])
-
-# # cloud not mutable :(
-#from custom_clouds import CustomCloud
-#
-#
-# a = CustomCloud.initialize_xyz (numpy_cloud )
-#
-# a.fields.y = 0
-#
-# print (a.fields.y)
-#
-# for point in a:
-#     point.x = 0
-#     print (point)
-#
-# print (a)
-
-
-# import input_output
-#
-#
-# big_numpy_cloud = np.array([[1010, 2100, 3.1, 0.5, 1010, 2100, 3.1],
-#                             [1620, 1500, 3.2, 0.5, 1010, 2100, 3.1],
-#                             [1880, 1470, 3.3, 0.5, 1010, 2100, 3.1]] )
-#
-# #print (big_numpy_cloud[:, 1] - 1000.0)
-# input_output.save_ascii_file (big_numpy_cloud,
-#                              ['x', 'y', 'z', 'i', 'normx', 'normy', 'normz'],
-#                              "clouds/tmp/input_output_test.asc" )
-#
-# custom_cloud = input_output.load_ascii_file ("clouds/tmp/input_output_test.asc", return_custom_cloud=True)
-#
-# print ("Custom:\n" + str(custom_cloud ))
-
-
-# #time difference between numpy and custom cloud ~ 1/1.5
-# from custom_clouds import CustomCloud
-# import time
-# numpy_cloud = np.random.rand (1000000, 3) * 1000
-#
-# a = time.time ()
-# custom_cloud = CustomCloud.initialize_xyz(numpy_cloud )
-# print (time.time () - a )
-# a = time.time ()
-# input_output.save_ascii_file(custom_cloud.data, custom_cloud.labels )
-# print (time.time () - a )
-
-
-# from custom_clouds import CustomCloud
-# import time
-# # init both clouds
-# numpy_cloud = np.random.rand (10000, 3 ) * 1000
-# custom = CustomCloud.initialize_xyz (numpy_cloud )
-#
-# print ('\nnumpy_cloud:\n' + str(numpy_cloud ))
-# print ('\nCustom cloud:\n' + str(custom ))
-#
-# # test time
-# numpy_time = time.time ()
-# for point in numpy_cloud:
-#     point = point * 3
-# print ("numpy time: " + str (time.time () - numpy_time ))
-#
-# # test time
-# custom_time = time.time ()
-# for point in custom:
-#     point = point * 3
-# print ("custom_time time: " + str (time.time () - custom_time ))
-
-
-# custom = CustomCloud.initialize_xyzi (numpy_cloud )
-# happy = np.array((0.0, 1.0, 1.0, 0.0, 1.0, 1.0 ))
-#
-# # print
-# print ('\ncustom.fields: ' + str(custom.labels ))
-# print ('\nhas happy: ' + str(custom.has_field ("happy" ) ))
-# print ('\nCustom cloud:\n' + str(custom ))
-#
-# # add some random field
-# print ('\n\n------------------------------------------\nadding field happy')
-# custom.add_field (happy, "happy" )
-#
-# # print
-# print ('\ncustom.fields: ' + str(custom.labels ))
-# print ('\nhas happy: ' + str(custom.has_field ("happy" ) ))
-# print ('\nCustom cloud:\n' + str(custom ))
-#
-# print ('\ncustom.fields.happy: ' + str(custom.fields.happy ) + '\n')
-#
-# for point in custom:
-#     print ('point: ' + str(point ))
-#     if (custom.has_field ("happy" )):
-#         print ('point.happy: ' + str(point.happy ))
 
 
 # field_names_list = ["x", "y", "z", "i" ]

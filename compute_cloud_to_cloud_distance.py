@@ -1,49 +1,43 @@
+"""Computes C2C_absolute_distances on a cloud compared to another cloud. Mimics CloudCompare behaviour"""
+
+
+# local modules
 from modules import input_output
 from queue_alignment_algorithms import get_reference_data_paths
-# from modules import icp
-# from modules import conversions
-# from modules import consensus
-#from data import transformations
-# from collections import OrderedDict
-import numpy as np
-import os
-#import sklearn.neighbors    # kdtree
+
+# basic imports
+import os.path
+
+# advanced functionality
 import scipy.spatial
-# import random
 
 
-def cloud2cloud (reference_cloud, compared_cloud ):
-    ''' Computes field C2C_absolute_distances on compared cloud '''
+def cloud2cloud (reference_pointcloud, aligned_pointcloud ):
+    """Computes field C2C_absolute_distances on compared cloud"""
 
     # make a tree an get a list of distances to the nearest neigbor and his index (which is not needed)
     # but only take the x,y,z fields into consideration (reference_cloud[:, 0:3])
-    scipy_kdtree = scipy.spatial.cKDTree (reference_cloud[:, 0:3] )
-    #tree = sklearn.neighbors.kd_tree.KDTree (reference_cloud[:, 0:3], leaf_size=40, metric='euclidean' )
+    scipy_kdtree = scipy.spatial.cKDTree (reference_pointcloud.get_xyz_coordinates () )
 
-    # query the three, but only take the x,y,z fields into consideration (compared_cloud[:, 0:3])
-    #output = scipy_kdtree.query (compared_cloud[:, 0:3], k=1, return_distance=True )
-    distances, indices = scipy_kdtree.query (compared_cloud[:, 0:3], k=1 )
+    # query the three, but only take the x,y,z fields into consideration
+    c2c_distances, indices = scipy_kdtree.query (aligned_pointcloud.get_xyz_coordinates (), k=1 )
 
-    # Make a list out of the values of the first numpy array,
-    # Take only the distances ([0]), not the neighbor indices ([1])
-    #distances = list(itertools.chain(*output[0] ))
-    #neighbor_indices = list(itertools.chain(*output[1] ))
-
-    # print ("\nlen(distances_pre): " + str(len(distances_pre)))
-    # print (distances_pre)
-    #
-    # print ("compared_cloud.shape[0]: " + str(compared_cloud.shape[0]))
-    # print ("reference_cloud.shape[0]: " + str(reference_cloud.shape[0]))
-    # print (distances)
-
-    # add a new field containing the distance to the nearest neighbor of each point to the compared_cloud and return it
-    return np.concatenate ((compared_cloud, distances.reshape (-1, 1)), axis=1 )
+    # add a new field containing the distance to the nearest neighbor of each point
+    # to the corresponding_cloud and return it
+    return aligned_pointcloud.add_fields (c2c_distances.reshape (-1, 1), ["C2C_absolute_distances"] )
 
 
 def use_c2c_on_dictionary (reference_dictionary_name, descriptive_name ):
-    '''
-    Takes the name of a dictionary in data/ and returns a numpy cloud with Cloud2Cloud Distance column computed
-    '''
+    """
+    Computes Cloud2Cloud Distance column for every cloud in reference_dictionary_name
+
+    Input:
+        reference_dictionary_name: (String) The name of the reference dictionary to load, excluding file extension
+        descriptive_name: (String)          This will be added to the name of each cloud when saved again
+
+    Output:
+        success: (boolean)                  True if successful
+    """
 
     # refactor, iterate through reference_dictionary instead
     reference_dictionary = input_output.load_obj (reference_dictionary_name )
@@ -65,46 +59,31 @@ def use_c2c_on_dictionary (reference_dictionary_name, descriptive_name ):
 
             # load clouds
             reference_cloud = input_output.load_ascii_file (reference_cloud_path )
-            aligned_cloud, field_labels_list = input_output.conditionalized_load(aligned_cloud_path )
+            aligned_pointcloud = input_output.conditionalized_load(aligned_cloud_path )
 
             # compute cloud to cloud distance on the translated cloud and update field_labels_list
             # get the translation out of the reference_dictionary
-            key = (reference_cloud_path, aligned_cloud_path)    # prepare dictionary key
-            alignment = [0] * aligned_cloud.shape[1]            # prepare shape of list for addition
-            alignment[0:3], mse = reference_dictionary[key]     # extract alignment
+            key = (reference_cloud_path, aligned_cloud_path)        # prepare dictionary key
+            alignment, mse = reference_dictionary[key]              # extract alignment
 
-            # apply alignment and update aligned_cloud with C2C_absolute_distances field
-            updated_aligned_cloud = cloud2cloud(reference_cloud, aligned_cloud + alignment)
-            field_labels_list += ["C2C_absolute_distances"]
+            # apply alignment (the cloud will be saved with a new name)
+            aligned_pointcloud.points[:, 0:3] += alignment
 
-            # make path
+            # update aligned_cloud with C2C_absolute_distances field
+            updated_aligned_pointcloud = cloud2cloud(reference_cloud, aligned_pointcloud )
+
+            # carve path
             _, reference_file_name = input_output.get_folder_and_file_name (reference_cloud_path)
             _, aligned_file_name = input_output.get_folder_and_file_name (aligned_cloud_path)
             base_path = os.path.dirname(aligned_cloud_path) + "/Results/"
             save_path = base_path + aligned_file_name + "to_" + reference_file_name + descriptive_name + ".asc"
 
             # save as result
-            input_output.save_ascii_file (updated_aligned_cloud, field_labels_list, save_path )
+            input_output.save_ascii_file (updated_aligned_pointcloud.points,
+                                          updated_aligned_pointcloud.field_labels,
+                                          save_path )
 
     return True
-
-
-# def get_reference_data_paths (input_dictionary ):
-#     '''
-#     Reads input_dictionary to get all transformations currently saved and returns them in a
-#     dictionary that can be directly used with use_algorithmus_on_dictionary()
-#     '''
-#     dict = {}
-#     for key in input_dictionary:
-#
-#         reference_path, aligned_path = key
-#
-#         if (dict.__contains__ (reference_path )):
-#             dict[reference_path].append (aligned_path )
-#         else:
-#             dict.update ({reference_path: [aligned_path]} )
-#
-#     return dict
 
 
 if __name__ == '__main__':
