@@ -18,40 +18,56 @@ from open3d import io, PointCloud, Vector3dVector, read_point_cloud, set_verbosi
 import pickle
 
 
-def save_ascii_file (points, field_labels, path ):
-    '''
+def save_ascii_file (numpy_cloud, field_labels, file_path ):
+    """
     Saves Pointcloud as ASCII file
 
     Input:
-        points (numpy.ndarray): An 2d array of numpy data
-    '''
+        numpy_cloud (np.ndarray):           Input Cloud. Minimum size is (n, 3) for the X, Y, Z point dat
+        field_labels_list (list(string)):   Labels of the columns of this cloud, describing the type of data
+        file_path (string):                 The full path including filename and extension
+    """
 
-    print('\nSaving file ' + path )
+    print('\nSaving file ' + file_path )
 
-    # "%.2f %.2f %.2f %.8f %.8f %.8f %.0f %.0f"
-    # "%.8f %.8f %.8f %.2f %.2f %.2f"
+    # define coordinate precision
     format = "%.8f %.8f %.8f"
-    for i in range (points.shape[1] - 3 ):
+
+    # define precision of the other data fields
+    for i in range (numpy_cloud.shape[1] - 3 ):
         format = format + " %.6f"
 
+    # format the header of the ascii file containing the descriptions of data column content
     field_names_list = ['{0} '.format(name) for name in field_labels]
     leading_line = "//" + ''.join(field_names_list)
 
-    np.savetxt(path,  # pfad + name
-    points,  # numpy array
-    header=leading_line,
-    comments='',
-    fmt = format)  # format
+    # save
+    np.savetxt(file_path, numpy_cloud, header=leading_line, comments='', fmt=format )
 
     return True
 
 
-def load_ascii_file (path, return_separate=False ):
+def load_ascii_file (file_path, return_separate=False ):
+    """
+    Loads an ASCII pointcloud and returns a NumpyPointCloud object
+
+    Input:
+        file_path (string):         The full path including filename and extension
+        return_separate (boolean):  If True, returns a numpy.ndarray and a list of field labels
+
+    Output:
+        NumpyPointCloud, containing:
+            points (np.ndarray):            Point Cloud data. Point coordinates and additional colums (fields)
+            field_labels (list(string)):    Labels of the columns of the cloud, describing the type of data
+    """
 
     start_time = time.time()    # measure time
-    print('\nLoading file ' + path + ' ...')
-    numpy_cloud = np.loadtxt (path, comments='//')
-    with open(path) as f:
+
+    print('\nLoading file ' + file_path + ' ...')
+
+    # load the file, extracting the header of the file as field labels list
+    numpy_cloud = np.loadtxt (file_path, comments='//')
+    with open(file_path) as f:
         field_labels_list = f.readline().strip ('//').split ()
 
     print ("Field labels: " + str (field_labels_list ))
@@ -63,18 +79,18 @@ def load_ascii_file (path, return_separate=False ):
     return NumpyPointCloud(numpy_cloud, field_labels_list )
 
 
-def save_ply_file (numpy_cloud, file_name ):
-    '''
-    Takes a directory path and a filename, then loads a .ply pointcloud file and returns it as numpy array.
+def save_ply_file (numpy_cloud, file_path ):
+    """
+    Takes a file_path, then loads a .ply pointcloud file and returns it as numpy array.
 
     Input:
-        numpy_cloud (np.ndarray): The cloud to save
-        dir_in (String):        The relative path to the folder that the file to be loaded is in
-        file_name (String):     The name of the file to be loaded, including it's file type extension (.ply)
-    '''
+        numpy_cloud (np.ndarray):   The cloud to save
+        file_path (String):         The relative path to the folder that the file to be loaded is in
+        file_name (String):         The name of the file to be loaded, including it's file type extension (.ply)
+    """
 
     # Save a file
-    print('\nSaving file ' + file_name )
+    print('\nSaving file ' + file_path )
     if (numpy_cloud.shape[0] == 0):
         print ("This Cloud has no points. Aborting")
         return
@@ -85,28 +101,27 @@ def save_ply_file (numpy_cloud, file_name ):
 
     # Set Debug log to Error, so it doesn't print a messy loading bar, then write out
     set_verbosity_level(VerbosityLevel.Error)
-    io.write_point_cloud(file_name, open3d_cloud, write_ascii=True )
+    io.write_point_cloud(file_path, open3d_cloud, write_ascii=True )
 
 
-def load_ply_file (path ):
-    '''
-    Takes a directory path and a filename, then loads a .ply pointcloud file and returns it as numpy array.
+def load_ply_file (file_path ):
+    """
+    Takes a file_path, then loads a .ply pointcloud file and returns it as numpy array.
 
     Input:
-        dir_in (String):     The relative path to the folder that the file to be loaded is in
-        file_name (String):  The name of the file to be loaded, including it's file type extension (.ply)
+        file_path (string):     The full path including filename and extension
 
     Output:
-        points (np.ndarray):   The numpy array containing the loaded points is of shape (n, 3).
-    '''
+        points (np.ndarray):    The numpy array containing the loaded points is of shape (n, 3).
+    """
 
     # Load a file
     start_time = time.time()    # measure time
-    print('\nLoading file ' + path + ' ...')
+    print('\nLoading file ' + file_path + ' ...')
 
     # Set Debug log to Error, so it doesn't print a messy loading bar, then read the file content
     set_verbosity_level(VerbosityLevel.Error)
-    open3d_point_cloud = read_point_cloud(path )
+    open3d_point_cloud = read_point_cloud(file_path )
 
     # convert to numpy array
     points = np.asarray(open3d_point_cloud.points )
@@ -119,63 +134,72 @@ def load_ply_file (path ):
 
 def load_las_file (file_path, dtype=None, return_separate=False ):
     """
-    Loads .las data as numpy array
+    Loads .las data and returns it as NumpyPointCloud
 
     Inputs:
-        dir_in (String): directory in
-        filename (String): name of the .las tile (incl. .las)
-        dtype (String):
-        if dtype = 'als', then the function will return points as [x, y, z, intensity, class]
-        if dtype = 'dim', then the function will return points as [x, y, z, r, g, b, class]
-        if dtype = None, then the function will return points as [x, y, z, class]
-        default: dtype = None
+        file_path (String):                 The path to the file, including extension
+        return_separate (boolean):          If True, returns a numpy.ndarray and a list of field labels
+        dtype (String):                     Method of scan
+            if dtype = 'als': function will return points as ['X', 'Y', 'Z', I, Nr, Rn, Id, 'Classification']
+            if dtype = 'dim': function will return points as ['X', 'Y', 'Z', 'Rf', 'Gf', 'Bf', 'Classification']
+            if dtype = None: function will return points as ['X', 'Y', 'Z', 'Classification']
+            default: dtype = None
 
-    Outputs:
-        points: np array; contains n points with different columns depending on dtype
-        field_labels_list:
+    Output:
+        NumpyPointCloud, containing:
+            points (np.ndarray):            Point Cloud data. Point coordinates and additional colums (fields)
+            field_labels (list(string)):    Labels of the columns of the cloud, describing the type of data
     """
 
-    # Load a file
     start_time = time.time()    # measure time
     print('\nLoading file ' + file_path + ' ...')
 
-    field_labels_list = []
+    # Load a file
     with File(file_path, mode = 'r') as inFile:
+
         # add points by adding xyz channels. Reshape to create colums
         x = np.reshape(inFile.x.copy(), (-1, 1))
         y = np.reshape(inFile.y.copy(), (-1, 1))
         z = np.reshape(inFile.z.copy(), (-1, 1))
 
+        # add the classification channel
+        raw_class = np.reshape(inFile.raw_classification.copy(), (-1, 1))
+
+        # Load Dense Image matching cloud
         if dtype == 'dim':
+
             # add rgb color channels and convert them to float
             red = np.reshape(inFile.red.copy() / 65535.0, (-1, 1))
             green = np.reshape(inFile.green.copy() / 65535.0, (-1, 1))
             blue = np.reshape(inFile.blue.copy() / 65535.0, (-1, 1))
-            raw_class = np.reshape(inFile.raw_classification.copy(), (-1, 1))   # add classification channel
 
             # join all values in one np.array and update the field labels to allow safe access of colums
             points = np.concatenate((x, y, z, red, green, blue, raw_class), axis = -1)  # join all values in an np.array
-            field_labels_list += ['X', 'Y', 'Z', 'Rf', 'Gf', 'Bf', 'Classification']
+            field_labels_list = ['X', 'Y', 'Z', 'Rf', 'Gf', 'Bf', 'Classification']
 
+        # Load Airborne Laserscanning cloud
         elif dtype == 'als':
+
             # extract the scalar fields of the .las cloud
             intensity = np.reshape(inFile.intensity.copy(), (-1, 1))            # add LIDAR intensity
             num_returns = np.reshape(inFile.num_returns.copy(), (-1, 1))        # number of returns
             return_num = np.reshape(inFile.return_num.copy(), (-1, 1))          # this points' return number
             point_src_id = np.reshape(inFile.pt_src_id.copy(), (-1, 1))         # this points' file origin id
-            raw_class = np.reshape(inFile.raw_classification.copy(), (-1, 1))   # add classification channel
 
             # join all values in one np.array and update the field labels to allow safe access of colums
             points = np.concatenate((x, y, z, intensity, num_returns, return_num, point_src_id, raw_class), axis = -1)
-            field_labels_list += [
+            field_labels_list = [
                 'X', 'Y', 'Z', 'Intensity', 'Number_of_Returns', 'Return_Number', 'Point_Source_ID', 'Classification']
 
+        # Load some other cloud
         else:
-            points = np.concatenate((x, y, z, raw_class), axis = -1)  # join all values in one np.array
+
+            # join all values in one np.array and update the field labels to allow safe access of colums
+            field_labels_list = ['X', 'Y', 'Z', 'Classification']
+            points = np.concatenate((x, y, z, raw_class), axis = -1)
 
     print ("Field labels: " + str (field_labels_list ))
-    print ('Cloud loaded in ' + str(time.time() - start_time) + ' seconds.\nNumber of points: '
-           + str(points.shape[0] ))
+    print ('Cloud loaded in ' + str(time.time() - start_time) + ' seconds.\nNumber of points: ' + str(points.shape[0] ))
 
     if (return_separate ):
         return points, field_labels_list
@@ -183,20 +207,19 @@ def load_las_file (file_path, dtype=None, return_separate=False ):
 
 
 def conditionalized_load (file_path, return_separate=False ):
-    '''
+    """
     Loads .las and .asc files.
 
     Input:
-        file_path (string):     The path to the file to load. Includes file extension.
+        file_path (String):                 The path to the file, including extension
+        return_separate (boolean):          If True, returns a numpy.ndarray and a list of field labels
 
     Output:
         NumpyPointCloud, containing:
-            points          (np.ndarray): The cloud values, fitted in a numpy nd array
-            labels_list:    The header of the file, containing the labels of the cloud fields (column titles)
-    '''
+            points (np.ndarray):            Point Cloud data. Point coordinates and additional colums (fields)
+            field_labels (list(string)):    Labels of the columns of the cloud, describing the type of data
+    """
 
-    np_pointcloud = None
-    #field_labels_list = []
     file_name, file_extension = os.path.splitext(file_path )
 
     # # load the file
@@ -204,17 +227,13 @@ def conditionalized_load (file_path, return_separate=False ):
         if ("DSM_Cloud" in os.path.basename (file_path ) or "_dim" in os.path.basename (file_path )):
             # Load DIM cloud
             np_pointcloud = load_las_file (file_path, dtype="dim" )
-            #field_labels_list += labels_list_loaded
         else:
             # Load ALS cloud
             np_pointcloud = load_las_file (file_path, dtype="als")
-            #field_labels_list += labels_list_loaded
 
     elif (file_extension == '.asc'):
         # load ASCII cloud
         np_pointcloud = load_ascii_file (file_path )
-        # with open(file_path) as f:
-        #     field_labels_list += f.readline().strip ('//').split ()
 
     if (return_separate ):
         return np_pointcloud.points, np_pointcloud.field_labels_list
@@ -222,21 +241,32 @@ def conditionalized_load (file_path, return_separate=False ):
 
 
 def save_obj (object, name ):
-    '''Saves a python object into data/ folder, using pickle'''
+    """Saves a python object into data/ folder, using pickle"""
+
     print ("\n Saving file " + 'data/' + name + '.pkl')
     with open('data/' + name + '.pkl', 'wb') as file:
         pickle.dump(object, file, pickle.HIGHEST_PROTOCOL)
 
 
 def load_obj (name ):
-    '''Loads a python object from the data/ folder, using pickle'''
+    """Loads a python object from the data/ folder, using pickle"""
+
     with open('data/' + name + '.pkl', 'rb') as file:
         return pickle.load(file )
 
 
 def join_saved_dictionaries (list_of_dict_names, output_name ):
+    """Takes a list of dictionary names that are saved under 'data/' and saved their combined contents under
+    'data/output_name'
+
+    Input:
+        list_of_dict_names (list(String)):  A list of dictionary names to load, excluding their extensions
+        output_name (String):               The dictionary name to save the results under, excluding extension
+    """
+
     resulting_dictionary = {}
 
+    # simply update the empty dictionary, effectively overwriting differing entries with the later dictionaries
     for dict_name in list_of_dict_names:
         resulting_dictionary.update (load_obj (dict_name ))
 
@@ -245,14 +275,13 @@ def join_saved_dictionaries (list_of_dict_names, output_name ):
     return True
 
 
-def check_for_file (path ):
-    return os.path.isfile(path )
+def check_for_file (file_path ):
+    """Checks if a file is present"""
+    return os.path.isfile(file_path )
 
 
 def get_all_files_in_subfolders (path_to_folder, permitted_file_extension=None ):
-    '''
-    Finds all files inside the folders below the given folder (1 level below)
-    '''
+    """Finds all files inside the folders below the given folder (1 level below)"""
 
     # find all directories below path_to_folder
     dirnames = []
@@ -287,30 +316,35 @@ def get_all_files_in_subfolders (path_to_folder, permitted_file_extension=None )
     return full_paths
 
 
-# refactor: Don't use this, use os.path instead
-def get_folder_and_file_name (path ):
+def get_folder_and_file_name (file_path ):
+    """Extracts folder and base name of a cloud"""
 
-    # mash up the string
-    folder = str(path.split ('/')[-2])
-    list_of_filename_attributes = path.split ('/')[-1].split ('_')[0:3]
-    list_of_filename_attributes = ['{0}_'.format(element) for element in list_of_filename_attributes]
-    file_name = ''.join(list_of_filename_attributes)
+    # extract the folder
+    cloud_folder = str(file_path.split ('/')[-2])
 
-    return folder, file_name
+    # extract the name of the cloud and split it by it's attributes, or tags
+    list_of_cloud_tags = os.path.basename(file_path.strip ('/' )).split ('_' )[0:2]
+
+    # add '_' and join the tags
+    list_of_cloud_tags = ['{0}_'.format(element) for element in list_of_cloud_tags]
+    cloud_name = ''.join(list_of_cloud_tags).strip('_')
+
+    return cloud_folder, cloud_name
 
 
-def get_matching_filenames(filename):
+def get_matching_filenames(filename ):
     """
-    finds matching filenames from one point cloud to another.
-    Matches ALS16 to DIM16
+    Finds matching filenames from one point cloud to another. Matches ALS16 to DIM16
+
     Inputs:
-    filename: string; filename of the original file to split
+        filename: string; filename of the original file to split
+
     Outputs:
-    [s1, s2, s3, s4]: list of string;
-    s1: xmin and ymin
-    s2: xmin and ymean
-    s3: xmean and ymin
-    s4: xmean and ymean
+        [s1, s2, s3, s4]: list of string;
+        s1: xmin and ymin
+        s2: xmin and ymean
+        s3: xmean and ymin
+        s4: xmean and ymean
     """
     # get filenames
     s = filename.split('_')[0]

@@ -1,3 +1,4 @@
+"""Script for quick testing of the consensus algorithm"""
 
 # local modules
 from modules.np_pointcloud import NumpyPointCloud

@@ -1,6 +1,6 @@
 """
-This module contains various pointcloud operations including masking certain columns, sampling and reducing the x, y
-coordinated to zero
+This module contains various pointcloud operations including delete_cloud_borders, masking certain columns, sampling
+and reducing the x, y coordinates to zero
 """
 
 # local modules
@@ -73,13 +73,13 @@ def get_distance_consensus (ref_pointcloud, corr_pointcloud, radius):
     radius
 
     Input:
-        ref_pointcloud (NumpyPointCloud):       NumpyPointCloud object containing a numpy array and it's data labels
-        corr_pointcloud (NumpyPointCloud):      The cloud corresponding to ref_pointcloud.
-        radius (float):                         Max neighbor distance
+        ref_pointcloud (NumpyPointCloud):           NumpyPointCloud object containing a numpy array and it's data labels
+        corr_pointcloud (NumpyPointCloud):          The cloud corresponding to ref_pointcloud.
+        radius (float):                             Max neighbor distance
 
     Output:
-        consensus_vector_ref (list(int)):       Shows 1 where points of ref_pointcloud have a neighbor, 0 otherwise
-        consensus_vector_corr (list(int)):      Shows 1 where points of corr_pointcloud have a neighbor, 0 otherwise
+        consensus_vector_ref ([n, 1] np.array):     Shows 1 where points of ref_pointcloud have a neighbor, 0 otherwise
+        consensus_vector_corr ([n, 1] np.array):    Shows 1 where points of corr_pointcloud have a neighbor, 0 otherwise
     """
 
     # build trees
@@ -138,7 +138,7 @@ def mask_cloudpoints_without_correspondence (ref_pointcloud, corr_pointcloud, ra
     Output:
         ref_pointcloud (NumpyPointCloud):   The altered reference pointcloud
         corr_pointcloud (NumpyPointCloud):  The altered corresponding pointcloud
-"""
+    """
 
     # get consensus column
     consensus_vector_ref, consensus_vector_corr = get_distance_consensus (ref_pointcloud, corr_pointcloud, radius )
@@ -157,14 +157,14 @@ def mask_cloudpoints_without_correspondence (ref_pointcloud, corr_pointcloud, ra
 
 
 def sample_cloud (numpy_cloud, sample_divisor, deterministic_sampling=False ):
-    '''
-    Samples a cloud by a given divisor. If sample_divisor=4, cloud is 4 times as small after sampling.
-    '''
+    """Samples a cloud by a given divisor. If sample_divisor=4, cloud is 4 times as small after sampling."""
+
     previous_length = numpy_cloud.shape[0]
 
     # deterministic sampling
     if (deterministic_sampling ):
         numpy_cloud = numpy_cloud[::sample_divisor].copy ()
+
     # random sampling
     else:
         indices = random.sample(range(0, numpy_cloud.shape[0] ), int (numpy_cloud.shape[0] / sample_divisor ))
@@ -180,7 +180,19 @@ def sample_cloud (numpy_cloud, sample_divisor, deterministic_sampling=False ):
     return numpy_cloud
 
 
-def reduce_cloud (input_cloud_numpy, copy=True, return_transformation=False, return_as_float32=False ):
+def reduce_cloud (input_cloud_numpy, copy=True, return_transformation=False ):
+    """
+    Alters cloud coordinates so that the lowest point is at (0, 0, z). High Distances are reduced to values close to
+    zero
+
+    Input:
+        input_cloud_numpy (numpy.ndarray):  The Point Cloud
+        copy (boolean):                     Wheather to copy the array before alteration
+        return_transformation (boolean):    If true, numpy_cloud, min_x_coordinate and min_y_coordinate are returned
+
+    Output:
+        numpy_cloud (numpy.ndarray):        The altered points
+    """
 
     # copy to avoid reference disaster
     if (copy ):
@@ -196,11 +208,8 @@ def reduce_cloud (input_cloud_numpy, copy=True, return_transformation=False, ret
     numpy_cloud[:, 0] = numpy_cloud[:, 0] - min_x_coordinate
     numpy_cloud[:, 1] = numpy_cloud[:, 1] - min_y_coordinate
 
-    if (return_as_float32 and return_transformation ):
-        return numpy_cloud.astype (np.float32 ), min_x_coordinate, min_y_coordinate
-    elif (return_as_float32 ):
-        return numpy_cloud.astype (np.float32 )
-    elif (return_transformation ):
+    # return
+    if (return_transformation ):
         return numpy_cloud, min_x_coordinate, min_y_coordinate
 
     return numpy_cloud

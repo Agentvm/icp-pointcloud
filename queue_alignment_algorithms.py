@@ -1,4 +1,7 @@
-"""Convenient script to compute results of different algorithms and pointclouds based on a dictionary of file paths"""
+"""
+Convenient script to compute results of different algorithms (icp, consensus, accumulator) on all clouds specified in
+the dictionary saved in data/
+"""
 
 
 # local modules
@@ -13,7 +16,8 @@ import random
 
 
 def set_accumulator_arguments (accumulator_radius=1.0, grid_size=0.05 ):
-    """Set Search Radius and grid size for accumulator algorithm"""
+    """Configure the accumulator parameters. Set Search Radius and grid size for accumulator algorithm"""
+
     global ACCUMULATOR_RADIUS
     global ACCUMULATOR_GRID_SIZE
 
@@ -22,6 +26,7 @@ def set_accumulator_arguments (accumulator_radius=1.0, grid_size=0.05 ):
 
 
 def accumulate (full_path_of_reference_cloud, full_path_of_aligned_cloud, plot_title ):
+    """Function that can be passed to use_algorithmus_on_dictionary. Returns a dictionary line of results"""
 
     if ('CONSENSUS_DISTANCE_THRESHOLD' not in globals()
             or 'CONSENSUS_ANGLE_THRESHOLD' not in globals()
@@ -51,7 +56,7 @@ def accumulate (full_path_of_reference_cloud, full_path_of_aligned_cloud, plot_t
 
 def set_consensus_arguments (distance_threshold=.3, angle_threshold=30,
                              cubus_length=2, step=.15, algorithm="distance" ):
-    """angle_threshold in degrees"""
+    """Configure the consensus parameters. angle_threshold in degrees"""
     global CONSENSUS_DISTANCE_THRESHOLD
     global CONSENSUS_ANGLE_THRESHOLD
     global CONSENSUS_CUBUS_LENGHT
@@ -66,6 +71,7 @@ def set_consensus_arguments (distance_threshold=.3, angle_threshold=30,
 
 
 def reach_a_consensus (full_path_of_reference_cloud, full_path_of_aligned_cloud, plot_title ):
+    """Function that can be passed to use_algorithmus_on_dictionary. Returns a dictionary line of results"""
 
     if ('CONSENSUS_DISTANCE_THRESHOLD' not in globals()
             or 'CONSENSUS_ANGLE_THRESHOLD' not in globals()
@@ -96,6 +102,7 @@ def reach_a_consensus (full_path_of_reference_cloud, full_path_of_aligned_cloud,
 
 
 def do_icp (full_path_of_reference_cloud, full_path_of_aligned_cloud, dummy_arg = "" ):
+    """Function that can be passed to use_algorithmus_on_dictionary. Returns a dictionary line of results"""
 
     # load reference cloud
     reference_pointcloud = input_output.load_ascii_file (full_path_of_reference_cloud )
@@ -118,16 +125,55 @@ def do_icp (full_path_of_reference_cloud, full_path_of_aligned_cloud, dummy_arg 
     return dictionary_line
 
 
-def compare_results (algorithmus_results, reference_dict, print_csv=True ):
+def print_reference_dict (reference_dictionary_name ):
+    """
+    Load a reference dictionary in the data/ folder by name (excluding extension) and print it's innards
 
-    #reference_dict = transformations.reference_translations
+    Input:
+        reference_dictionary_name (String):   Name of a dict located in 'data/' of shape {("",""): ((x,y,z), mse)}
+    """
+
+    # parse the reference values saved in a file
+    reference_dictionary = input_output.load_obj (reference_dictionary_name )
+
+    # iterate through the keys (path pairs) of the dictionary
+    for paths, results in sorted(reference_dictionary ):
+
+        # disassemble the key
+        reference_path, aligned_path = paths
+
+        # folder should be the the same
+        folder, reference_file_name = input_output.get_folder_and_file_name (reference_path)
+        folder, aligned_file_name = input_output.get_folder_and_file_name (aligned_path)
+
+        # unpack values
+        ref_translation, ref_mse = results
+
+        # print comparison
+        print ('\n' + folder + "/"
+               + " " + reference_file_name
+               + " " + aligned_file_name
+                    + ';{: .8f}'.format(ref_translation[0])
+                    + '\n;{: .8f}'.format(ref_translation[1])
+                    + '\n;{: .8f}'.format(ref_translation[2])
+                    + '\n;{: .8f}'.format(ref_mse))
+
+
+def compare_results (algorithmus_results, reference_dict, print_csv=True ):
+    """
+    Given a dictionary of results, this compares the results against a dictionary of reference values
+
+    Input:
+        algorithmus_results (dictionary):   A dictionary of str tuples and translation results {("",""): ((x,y,z), mse)}
+        reference_dict (dictionary):        Contains cloud paths tuples and tranlation results {("",""): ((x,y,z), mse)}
+        print_csv (boolean):                If True, the output is separated by ';' and can be easily processed further
+    """
 
     # # sort the results
     # create a list of tuples from reference and aligned cloud file paths
     unsorted_results = []
     for paths in algorithmus_results:
         unsorted_results.append ((paths, algorithmus_results[paths]) )
-
     sorted_results = sorted(unsorted_results )
 
     for paths, translation_value in sorted_results:
@@ -174,7 +220,7 @@ def compare_results (algorithmus_results, reference_dict, print_csv=True ):
 
 
 def use_algorithmus_on_dictionary (reference_dictionary_name, algorithmus_function, results_save_name=None ):
-    '''
+    """
     Uses a dictionary of reference cloud file_paths as keys
     and a list of corresponding aligned cloud file_paths as values
 
@@ -182,7 +228,7 @@ def use_algorithmus_on_dictionary (reference_dictionary_name, algorithmus_functi
         file_paths_dictionary (string):  Dictionary with reference_paths as keys and paths of aligned clouds as values
         algorithmus_function (function): Function that returns dict {(reference path, aligned_path): (translation, mse)}
         results_save_name (string):      Results will be saved as data/results_save_path.pkl. Values may be overwritten.
-    '''
+    """
 
     # parse the reference values saved in a file
     reference_dictionary = input_output.load_obj (reference_dictionary_name )
@@ -221,10 +267,11 @@ def use_algorithmus_on_dictionary (reference_dictionary_name, algorithmus_functi
 
 
 def get_reference_data_paths (reference_dict ):
-    '''
+    """
     Reads input_dictionary to get all transformations currently saved and returns them in a
     dictionary that can be directly used with use_algorithmus_on_dictionary()
-    '''
+    """
+
     dict = {}
     for key in reference_dict:
 
@@ -242,12 +289,12 @@ if __name__ == '__main__':
 
     random.seed (1337 )
 
-    # # icp
-    # print ("\n\nComputing ICP for each cloud pair in reference_translations returns: "
-    #        + str(use_algorithmus_on_dictionary (get_reference_data_paths (), do_icp )))
-    #
-    # compare_results (do_icp ('clouds/Regions/Xy Tower/ALS16_Cloud_reduced_normals_cleared.asc',
-    #                          'clouds/Regions/Xy Tower/DSM_Cloud_reduced_normals.asc' ), print_csv=True)
+    # icp
+    print ("\n\nComputing ICP for each cloud pair in reference_translations returns: "
+           + str(use_algorithmus_on_dictionary (get_reference_data_paths (), do_icp )))
+
+    compare_results (do_icp ('clouds/Regions/Xy Tower/ALS16_Cloud_reduced_normals_cleared.asc',
+                             'clouds/Regions/Xy Tower/DSM_Cloud_reduced_normals.asc' ), print_csv=True)
 
     # # # consensus
     # set_consensus_arguments (distance_threshold=0.3,
@@ -269,27 +316,27 @@ if __name__ == '__main__':
     #                                             algorithmus_function=accumulate,
     #                                             results_save_name="accumulator_translations_dict" )))
 
-    # get folder structure
-    print (input_output.get_all_files_in_subfolders("clouds/New Regions/", ".asc" ))
-    for path in input_output.get_all_files_in_subfolders("clouds/New Regions/", ".asc" ):
-        print (path )
-
-    # Make a dict of test cases (tuple of paths) as keys
-    # and the corresponding results (tuple of translation and mse) as values
-    dict = \
-        {
-            ("path1", "path2"): ((0, 0, 0), 0),
-            ("path1", "path2"): ((0, 0, 0), 0),
-            ("path1", "path2"): ((0, 0, 0), 0),
-            ("path1", "path2"): ((0, 0, 0), 0),
-            ("path1", "path2"): ((0, 0, 0), 0),
-            ("path1", "path2"): ((0, 0, 0), 0),
-            ("path1", "path2"): ((0, 0, 0), 0),
-            ("path1", "path2"): ((0, 0, 0), 0),
-            ("path1", "path2"): ((0, 0, 0), 0),
-        }
-
-    input_output.save_obj(dict, "no_translations_dict" )
+    # # get folder structure
+    # print (input_output.get_all_files_in_subfolders("clouds/New Regions/", ".asc" ))
+    # for path in input_output.get_all_files_in_subfolders("clouds/New Regions/", ".asc" ):
+    #     print (path )
+    #
+    # # Make a dict of test cases (tuple of paths) as keys
+    # # and the corresponding results (tuple of translation and mse) as values
+    # dict = \
+    #     {
+    #         ("path1", "path2"): ((0, 0, 0), 0),
+    #         ("path1", "path2"): ((0, 0, 0), 0),
+    #         ("path1", "path2"): ((0, 0, 0), 0),
+    #         ("path1", "path2"): ((0, 0, 0), 0),
+    #         ("path1", "path2"): ((0, 0, 0), 0),
+    #         ("path1", "path2"): ((0, 0, 0), 0),
+    #         ("path1", "path2"): ((0, 0, 0), 0),
+    #         ("path1", "path2"): ((0, 0, 0), 0),
+    #         ("path1", "path2"): ((0, 0, 0), 0),
+    #     }
+    #
+    # input_output.save_obj(dict, "no_translations_dict" )
 
     # # # icp
     # print ("\n\nComputing ICP for each cloud pair in reference_translations_dict returns: "

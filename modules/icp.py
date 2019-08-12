@@ -2,14 +2,14 @@
 
 # basic imports
 import numpy as np
-import time                 # measure time
+import time
 
 # advanced functionality
 import scipy.spatial
 
 
 def icp (numpy_reference_cloud, numpy_aligned_cloud, accuracy=0.000000001, verbose=False ):
-    '''
+    """
     Iterative closest point algorithm that computes the translation from numpy_aligned_cloud to numpy_reference_cloud.
 
     Input:
@@ -20,7 +20,7 @@ def icp (numpy_reference_cloud, numpy_aligned_cloud, accuracy=0.000000001, verbo
     Output:
         translation ((x, y, z) tuple):          The estimated translation between aligned_cloud and reference_cloud.
         mean_squared_error ((x, y, z) tuple):   The remaining MSE in x, y and z direction
-    '''
+    """
 
     start_time = time.time()    # measure time
 

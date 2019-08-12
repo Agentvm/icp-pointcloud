@@ -148,7 +148,7 @@ def random_plane_estimation (numpy_cloud, number_of_planes, fixed_point=None ):
     if (fixed_point is not None ):
         points_1 = fixed_point[0:3].reshape (-1, 3)
 
-    # get the normal vectors, normalize it
+    # get the normal vectors, normalize them
     normal_vectors = normalize_vector_array (np.cross((points_2 - points_1), (points_3 - points_1 )))
 
     # get plane parameters d, distance from origin
@@ -194,15 +194,15 @@ def ransac_plane_estimation (numpy_cloud, threshold, fixed_point=None, w = .9, z
     Returns points and normal vector of the detected plane.
 
     Input:
-        numpy_cloud (np.ndarray):       Input cloud
-        threshold (float, in m):        Points closer to the plane than this value are counted as inliers
-        fixed_point (int):              This point will be used as one of three points for every plane estimation
-        w (float between 0 and 1):      Probability that any observation belongs to the model
-        z (float between 0 and 1):      Desired probability that the model is found
+        numpy_cloud (np.ndarray):               Input cloud
+        threshold (float, in m):                Points closer to the plane than this value are counted as inliers
+        fixed_point (int):                      This point will be used for every plane estimation
+        w (float between 0 and 1):              Probability that any observation belongs to the model
+        z (float between 0 and 1):              Desired probability that the model is found
 
     Output:
-        best_normal_vector ([1, 3] np.array):  The resulting normal vector
-        consensus_points (np.ndarray):              Points that are part of the estimated plane
+        best_normal_vector ([1, 3] np.array):   The resulting normal vector
+        consensus_points (np.ndarray):          Points that are part of the estimated plane
     """
 
     # variables
@@ -229,6 +229,7 @@ def ransac_plane_estimation (numpy_cloud, threshold, fixed_point=None, w = .9, z
 
         # is the current consensus match higher than the previous ones?
         if (current_consensus > best_consensus ):
+
             # keep best consensus set
             consensus_points = current_consensus_points
             best_normal_vector = normal_vector

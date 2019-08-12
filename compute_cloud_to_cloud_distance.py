@@ -13,7 +13,7 @@ import scipy.spatial
 
 
 def cloud2cloud (reference_pointcloud, aligned_pointcloud ):
-    ''' Computes field C2C_absolute_distances on compared cloud '''
+    """Computes field C2C_absolute_distances on compared cloud"""
 
     # make a tree an get a list of distances to the nearest neigbor and his index (which is not needed)
     # but only take the x,y,z fields into consideration (reference_cloud[:, 0:3])
@@ -22,14 +22,22 @@ def cloud2cloud (reference_pointcloud, aligned_pointcloud ):
     # query the three, but only take the x,y,z fields into consideration
     c2c_distances, indices = scipy_kdtree.query (aligned_pointcloud.get_xyz_coordinates (), k=1 )
 
-    # add a new field containing the distance to the nearest neighbor of each point to the corresponding_cloud and return it
+    # add a new field containing the distance to the nearest neighbor of each point
+    # to the corresponding_cloud and return it
     return aligned_pointcloud.add_fields (c2c_distances.reshape (-1, 1), ["C2C_absolute_distances"] )
 
 
 def use_c2c_on_dictionary (reference_dictionary_name, descriptive_name ):
-    '''
-    Takes the name of a dictionary in data/ and returns a numpy cloud with Cloud2Cloud Distance column computed
-    '''
+    """
+    Computes Cloud2Cloud Distance column for every cloud in reference_dictionary_name
+
+    Input:
+        reference_dictionary_name (String): The name of the reference dictionary to load, excluding file extension
+        descriptive_name (String):          This will be added to the name of each cloud when saved again
+
+    Output:
+        success (boolean):                  True if successful
+    """
 
     # refactor, iterate through reference_dictionary instead
     reference_dictionary = input_output.load_obj (reference_dictionary_name )

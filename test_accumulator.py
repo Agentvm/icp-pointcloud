@@ -1,3 +1,4 @@
+"""Script for quick testing of the accumulator algorithm"""
 
 # local modules
 from modules.np_pointcloud import NumpyPointCloud
@@ -10,11 +11,11 @@ from modules.normals import normalize_vector_array
 import numpy as np
 
 # plot imports
-# from mpl_toolkits.mplot3d import Axes3D
 # import matplotlib.pyplot as plt
 
 
 def prepare_random_cloud ():
+    """Assembles a np.random.uniform (-10, 10) numpy.ndarray of shape (1000, 6) containing normal vectors and points"""
 
     # random values
     numpy_cloud = np.random.uniform (-10, 10, size=(1000, 3 ))
@@ -40,6 +41,7 @@ def prepare_random_cloud ():
 
 
 def load_example_cloud_old (folder ):
+    """Loads ALS16 and DIM16 clouds from a specified folder below 'clouds/Regions'"""
 
     # # big cloud
     np_pointcloud = input_output.conditionalized_load(
@@ -52,6 +54,7 @@ def load_example_cloud_old (folder ):
 
 
 def load_example_cloud (folder ):
+    """Loads ALS16 and DIM16 clouds from a specified folder below 'clouds/New Regions'"""
 
     # # big cloud
     np_pointcloud = input_output.conditionalized_load(
@@ -85,7 +88,8 @@ if __name__ == '__main__':
             title += "corr_only_"
         else:
             np_pointcloud.points = np_pointcloud.points[np_pointcloud.get_fields ("Sigma") < sigma_value]
-        corresponding_pointcloud.points = corresponding_pointcloud.points[corresponding_pointcloud.get_fields ("Sigma") < sigma_value]
+        corresponding_pointcloud.points = corresponding_pointcloud.points[
+                                                corresponding_pointcloud.get_fields ("Sigma") < sigma_value]
         title += str(sigma_value )
 
     if (borders ):

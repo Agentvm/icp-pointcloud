@@ -1,3 +1,5 @@
+"""This file contains various code snippets with varying relevance focused on numpy point clouds"""
+
 import numpy as np
 import random
 
@@ -15,6 +17,7 @@ numpy_cloud = np.array([[1.1, 2.1, 3.1],
                         [1.6, 2.6, 3.6]] )
 
 #
+
 
 # # speed test accumulator init
 # import math

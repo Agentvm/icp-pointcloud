@@ -38,7 +38,7 @@ def create_line (point1, point2 ):
 
 def display_consensus_cube (consensus_cube, corresponding_cloud_size, best_alignment, plot_title="ConsensusCube (TM)",
                             relative_color_scale=True ):
-    '''
+    """
     Displays the results of the accumulator algorithm in a cube shaped plot
 
     Input:
@@ -50,7 +50,7 @@ def display_consensus_cube (consensus_cube, corresponding_cloud_size, best_align
     Output:
         consensus_cube ((n, 4) np.ndarray):             Normalized consensus_cube
         matplotlib_figure_object (matplotlib.pyplot):   Figure object containing the plot for further use
-    '''
+    """
 
     maximum_consensus = (np.max (consensus_cube[:, 3] / corresponding_cloud_size )) * 100
 
@@ -203,7 +203,7 @@ def spheric_cloud_consensus (np_pointcloud, corresponding_pointcloud,
                              display_plot=True, save_plot=False,
                              relative_color_scale=False,
                              plot_title="ConsensusCube (TM)"  ):
-    '''
+    """
     Counts how many points of cloud np_pointcloud have a neighbor within threshold range in corresponding_cloud.
 
     Input:
@@ -211,7 +211,7 @@ def spheric_cloud_consensus (np_pointcloud, corresponding_pointcloud,
         corresponding_pointcloud (NumpyPointCloud): This cloud will be aligned to match np_pointcloud
         accumulator_radius (float):                 Sphere center is (0,0,0). Determines maximum detectable translation
         grid_size (float):                          Rasterization of results. May give unsatisfying results if too small
-        distance_threshold (float):                 Defines the range at which a point is counted as neighbor
+        distance_threshold (float):                 Defines the range below which a point is counted as neighbor
         save_plot (boolean):                        Whether to save the plot of the results for later use
         display_plot (boolean):                     Whether to show the plot of the results
         relative_color_scale (boolean):             See display_consensus_cube ()
@@ -219,8 +219,8 @@ def spheric_cloud_consensus (np_pointcloud, corresponding_pointcloud,
 
     Output:
         best_alignment ((x, y, z) tuple ):          The resulting alignment of corresponding_pointcloud
-        best_consensus_count (int):                 The maximum consensus count
-    '''
+        highest_consensus_count (int):              The maximum consensus count
+    """
 
     print ("\nStarting Distance Accumulator Consensus" )
     print ("distance_threshold: " + str(distance_threshold ))
@@ -300,7 +300,7 @@ def spheric_cloud_consensus (np_pointcloud, corresponding_pointcloud,
 
     # save the results
     best_alignment = consensus_cube[np.argmax (consensus_cube[:, 3] ), 0:3].copy ()
-    best_consensus_count = np.max (consensus_cube[:, 3] ).copy ()
+    highest_consensus_count = np.max (consensus_cube[:, 3] ).copy ()
 
     # put together the plot title from the string given as argument to this function and the algorithmus parameters
     plot_title = create_plot_title (plot_title, accumulator_radius, grid_size, distance_threshold )
@@ -352,4 +352,4 @@ def spheric_cloud_consensus (np_pointcloud, corresponding_pointcloud,
         _ = plt.show (figure );
     plt.close ()
 
-    return best_alignment, best_consensus_count
+    return best_alignment, highest_consensus_count
