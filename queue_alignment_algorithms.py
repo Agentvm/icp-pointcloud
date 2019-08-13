@@ -29,11 +29,7 @@ def set_accumulator_arguments (accumulator_radius=1.0, grid_size=0.05 ):
 def accumulate (full_path_of_reference_cloud, full_path_of_aligned_cloud, plot_title ):
     """Function that can be passed to use_algorithmus_on_dictionary. Returns a dictionary line of results"""
 
-    if ('CONSENSUS_DISTANCE_THRESHOLD' not in globals()
-            or 'CONSENSUS_ANGLE_THRESHOLD' not in globals()
-            or 'CONSENSUS_CUBUS_LENGHT' not in globals()
-            or 'CONSENSUS_STEP' not in globals()
-            or 'CONSENSUS_ALGORITHM' not in globals() ):
+    if ('ACCUMULATOR_RADIUS' not in globals() or 'ACCUMULATOR_GRID_SIZE' not in globals()):
         raise NameError("Consensus arguments are not defined. Call set_consensus_arguments() first.")
 
     # load clouds
@@ -41,18 +37,20 @@ def accumulate (full_path_of_reference_cloud, full_path_of_aligned_cloud, plot_t
     aligned_pointcloud = input_output.conditionalized_load (full_path_of_aligned_cloud )
 
     # reach consensus by accumulation of results
-    best_alignment, best_consensus_count, best_alignment_consensus_vector = \
-        accumulator.spheric_cloud_consensus (reference_pointcloud,
-                                             aligned_pointcloud,
-                                             accumulator_radius=1.0,
-                                             grid_size=0.05,
-                                             distance_threshold=None,
-                                             angle_threshold=None,
-                                             algorithmus='distance-accumulator',
-                                             display_plot=False,
-                                             save_plot=True,
-                                             relative_color_scale=False,
-                                             plot_title=plot_title )
+    best_alignment, best_consensus_count = accumulator.spheric_cloud_consensus (reference_pointcloud,
+                                                                                aligned_pointcloud,
+                                                                                accumulator_radius=ACCUMULATOR_RADIUS,
+                                                                                grid_size=ACCUMULATOR_GRID_SIZE,
+                                                                                distance_threshold=None,
+                                                                                display_plot=False,
+                                                                                save_plot=True,
+                                                                                relative_color_scale=True,
+                                                                                plot_title=plot_title )
+
+    dictionary_line = {(full_path_of_reference_cloud, full_path_of_aligned_cloud):
+                       (best_alignment, (best_consensus_count/aligned_pointcloud.points.shape[0], 0, 0))}
+
+    return dictionary_line
 
 
 def set_consensus_arguments (distance_threshold=.3, angle_threshold=30,
@@ -108,18 +106,20 @@ def do_icp (full_path_of_reference_cloud, full_path_of_aligned_cloud, dummy_arg 
     # load reference cloud
     reference_pointcloud = input_output.load_ascii_file (full_path_of_reference_cloud )
 
+    # sample DIM clouds
     if ("DSM_Cloud" in full_path_of_reference_cloud):
         reference_pointcloud.points = conversions.sample_cloud (
                                                     reference_pointcloud.points, 6, deterministic_sampling=False )
 
     # load aligned clouds
-    aligned_cloud = input_output.load_ascii_file (full_path_of_aligned_cloud )
+    aligned_pointcloud = input_output.load_ascii_file (full_path_of_aligned_cloud )
 
     # sample DIM Clouds
     if ("DSM_Cloud" in full_path_of_aligned_cloud):
-        aligned_cloud = conversions.sample_cloud (aligned_cloud, 6, deterministic_sampling=False )
+        aligned_pointcloud.points = conversions.sample_cloud (
+                                                    aligned_pointcloud.points, 6, deterministic_sampling=False )
 
-    translation, mean_squared_error = icp.icp (reference_pointcloud.points, aligned_cloud, verbose=False )
+    translation, mean_squared_error = icp.icp (reference_pointcloud.points, aligned_pointcloud.points, verbose=False )
 
     dictionary_line = {(full_path_of_reference_cloud, full_path_of_aligned_cloud): (translation, mean_squared_error)}
 
@@ -158,7 +158,7 @@ def print_reference_dict (reference_dictionary_name ):
                + ';{: .8f}'.format(ref_translation[0])
                + '\n;{: .8f}'.format(ref_translation[1])
                + '\n;{: .8f}'.format(ref_translation[2])
-               + '\n;{: .8f}'.format(ref_mse))
+               + '\n;{: .8f}'.format(ref_mse[0]))
 
 
 def compare_results (algorithmus_results, reference_dict, print_csv=True ):
@@ -167,7 +167,7 @@ def compare_results (algorithmus_results, reference_dict, print_csv=True ):
 
     Input:
         algorithmus_results: (dictionary)   A dictionary of str tuples and translation results {("",""); ((x,y,z), mse)}
-        reference_dict: (dictionary)        Contains cloud paths tuples and tranlation results {("",""); ((x,y,z), mse)}
+        reference_dict: (dictionary)        Contains cloud path tuples and trasnlation results {("",""); ((x,y,z), mse)}
         print_csv: (boolean)                If True, the output is separated by ';' and can be easily processed further
     """
 
@@ -320,23 +320,23 @@ if __name__ == '__main__':
     #                                             algorithmus_function=reach_a_consensus,
     #                                             results_save_name="distance_consensus_translations_dict" )))
 
-    # # # accumulator
-    # set_accumulator_arguments ()
-    #
-    # print ("\n\nComputing Accumulator Consensus for each cloud pair in reference_translations_dict returns: "
-    #        + str(use_algorithmus_on_dictionary (reference_dictionary_name="reference_translations_dict",
-    #                                             algorithmus_function=accumulate,
-    #                                             results_save_name="accumulator_translations_dict" )))
+    # # accumulator
+    set_accumulator_arguments ()
+
+    print ("\n\nComputing Accumulator Consensus for each cloud pair in reference_translations_dict returns: "
+           + str(use_algorithmus_on_dictionary (reference_dictionary_name="no_translations_dict",
+                                                algorithmus_function=accumulate,
+                                                results_save_name="accumulator_translations_dict" )))
 
     # # # icp
-    # print ("\n\nComputing ICP for each cloud pair in reference_translations_dict returns: "
-    #        + str(use_algorithmus_on_dictionary (reference_dictionary_name="reference_translations_dict",
+    # print ("\n\nComputing ICP for each cloud pair in no_translations_dict returns: "
+    #        + str(use_algorithmus_on_dictionary (reference_dictionary_name="no_translations_dict",
     #                                             algorithmus_function=do_icp,
     #                                             results_save_name="icp_translations_dict" )))
 
-    # print saved dictionaries
-    # print (str(input_output.load_obj ("no_translations_dict" )).replace ("), ('", "),\n('" ))
-    print_reference_dict ("no_translations_dict",)
+    # # print saved dictionaries
+    # #print (str(input_output.load_obj ("no_translations_dict" )).replace ("), ('", "),\n('" ))
+    # print_reference_dict ("icp_translations_dict" )
 
     # # get folder structure
     # for path in input_output.get_all_files_in_subfolders("clouds/New Regions/", ".asc" ):
