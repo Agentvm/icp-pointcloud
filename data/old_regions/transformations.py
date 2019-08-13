@@ -1,5 +1,5 @@
 '''
-Contains reference translations determined by point picking alignment for all extracted regions.
+Contains reference translations determined by point picking alignment for all extracted regions (Old).
 Format: (reference_cloud_path, aligned_cloud_path):(translation_x, translation_y, translation_z, RMS)
 '''
 

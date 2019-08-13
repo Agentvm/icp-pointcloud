@@ -161,12 +161,12 @@ def print_reference_dict (reference_dictionary_name ):
                + '\n;{: .8f}'.format(ref_mse[0]))
 
 
-def compare_results (algorithmus_results, reference_dict, print_csv=True ):
+def compare_results (dictionary, reference_dict, print_csv=True ):
     """
     Given a dictionary of results, this compares the results against a dictionary of reference values
 
     Input:
-        algorithmus_results: (dictionary)   A dictionary of str tuples and translation results {("",""); ((x,y,z), mse)}
+        dictionary: (dictionary)   A dictionary of str tuples and translation results {("",""); ((x,y,z), mse)}
         reference_dict: (dictionary)        Contains cloud path tuples and trasnlation results {("",""); ((x,y,z), mse)}
         print_csv: (boolean)                If True, the output is separated by ';' and can be easily processed further
     """
@@ -174,8 +174,8 @@ def compare_results (algorithmus_results, reference_dict, print_csv=True ):
     # # sort the results
     # create a list of tuples from reference and aligned cloud file paths
     unsorted_results = []
-    for paths in algorithmus_results:
-        unsorted_results.append ((paths, algorithmus_results[paths]) )
+    for paths in dictionary:
+        unsorted_results.append ((paths, dictionary[paths]) )
     sorted_results = sorted(unsorted_results )
 
     for paths, translation_value in sorted_results:
@@ -221,6 +221,7 @@ def compare_results (algorithmus_results, reference_dict, print_csv=True ):
                                                 + '{: .8f}) '.format(algorithmus_mse[2]))
 
 
+# # TODO:  The clouds are then displaced by the translations found in the dictionary.
 def use_algorithmus_on_dictionary (reference_dictionary_name, algorithmus_function, results_save_name=None ):
     """
     Uses a dictionary with path tuples (reference cloud file path, aligned cloud file path ) as keys
@@ -268,12 +269,13 @@ def use_algorithmus_on_dictionary (reference_dictionary_name, algorithmus_functi
             # call the algorithmus supplied by algorithmus_function
             algorithmus_results.update (algorithmus_function (reference_cloud_path, aligned_cloud_path, plot_title ))
 
+    # save the results in a dictionary and print it
     if (results_save_name is not None ):
         input_output.save_obj (algorithmus_results, results_save_name)
         print_reference_dict (results_save_name )
-
-    # prints the values computed along with the ground truth in the dictionary
-    #compare_results (algorithmus_results, reference_dictionary )
+    else:
+        # prints the values computed along with the ground truth in the dictionary
+        compare_results (algorithmus_results, reference_dictionary )
 
     return True
 
@@ -366,11 +368,14 @@ if __name__ == '__main__':
     #         "clouds/New Regions/Forest/Forest_dim16_reduced_normals_r_1_cleared.asc"): ((0, 0, 0), 0),
     #
     #         ("clouds/New Regions/Missing_Building/Missing Building_als16_reduced_normals_r_1_cleared.asc",
-    #         "clouds/New Regions/Missing_Building/Missing Building_dim16_reduced_normals_r_1_cleared.asc"): ((0, 0, 0), 0),
+    #         "clouds/New Regions/Missing_Building/Missing Building_dim16_reduced_normals_r_1_cleared.asc"):
+    # ((0, 0, 0), 0),
     #         ("clouds/New Regions/Missing_Building/Missing Building_als14_reduced_normals_r_1_cleared.asc",
-    #         "clouds/New Regions/Missing_Building/Missing Building_als16_reduced_normals_r_1_cleared.asc"): ((0, 0, 0), 0),
+    #         "clouds/New Regions/Missing_Building/Missing Building_als16_reduced_normals_r_1_cleared.asc"):
+    # ((0, 0, 0), 0),
     #         ("clouds/New Regions/Missing_Building/Missing Building_als14_reduced_normals_r_1_cleared.asc",
-    #         "clouds/New Regions/Missing_Building/Missing Building_dim16_reduced_normals_r_1_cleared.asc"): ((0, 0, 0), 0),
+    #         "clouds/New Regions/Missing_Building/Missing Building_dim16_reduced_normals_r_1_cleared.asc"):
+    # ((0, 0, 0), 0),
     #
     #         ("clouds/New Regions/Road/Road_als16_reduced_normals_r_1_cleared.asc",
     #         "clouds/New Regions/Road/Road_dim16_reduced_normals_r_1_cleared.asc"): ((0, 0, 0), 0),

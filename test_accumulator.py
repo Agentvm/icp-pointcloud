@@ -69,6 +69,7 @@ def load_example_cloud (folder ):
 if __name__ == '__main__':
 
     np.random.seed (1337 )
+    random_offset = None
 
     title = "New_Regions_YZ_Houses"
     sigma = False
@@ -108,10 +109,11 @@ if __name__ == '__main__':
                                                                                  plot_title=title )
 
     print ("best_alignment: \t\t" + str(best_alignment ))
-    if ("random_offset" in locals() ):
+    if (random_offset is not None ):
         print ("Random Offset: \t\t\t" + str(random_offset ))
-    #print ("Point Picking Offset Xy Tower: (-0.82777023,  0.16250610,  0.19129372)")
-    print ("Point Picking Offset Yz Houses: [0.31462097, -0.01929474, -0.03573704]")
+    else:
+        #print ("Point Picking Offset Xy Tower: (-0.82777023,  0.16250610,  0.19129372)")
+        print ("Point Picking Offset Yz Houses: [0.31462097, -0.01929474, -0.03573704]")
 
     # show plot
     #plt.show ()
