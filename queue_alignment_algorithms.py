@@ -136,7 +136,7 @@ def print_reference_dict (reference_dictionary_name ):
 
     # parse the reference values saved in a file
     reference_dictionary = input_output.load_obj (reference_dictionary_name )
-    print (reference_dictionary_name )
+    print ("\n" + str (reference_dictionary_name ) + ":" )
 
     # iterate through the keys (path pairs) of the dictionary
     for path_tuple in sorted(reference_dictionary ):
