@@ -1,6 +1,7 @@
 """
-Convenient script to compute results of different algorithms (icp, consensus, accumulator) on all clouds specified in
-the dictionary saved in data/
+Convenient script to compute results of different algorithms (icp, consensus, accumulator) on multiple clouds. Works
+the 'data/' folder in the form of loading an saving reference dictionaries that contain the cloud file paths and the
+corresponding results in the form of {("",""); ((x,y,z), mse)}
 """
 
 
@@ -130,33 +131,34 @@ def print_reference_dict (reference_dictionary_name ):
     Load a reference dictionary in the data/ folder by name (excluding extension) and print it's innards
 
     Input:
-        reference_dictionary_name: (String)   Name of a dict located in 'data/' of shape {("",""): ((x,y,z), mse)}
+        reference_dictionary_name: (String)   Name of a dict located in 'data/' of shape {("",""); ((x,y,z), mse)}
     """
 
     # parse the reference values saved in a file
     reference_dictionary = input_output.load_obj (reference_dictionary_name )
+    print (reference_dictionary_name )
 
     # iterate through the keys (path pairs) of the dictionary
-    for paths, results in sorted(reference_dictionary ):
+    for path_tuple in sorted(reference_dictionary ):
 
         # disassemble the key
-        reference_path, aligned_path = paths
+        reference_path, aligned_path = path_tuple
+        results_tuple = reference_dictionary[path_tuple]
 
         # folder should be the the same
         folder, reference_file_name = input_output.get_folder_and_file_name (reference_path)
         folder, aligned_file_name = input_output.get_folder_and_file_name (aligned_path)
 
         # unpack values
-        ref_translation, ref_mse = results
+        ref_translation, ref_mse = results_tuple
 
         # print comparison
-        print ('\n' + folder + "/"
-               + " " + reference_file_name
-               + " " + aligned_file_name
-                    + ';{: .8f}'.format(ref_translation[0])
-                    + '\n;{: .8f}'.format(ref_translation[1])
-                    + '\n;{: .8f}'.format(ref_translation[2])
-                    + '\n;{: .8f}'.format(ref_mse))
+        print ("'" + aligned_file_name
+               + "' aligned to '" + reference_file_name + "'"
+               + ';{: .8f}'.format(ref_translation[0])
+               + '\n;{: .8f}'.format(ref_translation[1])
+               + '\n;{: .8f}'.format(ref_translation[2])
+               + '\n;{: .8f}'.format(ref_mse))
 
 
 def compare_results (algorithmus_results, reference_dict, print_csv=True ):
@@ -164,8 +166,8 @@ def compare_results (algorithmus_results, reference_dict, print_csv=True ):
     Given a dictionary of results, this compares the results against a dictionary of reference values
 
     Input:
-        algorithmus_results: (dictionary)   A dictionary of str tuples and translation results {("",""): ((x,y,z), mse)}
-        reference_dict: (dictionary)        Contains cloud paths tuples and tranlation results {("",""): ((x,y,z), mse)}
+        algorithmus_results: (dictionary)   A dictionary of str tuples and translation results {("",""); ((x,y,z), mse)}
+        reference_dict: (dictionary)        Contains cloud paths tuples and tranlation results {("",""); ((x,y,z), mse)}
         print_csv: (boolean)                If True, the output is separated by ';' and can be easily processed further
     """
 
@@ -221,13 +223,22 @@ def compare_results (algorithmus_results, reference_dict, print_csv=True ):
 
 def use_algorithmus_on_dictionary (reference_dictionary_name, algorithmus_function, results_save_name=None ):
     """
-    Uses a dictionary of reference cloud file_paths as keys
-    and a list of corresponding aligned cloud file_paths as values
+    Uses a dictionary with path tuples (reference cloud file path, aligned cloud file path ) as keys
+    and a results tuple (translation, mse) as values to extract the paths and load the clouds. Dictionary structure:
+    {(reference path, aligned_path): ((x, y, z), mse)}
+
+    Also uses a Python function that takes three strings (reference_cloud_path, aligned_cloud_path, plot_title) and
+    returns a dictionary line in the form of {(reference path, aligned_path): (translation, mse)}
+
+    It then creates a new dictionary of the given form and saves it as 'data/results_save_name.pkl'.
 
     Input:
-        file_paths_dictionary: (string)  Dictionary with reference_paths as keys and paths of aligned clouds as values
-        algorithmus_function: (function) Function that returns dict {(reference path, aligned_path): (translation, mse)}
-        results_save_name: (string)      Results will be saved as data/results_save_path.pkl. Values may be overwritten.
+        reference_dictionary_name: (string) Dictionary with paths tuple as keys for extraction of file locations
+        algorithmus_function: (function)    Function that returns {(reference path, aligned_path); (translation, mse)}
+        results_save_name: (string)         Results will be saved in 'data/'. Values may be overwritten.
+
+    Output:
+        sucess: (boolean)                   Is true on success
     """
 
     # parse the reference values saved in a file
@@ -259,9 +270,10 @@ def use_algorithmus_on_dictionary (reference_dictionary_name, algorithmus_functi
 
     if (results_save_name is not None ):
         input_output.save_obj (algorithmus_results, results_save_name)
+        print_reference_dict (results_save_name )
 
     # prints the values computed along with the ground truth in the dictionary
-    compare_results (algorithmus_results, reference_dictionary )
+    #compare_results (algorithmus_results, reference_dictionary )
 
     return True
 
@@ -289,12 +301,12 @@ if __name__ == '__main__':
 
     random.seed (1337 )
 
-    # icp
-    print ("\n\nComputing ICP for each cloud pair in reference_translations returns: "
-           + str(use_algorithmus_on_dictionary (get_reference_data_paths (), do_icp )))
-
-    compare_results (do_icp ('clouds/Regions/Xy Tower/ALS16_Cloud_reduced_normals_cleared.asc',
-                             'clouds/Regions/Xy Tower/DSM_Cloud_reduced_normals.asc' ), print_csv=True)
+    # # icp
+    # print ("\n\nComputing ICP for each cloud pair in reference_translations returns: "
+    #        + str(use_algorithmus_on_dictionary (get_reference_data_paths (), do_icp )))
+    #
+    # compare_results (do_icp ('clouds/Regions/Xy Tower/ALS16_Cloud_reduced_normals_cleared.asc',
+    #                          'clouds/Regions/Xy Tower/DSM_Cloud_reduced_normals.asc' ), print_csv=True)
 
     # # # consensus
     # set_consensus_arguments (distance_threshold=0.3,
@@ -316,35 +328,67 @@ if __name__ == '__main__':
     #                                             algorithmus_function=accumulate,
     #                                             results_save_name="accumulator_translations_dict" )))
 
-    # # get folder structure
-    # print (input_output.get_all_files_in_subfolders("clouds/New Regions/", ".asc" ))
-    # for path in input_output.get_all_files_in_subfolders("clouds/New Regions/", ".asc" ):
-    #     print (path )
-    #
-    # # Make a dict of test cases (tuple of paths) as keys
-    # # and the corresponding results (tuple of translation and mse) as values
-    # dict = \
-    #     {
-    #         ("path1", "path2"): ((0, 0, 0), 0),
-    #         ("path1", "path2"): ((0, 0, 0), 0),
-    #         ("path1", "path2"): ((0, 0, 0), 0),
-    #         ("path1", "path2"): ((0, 0, 0), 0),
-    #         ("path1", "path2"): ((0, 0, 0), 0),
-    #         ("path1", "path2"): ((0, 0, 0), 0),
-    #         ("path1", "path2"): ((0, 0, 0), 0),
-    #         ("path1", "path2"): ((0, 0, 0), 0),
-    #         ("path1", "path2"): ((0, 0, 0), 0),
-    #     }
-    #
-    # input_output.save_obj(dict, "no_translations_dict" )
-
     # # # icp
     # print ("\n\nComputing ICP for each cloud pair in reference_translations_dict returns: "
     #        + str(use_algorithmus_on_dictionary (reference_dictionary_name="reference_translations_dict",
     #                                             algorithmus_function=do_icp,
     #                                             results_save_name="icp_translations_dict" )))
 
-    #print (str(input_output.load_obj ("last_output_dict" )).replace (")), ", ")),\n" ))
+    # print saved dictionaries
+    # print (str(input_output.load_obj ("no_translations_dict" )).replace ("), ('", "),\n('" ))
+    print_reference_dict ("no_translations_dict",)
 
-    # compare_results (reach_a_consensus ('clouds/Regions/Xy Tower/ALS16_Cloud_reduced_normals_cleared.asc',
-    #                                     'clouds/Regions/Xy Tower/DSM_Cloud_reduced_normals.asc' ), print_csv=False)
+    # # get folder structure
+    # for path in input_output.get_all_files_in_subfolders("clouds/New Regions/", ".asc" ):
+    #     print (path )
+
+    # # Make a dict of test cases (tuple of paths) as keys
+    # # and the corresponding results (tuple of translation and mse) as values
+    # dict = \
+    #     {
+    #         ("clouds/New Regions/Color_Houses/Color Houses_als16_reduced_normals_r_1_cleared.asc",
+    #         "clouds/New Regions/Color_Houses/Color Houses_dim16_reduced_normals_r_1_cleared.asc"): ((0, 0, 0), 0),
+    #
+    #         ("clouds/New Regions/DIM_showcase/DIM showcase_als16_reduced_normals_r_1_cleared.asc",
+    #         "clouds/New Regions/DIM_showcase/DIM showcase_dim16_reduced_normals_r_1_cleared.asc"): ((0, 0, 0), 0),
+    #
+    #         ("clouds/New Regions/Everything/Everything_als16_reduced_normals_r_1_cleared.asc",
+    #         "clouds/New Regions/Everything/Everything_dim16_reduced_normals_r_1_cleared.asc"): ((0, 0, 0), 0),
+    #         ("clouds/New Regions/Everything/Everything_als14_reduced_normals_r_1_cleared.asc",
+    #         "clouds/New Regions/Everything/Everything_als16_reduced_normals_r_1_cleared.asc"): ((0, 0, 0), 0),
+    #         ("clouds/New Regions/Everything/Everything_als14_reduced_normals_r_1_cleared.asc",
+    #         "clouds/New Regions/Everything/Everything_dim16_reduced_normals_r_1_cleared.asc"): ((0, 0, 0), 0),
+    #
+    #         ("clouds/New Regions/Field/Field_als16_reduced_normals_r_1_cleared.asc",
+    #         "clouds/New Regions/Field/Field_dim16_reduced_normals_r_1_cleared.asc"): ((0, 0, 0), 0),
+    #
+    #         ("clouds/New Regions/Forest/Forest_als16_reduced_normals_r_1_cleared.asc",
+    #         "clouds/New Regions/Forest/Forest_dim16_reduced_normals_r_1_cleared.asc"): ((0, 0, 0), 0),
+    #
+    #         ("clouds/New Regions/Missing_Building/Missing Building_als16_reduced_normals_r_1_cleared.asc",
+    #         "clouds/New Regions/Missing_Building/Missing Building_dim16_reduced_normals_r_1_cleared.asc"): ((0, 0, 0), 0),
+    #         ("clouds/New Regions/Missing_Building/Missing Building_als14_reduced_normals_r_1_cleared.asc",
+    #         "clouds/New Regions/Missing_Building/Missing Building_als16_reduced_normals_r_1_cleared.asc"): ((0, 0, 0), 0),
+    #         ("clouds/New Regions/Missing_Building/Missing Building_als14_reduced_normals_r_1_cleared.asc",
+    #         "clouds/New Regions/Missing_Building/Missing Building_dim16_reduced_normals_r_1_cleared.asc"): ((0, 0, 0), 0),
+    #
+    #         ("clouds/New Regions/Road/Road_als16_reduced_normals_r_1_cleared.asc",
+    #         "clouds/New Regions/Road/Road_dim16_reduced_normals_r_1_cleared.asc"): ((0, 0, 0), 0),
+    #
+    #         ("clouds/New Regions/Xyz_Square/Xyz Square_als16_reduced_normals_r_1_cleared.asc",
+    #         "clouds/New Regions/Xyz_Square/Xyz Square_dim16_reduced_normals_r_1_cleared.asc"): ((0, 0, 0), 0),
+    #
+    #         ("clouds/New Regions/Xy_Tower/Xy Tower_als16_reduced_normals_r_1_cleared.asc",
+    #         "clouds/New Regions/Xy_Tower/Xy Tower_dim16_reduced_normals_r_1_cleared.asc"): ((0, 0, 0), 0),
+    #
+    #         ("clouds/New Regions/Xz_Hall/Xz Hall_als16_reduced_normals_r_1_cleared.asc",
+    #         "clouds/New Regions/Xz_Hall/Xz Hall_dim16_reduced_normals_r_1_cleared.asc"): ((0, 0, 0), 0),
+    #
+    #         ("clouds/New Regions/Yz_Houses/Yz Houses_als16_reduced_normals_r_1_cleared.asc",
+    #         "clouds/New Regions/Yz_Houses/Yz Houses_dim16_reduced_normals_r_1_cleared.asc"): ((0, 0, 0), 0),
+    #
+    #         ("clouds/New Regions/Yz_Street/Yz Street_als16_reduced_normals_r_1_cleared.asc",
+    #         "clouds/New Regions/Yz_Street/Yz Street_dim16_reduced_normals_r_1_cleared.asc"): ((0, 0, 0), 0)
+    #     }
+    #
+    # input_output.save_obj(dict, "no_translations_dict" )
