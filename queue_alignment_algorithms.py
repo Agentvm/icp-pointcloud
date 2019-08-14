@@ -266,7 +266,7 @@ def use_algorithmus_on_dictionary (reference_dictionary_name, algorithmus_functi
             # sample clouds (in icp ?)
 
             # displace the aligned cloud with the translation saved in the reference dictionary
-            aligned_pointcloud.points += reference_dictionary[(reference_cloud_path, aligned_cloud_path)]
+            aligned_pointcloud.points[:, 0:3] += reference_dictionary[(reference_cloud_path, aligned_cloud_path)][0]
 
             # call the algorithmus supplied by algorithmus_function and update the results dictionary
             results = algorithmus_function (reference_pointcloud, aligned_pointcloud, plot_title )
@@ -325,19 +325,19 @@ if __name__ == '__main__':
     #                                             algorithmus_function=reach_a_consensus,
     #                                             results_save_name="distance_consensus_translations_dict" )))
 
-    # # accumulator
-    set_accumulator_arguments ()
-
-    print ("\n\nComputing Accumulator Consensus for each cloud pair in reference_translations_dict returns: "
-           + str(use_algorithmus_on_dictionary (reference_dictionary_name="no_translations_dict",
-                                                algorithmus_function=accumulate,
-                                                results_save_name="accumulator_translations_dict" )))
-
-    # # # icp
-    # print ("\n\nComputing ICP for each cloud pair in no_translations_dict returns: "
+    # # # accumulator
+    # set_accumulator_arguments ()
+    #
+    # print ("\n\nComputing Accumulator Consensus for each cloud pair in reference_translations_dict returns: "
     #        + str(use_algorithmus_on_dictionary (reference_dictionary_name="no_translations_dict",
-    #                                             algorithmus_function=do_icp,
-    #                                             results_save_name="icp_translations_dict" )))
+    #                                             algorithmus_function=accumulate,
+    #                                             results_save_name="accumulator_translations_dict" )))
+
+    # # icp
+    print ("\n\nComputing ICP for each cloud pair in no_translations_dict returns: "
+           + str(use_algorithmus_on_dictionary (reference_dictionary_name="accumulator_translations_dict",
+                                                algorithmus_function=do_icp,
+                                                results_save_name="accumulator-icp_translations_dict" )))
 
     # # print saved dictionaries
     # #print (str(input_output.load_obj ("no_translations_dict" )).replace ("), ('", "),\n('" ))
