@@ -26,15 +26,14 @@ def set_accumulator_arguments (accumulator_radius=1.0, grid_size=0.05 ):
     ACCUMULATOR_GRID_SIZE = grid_size
 
 
-def accumulate (full_path_of_reference_cloud, full_path_of_aligned_cloud, plot_title ):
-    """Function that can be passed to use_algorithmus_on_dictionary. Returns a dictionary line of results"""
+def accumulate (reference_pointcloud, aligned_pointcloud, plot_title ):
+    """
+    Function that can be passed to use_algorithmus_on_dictionary. Returns a results tuple containing a translation
+    and mse values ((x,y,z), (mse_x, mse_y, mse_z))
+    """
 
     if ('ACCUMULATOR_RADIUS' not in globals() or 'ACCUMULATOR_GRID_SIZE' not in globals()):
         raise NameError("Consensus arguments are not defined. Call set_consensus_arguments() first.")
-
-    # load clouds
-    reference_pointcloud = input_output.conditionalized_load (full_path_of_reference_cloud )
-    aligned_pointcloud = input_output.conditionalized_load (full_path_of_aligned_cloud )
 
     # reach consensus by accumulation of results
     best_alignment, best_consensus_count = accumulator.spheric_cloud_consensus (reference_pointcloud,
@@ -47,10 +46,7 @@ def accumulate (full_path_of_reference_cloud, full_path_of_aligned_cloud, plot_t
                                                                                 relative_color_scale=True,
                                                                                 plot_title=plot_title )
 
-    dictionary_line = {(full_path_of_reference_cloud, full_path_of_aligned_cloud):
-                       (best_alignment, (best_consensus_count/aligned_pointcloud.points.shape[0], 0, 0))}
-
-    return dictionary_line
+    return (best_alignment, (best_consensus_count/aligned_pointcloud.points.shape[0], 0, 0))
 
 
 def set_consensus_arguments (distance_threshold=.3, angle_threshold=30,
@@ -69,8 +65,11 @@ def set_consensus_arguments (distance_threshold=.3, angle_threshold=30,
     CONSENSUS_ALGORITHM = algorithm
 
 
-def reach_a_consensus (full_path_of_reference_cloud, full_path_of_aligned_cloud, plot_title ):
-    """Function that can be passed to use_algorithmus_on_dictionary. Returns a dictionary line of results"""
+def reach_a_consensus (reference_pointcloud, aligned_pointcloud, plot_title ):
+    """
+    Function that can be passed to use_algorithmus_on_dictionary. Returns a results tuple containing a translation
+    and mse values ((x,y,z), (mse_x, mse_y, mse_z))
+    """
 
     if ('CONSENSUS_DISTANCE_THRESHOLD' not in globals()
             or 'CONSENSUS_ANGLE_THRESHOLD' not in globals()
@@ -78,10 +77,6 @@ def reach_a_consensus (full_path_of_reference_cloud, full_path_of_aligned_cloud,
             or 'CONSENSUS_STEP' not in globals()
             or 'CONSENSUS_ALGORITHM' not in globals() ):
         raise NameError("Consensus arguments are not defined. Call set_consensus_arguments() first.")
-
-    # load clouds
-    reference_pointcloud = input_output.conditionalized_load (full_path_of_reference_cloud )
-    aligned_pointcloud = input_output.conditionalized_load (full_path_of_aligned_cloud )
 
     best_alignment, best_consensus_count, best_alignment_consensus_vector = \
         consensus.cubic_cloud_consensus (reference_pointcloud,
@@ -94,36 +89,34 @@ def reach_a_consensus (full_path_of_reference_cloud, full_path_of_aligned_cloud,
                                          plot_title=plot_title,
                                          save_plot=True)
 
-    dictionary_line = {(full_path_of_reference_cloud, full_path_of_aligned_cloud):
-                       (best_alignment, (best_consensus_count/aligned_pointcloud.points.shape[0], 0, 0))}
-
-    return dictionary_line
+    return (best_alignment, (best_consensus_count/aligned_pointcloud.points.shape[0], 0, 0))
 
 
-def do_icp (full_path_of_reference_cloud, full_path_of_aligned_cloud, dummy_arg = "" ):
-    """Function that can be passed to use_algorithmus_on_dictionary. Returns a dictionary line of results"""
+def do_icp (reference_pointcloud, aligned_pointcloud, dummy_arg = "" ):
+    """
+    Function that can be passed to use_algorithmus_on_dictionary. Returns a results tuple containing a translation
+    and mse values ((x,y,z), (mse_x, mse_y, mse_z))
+    """
 
-    # load reference cloud
-    reference_pointcloud = input_output.load_ascii_file (full_path_of_reference_cloud )
-
-    # sample DIM clouds
-    if ("DSM_Cloud" in full_path_of_reference_cloud):
+    # sample DIM clouds (which have color fields)
+    if (reference_pointcloud.has_fields ("Rf")
+    and reference_pointcloud.has_fields ("Gf")
+    and reference_pointcloud.has_fields ("Bf")):
         reference_pointcloud.points = conversions.sample_cloud (
                                                     reference_pointcloud.points, 6, deterministic_sampling=False )
 
-    # load aligned clouds
-    aligned_pointcloud = input_output.load_ascii_file (full_path_of_aligned_cloud )
-
-    # sample DIM Clouds
-    if ("DSM_Cloud" in full_path_of_aligned_cloud):
+    # sample DIM Clouds (which have color fields)
+    if (reference_pointcloud.has_fields ("Rf")
+    and reference_pointcloud.has_fields ("Gf")
+    and reference_pointcloud.has_fields ("Bf")):
         aligned_pointcloud.points = conversions.sample_cloud (
                                                     aligned_pointcloud.points, 6, deterministic_sampling=False )
 
     translation, mean_squared_error = icp.icp (reference_pointcloud.points, aligned_pointcloud.points, verbose=False )
 
-    dictionary_line = {(full_path_of_reference_cloud, full_path_of_aligned_cloud): (translation, mean_squared_error)}
+    #dictionary_line = {(full_path_of_reference_cloud, full_path_of_aligned_cloud): (translation, mean_squared_error)}
 
-    return dictionary_line
+    return (translation, mean_squared_error)
 
 
 def print_reference_dict (reference_dictionary_name ):
@@ -266,8 +259,18 @@ def use_algorithmus_on_dictionary (reference_dictionary_name, algorithmus_functi
             folder, aligned_file_name = input_output.get_folder_and_file_name (aligned_cloud_path)
             plot_title = folder + ' ' + aligned_file_name + ' to ' + reference_file_name
 
-            # call the algorithmus supplied by algorithmus_function
-            algorithmus_results.update (algorithmus_function (reference_cloud_path, aligned_cloud_path, plot_title ))
+            # load clouds
+            reference_pointcloud = input_output.conditionalized_load (reference_cloud_path )
+            aligned_pointcloud = input_output.conditionalized_load (aligned_cloud_path )
+
+            # sample clouds (in icp ?)
+
+            # displace the aligned cloud with the translation saved in the reference dictionary
+            aligned_pointcloud.points += reference_dictionary[(reference_cloud_path, aligned_cloud_path)]
+
+            # call the algorithmus supplied by algorithmus_function and update the results dictionary
+            results = algorithmus_function (reference_pointcloud, aligned_pointcloud, plot_title )
+            algorithmus_results.update ({(reference_cloud_path, aligned_cloud_path): results} )
 
     # save the results in a dictionary and print it
     if (results_save_name is not None ):
