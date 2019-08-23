@@ -314,16 +314,16 @@ if __name__ == '__main__':
     #                          'clouds/Regions/Xy Tower/DSM_Cloud_reduced_normals.asc' ), print_csv=True)
 
     # # # consensus
-    # set_consensus_arguments (distance_threshold=0.3,
-    #                          angle_threshold=None,
+    # set_consensus_arguments (distance_threshold=None,
+    #                          angle_threshold=32,
     #                          cubus_length=2,
     #                          step=0.15,
-    #                          algorithm='distance' )
+    #                          algorithm='angle' )
     #
     # print ("\n\nComputing Consensus for each cloud pair in reference_translations_dict returns: "
-    #        + str(use_algorithmus_on_dictionary (reference_dictionary_name="reference_translations_dict",
+    #        + str(use_algorithmus_on_dictionary (reference_dictionary_name="no_translations_part3_dict",
     #                                             algorithmus_function=reach_a_consensus,
-    #                                             results_save_name="distance_consensus_translations_dict" )))
+    #                                             results_save_name="angle_consensus_translations_part3_dict" )))
 
     # # # accumulator
     # set_accumulator_arguments ()
@@ -333,15 +333,20 @@ if __name__ == '__main__':
     #                                             algorithmus_function=accumulate,
     #                                             results_save_name="accumulator_translations_dict" )))
 
-    # # icp
-    print ("\n\nComputing ICP for each cloud pair in no_translations_dict returns: "
-           + str(use_algorithmus_on_dictionary (reference_dictionary_name="accumulator_translations_dict",
-                                                algorithmus_function=do_icp,
-                                                results_save_name="accumulator-icp_translations_dict" )))
+    # # join
+    # input_output.join_saved_dictionaries (["angle_consensus_translations_part1_dict",
+    #                                        "angle_consensus_translations_part2_dict",
+    #                                        "angle_consensus_translations_part3_dict"],
+    #                                       "angle_consensus_translations_dict")
 
-    # # print saved dictionaries
-    # #print (str(input_output.load_obj ("no_translations_dict" )).replace ("), ('", "),\n('" ))
-    # print_reference_dict ("icp_translations_dict" )
+    # # # icp
+    # print ("\n\nComputing ICP for each cloud pair in no_translations_dict returns: "
+    #        + str(use_algorithmus_on_dictionary (reference_dictionary_name="accumulator_translations_dict",
+    #                                             algorithmus_function=do_icp,
+    #                                             results_save_name="accumulator-icp_translations_dict" )))
+
+    # print saved dictionaries
+    print_reference_dict ("accumulator-icp_translations_dict" )
 
     # # get folder structure
     # for path in input_output.get_all_files_in_subfolders("clouds/New Regions/", ".asc" ):
@@ -372,13 +377,13 @@ if __name__ == '__main__':
     #
     #         ("clouds/New Regions/Missing_Building/Missing Building_als16_reduced_normals_r_1_cleared.asc",
     #         "clouds/New Regions/Missing_Building/Missing Building_dim16_reduced_normals_r_1_cleared.asc"):
-    # ((0, 0, 0), 0),
+    #         ((0, 0, 0), 0),
     #         ("clouds/New Regions/Missing_Building/Missing Building_als14_reduced_normals_r_1_cleared.asc",
     #         "clouds/New Regions/Missing_Building/Missing Building_als16_reduced_normals_r_1_cleared.asc"):
-    # ((0, 0, 0), 0),
+    #         ((0, 0, 0), 0),
     #         ("clouds/New Regions/Missing_Building/Missing Building_als14_reduced_normals_r_1_cleared.asc",
     #         "clouds/New Regions/Missing_Building/Missing Building_dim16_reduced_normals_r_1_cleared.asc"):
-    # ((0, 0, 0), 0),
+    #         ((0, 0, 0), 0),
     #
     #         ("clouds/New Regions/Road/Road_als16_reduced_normals_r_1_cleared.asc",
     #         "clouds/New Regions/Road/Road_dim16_reduced_normals_r_1_cleared.asc"): ((0, 0, 0), 0),
@@ -399,4 +404,4 @@ if __name__ == '__main__':
     #         "clouds/New Regions/Yz_Street/Yz Street_dim16_reduced_normals_r_1_cleared.asc"): ((0, 0, 0), 0)
     #     }
     #
-    # input_output.save_obj(dict, "no_translations_dict" )
+    # input_output.save_obj(dict, "no_translations_part3_dict" )
