@@ -26,6 +26,15 @@ def normalize_vector_array (vector_array ):
     return vector_array / norms.reshape (-1, 1 )
 
 
+def einsum_angle_between (vector_array_1, vector_array_2 ):
+    """Works on (n, 3) numpy.ndarrays of vectors and returns the angle difference in rad between each pair of vectors"""
+
+    # diagonal of dot product
+    diag = np.clip (np.einsum('ij,ij->i', vector_array_1, vector_array_2 ), -1, 1 )
+
+    return np.arccos (diag )
+
+
 def eigenvalue_decomposition (a_t_a_matrix ):
     """Uses np.linalg.eig () to decompose a 3x3 matrix. Returns normal vector and smallest eigenvalue."""
     # get eigenvalues and -vectors from ATA matrix

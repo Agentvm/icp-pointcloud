@@ -9,6 +9,7 @@ corresponding_cloud.
 
 # local modules
 from modules import input_output
+from modules.normals import einsum_angle_between
 
 # basic imports
 import numpy as np
@@ -26,15 +27,6 @@ import textwrap
 
 # debug
 import time
-
-
-def einsum_angle_between (vector_array_1, vector_array_2 ):
-    """Works on (n, 3) numpy.ndarrays of vectors and returns the angle difference in rad between each pair of vectors"""
-
-    # diagonal of dot product
-    diag = np.clip (np.einsum('ij,ij->i', vector_array_1, vector_array_2 ), -1, 1 )
-
-    return np.arccos (diag )
 
 
 def combined_cloud_consensus (tree_of_np_pointcloud, np_pointcloud,
