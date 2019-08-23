@@ -95,7 +95,7 @@ if __name__ == '__main__':
 
     if (borders ):
         title += "_borders"
-        corresponding_pointcloud.points = conversions.delete_cloud_borders (corresponding_pointcloud.points, 3.0 )
+        corresponding_pointcloud.points = conversions.prune_cloud_borders (corresponding_pointcloud.points, 3.0 )
 
     # reach consensus
     best_alignment, best_consensus_count, = accumulator.spheric_cloud_consensus (np_pointcloud,
