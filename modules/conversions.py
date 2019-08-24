@@ -267,7 +267,7 @@ def prune_cloud_pair (reference_pointcloud, corresponding_pointcloud, translatio
 
 
 def sample_cloud (numpy_cloud, sample_divisor, deterministic_sampling=False ):
-    """Samples a cloud by a given divisor. If sample_divisor=4, cloud is 4 times as small after sampling."""
+    """Samples a numpy cloud by a given divisor. If sample_divisor=4, cloud is 4 times as small after sampling."""
 
     previous_length = numpy_cloud.shape[0]
 

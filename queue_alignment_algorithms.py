@@ -99,16 +99,12 @@ def do_icp (reference_pointcloud, aligned_pointcloud, dummy_arg = "" ):
     """
 
     # sample DIM clouds (which have color fields)
-    if (reference_pointcloud.has_fields ("Rf")
-    and reference_pointcloud.has_fields ("Gf")
-    and reference_pointcloud.has_fields ("Bf")):
+    if (reference_pointcloud.has_fields (["Rf", "Gf", "Bf"] )):
         reference_pointcloud.points = conversions.sample_cloud (
                                                     reference_pointcloud.points, 6, deterministic_sampling=False )
 
     # sample DIM Clouds (which have color fields)
-    if (reference_pointcloud.has_fields ("Rf")
-    and reference_pointcloud.has_fields ("Gf")
-    and reference_pointcloud.has_fields ("Bf")):
+    if (aligned_pointcloud.has_fields (["Rf", "Gf", "Bf"] )):
         aligned_pointcloud.points = conversions.sample_cloud (
                                                     aligned_pointcloud.points, 6, deterministic_sampling=False )
 
@@ -215,7 +211,8 @@ def compare_results (dictionary, reference_dict, print_csv=True ):
 
 
 # # TODO:  The clouds are then displaced by the translations found in the dictionary.
-def use_algorithmus_on_dictionary (reference_dictionary_name, algorithmus_function, results_save_name=None ):
+def use_algorithmus_on_dictionary (reference_dictionary_name, algorithmus_function,
+                                   results_save_name=None, prune_clouds=False ):
     """
     Uses a dictionary with path tuples (reference cloud file path, aligned cloud file path ) as keys
     and a results tuple (translation, mse) as values to extract the paths and load the clouds. Dictionary structure:
@@ -230,6 +227,11 @@ def use_algorithmus_on_dictionary (reference_dictionary_name, algorithmus_functi
         reference_dictionary_name: (string) Dictionary with paths tuple as keys for extraction of file locations
         algorithmus_function: (function)    Function that returns {(reference path, aligned_path); (translation, mse)}
         results_save_name: (string)         Results will be saved in 'data/'. Values may be overwritten.
+        prune_clouds: (boolean)             Set True if clouds are reasonably aligned. Removes undesirable points.
+                                            Points of both cloud are filtered for bad sigma values from normal calcu-
+                                            lation, cloud edged are removed to avoid edge biases and points that have
+                                            no corresponding neighbor in the other cloud are removed aswell.
+                                            For more info, see modules/conversions.prune_cloud_pair()
 
     Output:
         sucess: (boolean)                   Is true on success
@@ -267,6 +269,12 @@ def use_algorithmus_on_dictionary (reference_dictionary_name, algorithmus_functi
 
             # displace the aligned cloud with the translation saved in the reference dictionary
             aligned_pointcloud.points[:, 0:3] += reference_dictionary[(reference_cloud_path, aligned_cloud_path)][0]
+
+            # remove undesireable points of both clouds to allow for a smooth alignment with less outliers
+            # or wrong point correspondences
+            if (prune_clouds ):
+                reference_pointcloud, aligned_pointcloud = \
+                    conversions.prune_cloud_pair (reference_pointcloud, aligned_pointcloud )
 
             # call the algorithmus supplied by algorithmus_function and update the results dictionary
             results = algorithmus_function (reference_pointcloud, aligned_pointcloud, plot_title )
@@ -340,13 +348,14 @@ if __name__ == '__main__':
     #                                       "angle_consensus_translations_dict")
 
     # # # icp
-    # print ("\n\nComputing ICP for each cloud pair in no_translations_dict returns: "
-    #        + str(use_algorithmus_on_dictionary (reference_dictionary_name="accumulator_translations_dict",
-    #                                             algorithmus_function=do_icp,
-    #                                             results_save_name="accumulator-icp_translations_dict" )))
+    print ("\n\nComputing ICP for each cloud pair in no_translations_dict returns: "
+           + str(use_algorithmus_on_dictionary (reference_dictionary_name="accumulator_translations_dict",
+                                                algorithmus_function=do_icp,
+                                                results_save_name="accumulator-icp_translations_dict",
+                                                prune_clouds=True )))
 
     # print saved dictionaries
-    print_reference_dict ("accumulator-icp_translations_dict" )
+    # print_reference_dict ("angle_consensus_translations_dict" )
 
     # # get folder structure
     # for path in input_output.get_all_files_in_subfolders("clouds/New Regions/", ".asc" ):
