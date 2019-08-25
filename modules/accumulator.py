@@ -302,6 +302,19 @@ def spheric_cloud_consensus (np_pointcloud, corresponding_pointcloud,
     best_alignment = consensus_cube[np.argmax (consensus_cube[:, 3] ), 0:3].copy ()
     highest_consensus_count = np.max (consensus_cube[:, 3] ).copy ()
 
+    # sort the 4th column, containing the consensus values, best values last
+    consensus_cube.view('i8,i8,i8,i8').sort(order=['f3'], axis=0 )
+    np.set_printoptions(precision=6, linewidth=120, suppress=True )
+
+    # Print Results
+    print ("best_alignment: " + str (best_alignment ))
+    print ("best_alignment_consensus: " + str (highest_consensus_count ))
+    # # * corresponding_pointcloud.points.shape[0]
+    # print ("consensus_cube:\n" + str (display_cube[-10:-1, :]))
+    # print ("consensus_cube:\n" + str (display_cube[1:10, :]))
+
+    print ("consensus_cube:\n" + str (consensus_cube[-10:, :]))
+
     # put together the plot title from the string given as argument to this function and the algorithmus parameters
     plot_title = create_plot_title (plot_title, accumulator_radius, grid_size, distance_threshold )
 
@@ -346,6 +359,16 @@ def spheric_cloud_consensus (np_pointcloud, corresponding_pointcloud,
     print ("\tLoop Rasterization Time: " + "{:.2f}%".format ((rasterization_time / average_loop_time) * 100 ))
     print ("Outro Time: " + str (outro_time ))
     print ("Overall Time: " + str (time.time () - start_time ) + "\n")
+
+    # Print Results
+    print ("best_alignment: " + str (best_alignment ))
+    print ("best_alignment_consensus: " + str (highest_consensus_count ))
+    # * corresponding_pointcloud.points.shape[0]
+    print ("consensus_cube:\n" + str (display_cube[-10:-1, :]))
+    print ("consensus_cube:\n" + str (display_cube[1:10, :]))
+
+    print ("consensus_cube:\n" + str (consensus_cube[-10:-1, :]))
+    print ("consensus_cube:\n" + str (consensus_cube[1:10, :]))
 
     # display the plot
     if (display_plot ):

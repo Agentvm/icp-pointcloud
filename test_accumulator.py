@@ -75,12 +75,12 @@ if __name__ == '__main__':
     sigma = False
     filter_sigma_only_on_corresponding_cloud = False
     sigma_value = 0.2
-    borders = True
+    borders = False
 
     # prepare example clouds, random or from file
-    # np_pointcloud, corresponding_pointcloud, random_offset = prepare_random_cloud ()
-    np_pointcloud, corresponding_pointcloud = load_example_cloud_old ("Yz Houses" )
-    np_pointcloud, corresponding_pointcloud = load_example_cloud ("Yz_Houses" )
+    np_pointcloud, corresponding_pointcloud, random_offset = prepare_random_cloud ()
+    # np_pointcloud, corresponding_pointcloud = load_example_cloud_old ("Yz Houses" )
+    # np_pointcloud, corresponding_pointcloud = load_example_cloud ("Yz_Houses" )
 
     if (sigma ):
         title += "_sigma_"
@@ -95,7 +95,7 @@ if __name__ == '__main__':
 
     if (borders ):
         title += "_borders"
-        corresponding_pointcloud.points = conversions.prune_cloud_borders (corresponding_pointcloud.points, 3.0 )
+        corresponding_pointcloud.points = conversions.prune_cloud_borders (corresponding_pointcloud.points )
 
     # reach consensus
     best_alignment, best_consensus_count, = accumulator.spheric_cloud_consensus (np_pointcloud,
