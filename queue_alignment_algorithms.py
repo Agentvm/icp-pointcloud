@@ -265,8 +265,6 @@ def use_algorithmus_on_dictionary (reference_dictionary_name, algorithmus_functi
             reference_pointcloud = input_output.conditionalized_load (reference_cloud_path )
             aligned_pointcloud = input_output.conditionalized_load (aligned_cloud_path )
 
-            # sample clouds (in icp ?)
-
             # displace the aligned cloud with the translation saved in the reference dictionary
             aligned_pointcloud.points[:, 0:3] += reference_dictionary[(reference_cloud_path, aligned_cloud_path)][0]
 
@@ -347,11 +345,18 @@ if __name__ == '__main__':
     #                                        "angle_consensus_translations_part3_dict"],
     #                                       "angle_consensus_translations_dict")
 
-    # # # icp
+    # # # icp old
+    # print ("\n\nComputing ICP for each cloud pair in no_translations_dict returns: "
+    #        + str(use_algorithmus_on_dictionary (reference_dictionary_name="old_regions_distance_consensus_translations_dict",
+    #                                             algorithmus_function=do_icp,
+    #                                             results_save_name="old_regions_distance_consensus-NOANGLES_NOSIGMA_pruning-icp_translations_dict",
+    #                                             prune_clouds=True )))
+
+    # # icp new
     print ("\n\nComputing ICP for each cloud pair in no_translations_dict returns: "
            + str(use_algorithmus_on_dictionary (reference_dictionary_name="accumulator_translations_dict",
                                                 algorithmus_function=do_icp,
-                                                results_save_name="accumulator-icp_translations_dict",
+                                                results_save_name="accumulator-pruning-icp_translations_dict",
                                                 prune_clouds=True )))
 
     # print saved dictionaries
