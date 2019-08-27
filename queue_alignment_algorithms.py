@@ -266,7 +266,8 @@ def use_algorithmus_on_dictionary (reference_dictionary_name, algorithmus_functi
             aligned_pointcloud = input_output.conditionalized_load (aligned_cloud_path )
 
             # displace the aligned cloud with the translation saved in the reference dictionary
-            aligned_pointcloud.points[:, 0:3] += reference_dictionary[(reference_cloud_path, aligned_cloud_path)][0]
+            translation = reference_dictionary[(reference_cloud_path, aligned_cloud_path)][0]
+            aligned_pointcloud.points[:, 0:3] += translation
 
             # remove undesireable points of both clouds to allow for a smooth alignment with less outliers
             # or wrong point correspondences
@@ -275,7 +276,13 @@ def use_algorithmus_on_dictionary (reference_dictionary_name, algorithmus_functi
                     conversions.prune_cloud_pair (reference_pointcloud, aligned_pointcloud )
 
             # call the algorithmus supplied by algorithmus_function and update the results dictionary
-            results = algorithmus_function (reference_pointcloud, aligned_pointcloud, plot_title )
+            pre_results = algorithmus_function (reference_pointcloud, aligned_pointcloud, plot_title )
+
+            # add the previously applied translation to the resulting tranlsation and update the dictionary of results
+            # (don't use a tuple if you want to alter it ever again)
+            results = ((pre_results[0][0] + translation[0],
+                        pre_results[0][1] + translation[1],
+                        pre_results[0][2] + translation[2] ), pre_results[1])
             algorithmus_results.update ({(reference_cloud_path, aligned_cloud_path): results} )
 
     # save the results in a dictionary and print it
