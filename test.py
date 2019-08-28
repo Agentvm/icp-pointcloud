@@ -19,41 +19,54 @@ numpy_cloud = np.array([[1.1, 2.1, 3.1],
 
 
 # # Test Cloud Pruning
-# from modules import input_output, conversions
+# from modules import input_output, conversions, np_pointcloud
 #
 #
-# cloud_als = input_output.load_ascii_file ("clouds/New Regions/Forest/Forest_als16_reduced_normals_r_1_cleared.asc" )
-# cloud_dim = input_output.load_ascii_file ("clouds/New Regions/Forest/Forest_dim16_reduced_normals_r_1_cleared.asc" )
+# cloud_als = input_output.load_ascii_file (
+#     "clouds/New Regions/Everything/Everything_als16_reduced_normals_r_1_cleared.asc" )
+# cloud_dim = input_output.load_ascii_file (
+#     "clouds/New Regions/Everything/Everything_dim16_reduced_normals_r_1_cleared.asc" )
+#
+# a1 = np_pointcloud.NumpyPointCloud (cloud_als.points.copy (), cloud_als.field_labels )
+# d1 = np_pointcloud.NumpyPointCloud (cloud_dim.points.copy (), cloud_dim.field_labels )
+# a2 = np_pointcloud.NumpyPointCloud (cloud_als.points.copy (), cloud_als.field_labels )
+# d2 = np_pointcloud.NumpyPointCloud (cloud_dim.points.copy (), cloud_dim.field_labels )
+# a3 = np_pointcloud.NumpyPointCloud (cloud_als.points.copy (), cloud_als.field_labels )
+# d3 = np_pointcloud.NumpyPointCloud (cloud_dim.points.copy (), cloud_dim.field_labels )
+# a4 = np_pointcloud.NumpyPointCloud (cloud_als.points.copy (), cloud_als.field_labels )
+# d4 = np_pointcloud.NumpyPointCloud (cloud_dim.points.copy (), cloud_dim.field_labels )
+# a5 = np_pointcloud.NumpyPointCloud (cloud_als.points.copy (), cloud_als.field_labels )
+# d5 = np_pointcloud.NumpyPointCloud (cloud_dim.points.copy (), cloud_dim.field_labels )
+# a6 = np_pointcloud.NumpyPointCloud (cloud_als.points.copy (), cloud_als.field_labels )
+# d6 = np_pointcloud.NumpyPointCloud (cloud_dim.points.copy (), cloud_dim.field_labels )
 #
 # input_output.save_ascii_file (cloud_als.points, cloud_als.field_labels, "clouds/tmp/original_als.asc" )
 # input_output.save_ascii_file (cloud_dim.points, cloud_dim.field_labels, "clouds/tmp/original_dim.asc" )
 #
-# # borders
-# cloud_borders = conversions.prune_cloud_borders (cloud_als.points )
-# input_output.save_ascii_file (cloud_borders, cloud_als.field_labels, "clouds/tmp/borders.asc" )
-#
-#
-# # water classes
-# cloud_water = conversions.remove_water_classes (cloud_als )
-# input_output.save_ascii_file (cloud_water.points, cloud_water.field_labels, "clouds/tmp/water.asc" )
-#
-# # sigma
-# cloud_sigma = conversions.prune_sigma_quality (cloud_als )
-# input_output.save_ascii_file (cloud_sigma.points, cloud_sigma.field_labels, "clouds/tmp/sigma.asc" )
-#
 # # points
-# cloud_points_ref, cloud_points_corr = conversions.prune_model_outliers (cloud_als, cloud_dim )
+# cloud_points_ref, cloud_points_corr = conversions.prune_model_outliers (a1, d1 )
 # input_output.save_ascii_file (cloud_points_ref.points, cloud_points_ref.field_labels, "clouds/tmp/points_ref.asc" )
 # input_output.save_ascii_file (cloud_points_corr.points, cloud_points_corr.field_labels, "clouds/tmp/points_corr.asc" )
 #
+# # borders
+# cloud_borders = conversions.prune_cloud_borders (a2.points )
+# input_output.save_ascii_file (cloud_borders, cloud_als.field_labels, "clouds/tmp/borders.asc" )
+#
+# # water classes
+# cloud_water = conversions.remove_water_classes (a3 )
+# input_output.save_ascii_file (cloud_water.points, cloud_water.field_labels, "clouds/tmp/water.asc" )
+#
+# # sigma
+# cloud_sigma = conversions.prune_sigma_quality (a4 )
+# input_output.save_ascii_file (cloud_sigma.points, cloud_sigma.field_labels, "clouds/tmp/sigma.asc" )
+#
 # # vectors
-# cloud_points_ref, cloud_points_corr = conversions.prune_normal_vectors (cloud_als, cloud_dim )
+# cloud_points_ref, cloud_points_corr = conversions.prune_normal_vectors (a5, d5 )
 # input_output.save_ascii_file (cloud_points_ref.points, cloud_points_ref.field_labels, "clouds/tmp/vectors_ref.asc" )
-# input_output.save_ascii_file (
-#    cloud_points_corr.points, cloud_points_corr.field_labels, "clouds/tmp/vectors_corr.asc" )
+# input_output.save_ascii_file (cloud_points_corr.points, cloud_points_corr.field_labels, "clouds/tmp/vectors_corr.asc")
 #
 # # all
-# cloud_points_ref, cloud_points_corr = conversions.prune_cloud_pair (cloud_als, cloud_dim )
+# cloud_points_ref, cloud_points_corr = conversions.prune_cloud_pair (a6, d6 )
 # input_output.save_ascii_file (cloud_points_ref.points, cloud_points_ref.field_labels, "clouds/tmp/all_ref.asc" )
 # input_output.save_ascii_file (cloud_points_corr.points, cloud_points_corr.field_labels, "clouds/tmp/all_corr.asc" )
 

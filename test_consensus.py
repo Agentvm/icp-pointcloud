@@ -65,7 +65,7 @@ if __name__ == '__main__':
                                          cubus_length=1,
                                          step=.1,
                                          distance_threshold=0.2,
-                                         angle_threshold=30,
+                                         angle_threshold=None,
                                          algorithmus='distance',
                                          plot_title="New_Regions_YZ_Houses",
                                          relative_color_scale=False,

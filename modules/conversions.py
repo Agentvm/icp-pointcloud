@@ -240,6 +240,11 @@ def prune_cloud_pair (reference_pointcloud, corresponding_pointcloud, translatio
     # translate
     corresponding_pointcloud.points[:, 0:3] += translation
 
+    # prune cloud outliers
+    if (prune_outliers ):
+        reference_pointcloud, corresponding_pointcloud = \
+            prune_model_outliers (reference_pointcloud, corresponding_pointcloud, max_outlier_distance )
+
     # # start removing points that are likely to disturb cloud alignment
     if (prune_borders ):
         # only prune the borders of one cloud, so it can be fitted in the reference cloud, avoiding biases introduced
@@ -257,11 +262,6 @@ def prune_cloud_pair (reference_pointcloud, corresponding_pointcloud, translatio
     if (prune_normals ):
         reference_pointcloud, corresponding_pointcloud = \
             prune_normal_vectors (reference_pointcloud, corresponding_pointcloud, max_angle_difference )
-
-    # prune outliers last, so outliers created through other pruning methods are also eliminated
-    if (prune_outliers ):
-        reference_pointcloud, corresponding_pointcloud = \
-            prune_model_outliers (reference_pointcloud, corresponding_pointcloud, max_outlier_distance )
 
     return reference_pointcloud, corresponding_pointcloud
 
