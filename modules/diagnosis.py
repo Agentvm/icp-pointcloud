@@ -13,6 +13,22 @@ import scipy.spatial
 import matplotlib.pyplot as plt
 
 
+def cloud2cloud_distance_sum (reference_pointcloud, aligned_pointcloud, translation=(0, 0, 0) ):
+    """Returns the sum of all nearest neighbor distances from aligned_pointcloud to reference_pointcloud"""
+
+    # make a tree an get a list of distances to the nearest neigbor and his index (which is not needed)
+    # but only take the x,y,z fields into consideration (reference_cloud.get_xyz_coordinates ())
+    scipy_kdtree = scipy.spatial.cKDTree (reference_pointcloud.get_xyz_coordinates () )
+
+    # translate aligned_pointcloud
+    aligned_pointcloud.points[:, 0:3] += translation
+
+    # query the three, but only take the x,y,z fields into consideration
+    c2c_distances, indices = scipy_kdtree.query (aligned_pointcloud.get_xyz_coordinates (), k=1 )
+
+    return np.sum (c2c_distances)
+
+
 def plot_histogram (data, numer_of_bins ):
     # the histogram of the data
     n, bins, patches = plt.hist(data, numer_of_bins, density=False, range=(0, 180), facecolor='g', alpha=0.75 )

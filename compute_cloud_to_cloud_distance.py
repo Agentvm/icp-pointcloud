@@ -16,7 +16,7 @@ def cloud2cloud (reference_pointcloud, aligned_pointcloud ):
     """Computes field C2C_absolute_distances on compared cloud"""
 
     # make a tree an get a list of distances to the nearest neigbor and his index (which is not needed)
-    # but only take the x,y,z fields into consideration (reference_cloud[:, 0:3])
+    # but only take the x,y,z fields into consideration (.get_xyz_coordinates ())
     scipy_kdtree = scipy.spatial.cKDTree (reference_pointcloud.get_xyz_coordinates () )
 
     # query the three, but only take the x,y,z fields into consideration

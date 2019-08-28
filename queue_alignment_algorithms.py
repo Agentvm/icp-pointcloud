@@ -11,9 +11,14 @@ from modules import icp
 from modules import conversions
 from modules import consensus
 from modules import accumulator
+from modules import diagnosis
+from modules.np_pointcloud import NumpyPointCloud
 
 # basic imports
 import random
+
+# advanced functionality
+import scipy.spatial
 
 
 def set_pruning_arguments (prune_borders=True, borders_clearance=1.2,
@@ -187,7 +192,7 @@ def print_reference_dict (reference_dictionary_name ):
                + ';{: .8f}'.format(ref_translation[0])
                + '\n;{: .8f}'.format(ref_translation[1])
                + '\n;{: .8f}'.format(ref_translation[2])
-               + '\n;{: .8f}'.format(ref_mse[0]))
+               + '\n;{: .8f}'.format(ref_mse))
 
 
 def compare_results (dictionary, reference_dict, print_csv=True ):
@@ -305,6 +310,15 @@ def use_algorithmus_on_dictionary (reference_dictionary_name, algorithmus_functi
             reference_pointcloud = input_output.conditionalized_load (reference_cloud_path )
             aligned_pointcloud = input_output.conditionalized_load (aligned_cloud_path )
 
+            # create backups for alignment quality criterion
+            original_reference_pointcloud = NumpyPointCloud (reference_pointcloud.points.copy (),
+                                                             reference_pointcloud.field_labels )
+            original_aligned_pointcloud = NumpyPointCloud (aligned_pointcloud.points.copy (),
+                                                           aligned_pointcloud.field_labels )
+
+            # Criterion for alignment quality
+            criterion_before = diagnosis.cloud2cloud_distance_sum (reference_pointcloud, aligned_pointcloud )
+
             # displace the aligned cloud with the translation saved in the reference dictionary
             translation = reference_dictionary[(reference_cloud_path, aligned_cloud_path)][0]
             aligned_pointcloud.points[:, 0:3] += translation
@@ -312,26 +326,34 @@ def use_algorithmus_on_dictionary (reference_dictionary_name, algorithmus_functi
             # remove undesireable points of both clouds to allow for a smooth alignment with less outliers
             # or wrong point correspondences (see: set_pruning_arguments ())
             if (prune_clouds ):
-                reference_pointcloud, aligned_pointcloud = \
-                    conversions.prune_cloud_pair (reference_pointcloud, aligned_pointcloud,
-                                                  prune_borders=PRUNE_BORDERS,
-                                                  borders_clearance=BORDERS_CLEARANCE,
-                                                  prune_water_bodies=PRUNE_WATER_BODIES,
-                                                  prune_sigma=PRUNE_SIGMA,
-                                                  max_sigma_value=MAX_SIGMA_VALUE,
-                                                  prune_outliers=PRUNE_OUTLIERS,
-                                                  max_outlier_distance=MAX_OUTLIER_DISTANCE,
-                                                  prune_normals=PRUNE_NORMALS,
-                                                  max_angle_difference=MAX_ANGLE_DIFFERENCE )
+                if (check_pruning_arguments ()):
+                    reference_pointcloud, aligned_pointcloud = \
+                        conversions.prune_cloud_pair (reference_pointcloud, aligned_pointcloud,
+                                                      prune_borders=PRUNE_BORDERS,
+                                                      borders_clearance=BORDERS_CLEARANCE,
+                                                      prune_water_bodies=PRUNE_WATER_BODIES,
+                                                      prune_sigma=PRUNE_SIGMA,
+                                                      max_sigma_value=MAX_SIGMA_VALUE,
+                                                      prune_outliers=PRUNE_OUTLIERS,
+                                                      max_outlier_distance=MAX_OUTLIER_DISTANCE,
+                                                      prune_normals=PRUNE_NORMALS,
+                                                      max_angle_difference=MAX_ANGLE_DIFFERENCE )
+                else:
+                    raise ValueError ("No Pruning parameters were set, please use set_pruning_arguments().")
 
             # call the algorithmus supplied by algorithmus_function and update the results dictionary
             pre_results = algorithmus_function (reference_pointcloud, aligned_pointcloud, plot_title )
+
+            # Criterion for alignment quality with original clouds
+            criterion_after = diagnosis.cloud2cloud_distance_sum (original_reference_pointcloud,
+                                                                  original_aligned_pointcloud,
+                                                                  translation=pre_results[0] )
 
             # add the previously applied translation to the resulting tranlsation and update the dictionary of results
             # (don't use a tuple if you want to alter it ever again)
             results = ((pre_results[0][0] + translation[0],
                         pre_results[0][1] + translation[1],
-                        pre_results[0][2] + translation[2] ), pre_results[1])
+                        pre_results[0][2] + translation[2] ), criterion_before/criterion_after )
             algorithmus_results.update ({(reference_cloud_path, aligned_cloud_path): results} )
 
     # save the results in a dictionary and print it
@@ -409,20 +431,20 @@ if __name__ == '__main__':
     #                                             prune_clouds=True )))
 
     # # icp new
-    set_pruning_arguments (prune_sigma=True,
-                           prune_borders=True,
-                           prune_normals=False,
-                           prune_outliers=True, max_outlier_distance=2.0,
-                           prune_water_bodies=True)
+    # set_pruning_arguments (prune_sigma=True,
+    #                        prune_borders=True,
+    #                        prune_normals=False,
+    #                        prune_outliers=True, max_outlier_distance=2.0,
+    #                        prune_water_bodies=True)
 
-    print ("\n\nComputing ICP for each cloud pair in no_translations_dict returns: "
-           + str(use_algorithmus_on_dictionary (reference_dictionary_name="distance_consensus_translations_dict",
-                                                algorithmus_function=do_icp,
-                                                results_save_name="prune_sigma-outliers_2_translations_dict",
-                                                prune_clouds=True )))
+    # print ("\n\nComputing ICP for each cloud pair in no_translations_dict returns: "
+    #        + str(use_algorithmus_on_dictionary (reference_dictionary_name="no_translations_dict",
+    #                                             algorithmus_function=do_icp,
+    #                                             results_save_name="icp_translations_dict",
+    #                                             prune_clouds=True )))
 
-    # # print saved dictionaries
-    # print_reference_dict ("accumulator_0.3_translations_dict" )
+    # print saved dictionaries
+    print_reference_dict ("icp_translations_dict" )
 
     # # get folder structure
     # for path in input_output.get_all_files_in_subfolders("clouds/New Regions/", ".asc" ):
