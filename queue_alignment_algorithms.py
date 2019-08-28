@@ -16,6 +16,46 @@ from modules import accumulator
 import random
 
 
+def set_pruning_arguments (prune_borders=True, borders_clearance=1.2,
+                           prune_water_bodies=True,
+                           prune_sigma=True, max_sigma_value=0.05,
+                           prune_outliers=True, max_outlier_distance=0.5,
+                           prune_normals=True, max_angle_difference=32 ):
+    """Configure the pruning of the Cloud"""
+
+    global PRUNE_BORDERS
+    global BORDERS_CLEARANCE
+    global PRUNE_WATER_BODIES
+    global PRUNE_SIGMA
+    global MAX_SIGMA_VALUE
+    global PRUNE_OUTLIERS
+    global MAX_OUTLIER_DISTANCE
+    global PRUNE_NORMALS
+    global MAX_ANGLE_DIFFERENCE
+
+    PRUNE_BORDERS = prune_borders
+    BORDERS_CLEARANCE = borders_clearance
+    PRUNE_WATER_BODIES = prune_water_bodies
+    PRUNE_SIGMA = prune_sigma
+    MAX_SIGMA_VALUE = max_sigma_value
+    PRUNE_OUTLIERS = prune_outliers
+    MAX_OUTLIER_DISTANCE = max_outlier_distance
+    PRUNE_NORMALS = prune_normals
+    MAX_ANGLE_DIFFERENCE = max_angle_difference
+
+
+def check_pruning_arguments ():
+    return ('PRUNE_BORDERS' in globals()
+            or 'BORDERS_CLEARANCE' in globals()
+            or 'PRUNE_WATER_BODIES' in globals()
+            or 'PRUNE_SIGMA' in globals()
+            or 'MAX_SIGMA_VALUE' in globals()
+            or 'PRUNE_OUTLIERS' in globals()
+            or 'MAX_OUTLIER_DISTANCE' in globals()
+            or 'PRUNE_NORMALS' in globals()
+            or 'MAX_ANGLE_DIFFERENCE' in globals())
+
+
 def set_accumulator_arguments (accumulator_radius=1.0, grid_size=0.05 ):
     """Configure the accumulator parameters. Set Search Radius and grid size for accumulator algorithm"""
 
@@ -266,16 +306,32 @@ def use_algorithmus_on_dictionary (reference_dictionary_name, algorithmus_functi
             aligned_pointcloud = input_output.conditionalized_load (aligned_cloud_path )
 
             # displace the aligned cloud with the translation saved in the reference dictionary
-            aligned_pointcloud.points[:, 0:3] += reference_dictionary[(reference_cloud_path, aligned_cloud_path)][0]
+            translation = reference_dictionary[(reference_cloud_path, aligned_cloud_path)][0]
+            aligned_pointcloud.points[:, 0:3] += translation
 
             # remove undesireable points of both clouds to allow for a smooth alignment with less outliers
-            # or wrong point correspondences
+            # or wrong point correspondences (see: set_pruning_arguments ())
             if (prune_clouds ):
                 reference_pointcloud, aligned_pointcloud = \
-                    conversions.prune_cloud_pair (reference_pointcloud, aligned_pointcloud )
+                    conversions.prune_cloud_pair (reference_pointcloud, aligned_pointcloud,
+                                                  prune_borders=PRUNE_BORDERS,
+                                                  borders_clearance=BORDERS_CLEARANCE,
+                                                  prune_water_bodies=PRUNE_WATER_BODIES,
+                                                  prune_sigma=PRUNE_SIGMA,
+                                                  max_sigma_value=MAX_SIGMA_VALUE,
+                                                  prune_outliers=PRUNE_OUTLIERS,
+                                                  max_outlier_distance=MAX_OUTLIER_DISTANCE,
+                                                  prune_normals=PRUNE_NORMALS,
+                                                  max_angle_difference=MAX_ANGLE_DIFFERENCE )
 
             # call the algorithmus supplied by algorithmus_function and update the results dictionary
-            results = algorithmus_function (reference_pointcloud, aligned_pointcloud, plot_title )
+            pre_results = algorithmus_function (reference_pointcloud, aligned_pointcloud, plot_title )
+
+            # add the previously applied translation to the resulting tranlsation and update the dictionary of results
+            # (don't use a tuple if you want to alter it ever again)
+            results = ((pre_results[0][0] + translation[0],
+                        pre_results[0][1] + translation[1],
+                        pre_results[0][2] + translation[2] ), pre_results[1])
             algorithmus_results.update ({(reference_cloud_path, aligned_cloud_path): results} )
 
     # save the results in a dictionary and print it
@@ -332,7 +388,7 @@ if __name__ == '__main__':
     #                                             results_save_name="angle_consensus_translations_part3_dict" )))
 
     # # # accumulator
-    # set_accumulator_arguments ()
+    # set_accumulator_arguments (accumulator_radius=1.0, grid_size=0.05)
     #
     # print ("\n\nComputing Accumulator Consensus for each cloud pair in reference_translations_dict returns: "
     #        + str(use_algorithmus_on_dictionary (reference_dictionary_name="no_translations_dict",
@@ -353,14 +409,20 @@ if __name__ == '__main__':
     #                                             prune_clouds=True )))
 
     # # icp new
+    set_pruning_arguments (prune_sigma=True,
+                           prune_borders=True,
+                           prune_normals=False,
+                           prune_outliers=True, max_outlier_distance=2.0,
+                           prune_water_bodies=True)
+
     print ("\n\nComputing ICP for each cloud pair in no_translations_dict returns: "
-           + str(use_algorithmus_on_dictionary (reference_dictionary_name="accumulator_translations_dict",
+           + str(use_algorithmus_on_dictionary (reference_dictionary_name="distance_consensus_translations_dict",
                                                 algorithmus_function=do_icp,
-                                                results_save_name="accumulator-pruning-icp_translations_dict",
+                                                results_save_name="prune_sigma-outliers_2_translations_dict",
                                                 prune_clouds=True )))
 
-    # print saved dictionaries
-    # print_reference_dict ("angle_consensus_translations_dict" )
+    # # print saved dictionaries
+    # print_reference_dict ("accumulator_0.3_translations_dict" )
 
     # # get folder structure
     # for path in input_output.get_all_files_in_subfolders("clouds/New Regions/", ".asc" ):

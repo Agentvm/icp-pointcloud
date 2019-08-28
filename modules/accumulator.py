@@ -307,13 +307,14 @@ def spheric_cloud_consensus (np_pointcloud, corresponding_pointcloud,
     np.set_printoptions(precision=6, linewidth=120, suppress=True )
 
     # Print Results
-    print ("best_alignment: " + str (best_alignment ))
-    print ("best_alignment_consensus: " + str (highest_consensus_count ))
-    # # * corresponding_pointcloud.points.shape[0]
-    # print ("consensus_cube:\n" + str (display_cube[-10:-1, :]))
-    # print ("consensus_cube:\n" + str (display_cube[1:10, :]))
+    print ("best_alignment: " + str (consensus_cube[-1, 0:3] ))
+    print ("best_alignment_consensus: " + str (consensus_cube[-1, 3] ))
 
-    print ("consensus_cube:\n" + str (consensus_cube[-10:, :]))
+    print ("2nd best_alignment dist : " + str (np.linalg.norm (consensus_cube[-2, 0:3] - best_alignment )))
+    print ("2nd best_alignment_consensus: " + str (consensus_cube[-2, 3] ))
+
+    print ("3rd best_alignment dist: " + str (np.linalg.norm (consensus_cube[-3, 0:3] - best_alignment )))
+    print ("3rd best_alignment_consensus: " + str (consensus_cube[-3, 3] ))
 
     # put together the plot title from the string given as argument to this function and the algorithmus parameters
     plot_title = create_plot_title (plot_title, accumulator_radius, grid_size, distance_threshold )
@@ -342,33 +343,21 @@ def spheric_cloud_consensus (np_pointcloud, corresponding_pointcloud,
 
     outro_time = time.time () - interim
 
-    print ("iters: " + str(iterations))
-
     # normalizing the timing
     loop_cloud_query_time /= iterations
     loop_diff_time /= iterations
     loop_grid_query_time /= iterations
     rasterization_time /= iterations
 
-    print ("\nInit Time: " + str (init_time ))
-    print ("Overall Loop Time: " + str (overall_loop_time ))
-    average_loop_time = overall_loop_time / iterations
-    print ("\tLoop Cloud Query Time: " + "{:.2f}%".format ((loop_cloud_query_time / average_loop_time) * 100 ))
-    print ("\tLoop Diff Time: " + "{:.2f}%".format ((loop_diff_time / average_loop_time) * 100 ))
-    print ("\tLoop Grid Query Time: " + "{:.2f}%".format ((loop_grid_query_time / average_loop_time) * 100 ))
-    print ("\tLoop Rasterization Time: " + "{:.2f}%".format ((rasterization_time / average_loop_time) * 100 ))
-    print ("Outro Time: " + str (outro_time ))
-    print ("Overall Time: " + str (time.time () - start_time ) + "\n")
-
-    # Print Results
-    print ("best_alignment: " + str (best_alignment ))
-    print ("best_alignment_consensus: " + str (highest_consensus_count ))
-    # * corresponding_pointcloud.points.shape[0]
-    print ("consensus_cube:\n" + str (display_cube[-10:-1, :]))
-    print ("consensus_cube:\n" + str (display_cube[1:10, :]))
-
-    print ("consensus_cube:\n" + str (consensus_cube[-10:-1, :]))
-    print ("consensus_cube:\n" + str (consensus_cube[1:10, :]))
+    # print ("\nInit Time: " + str (init_time ))
+    # print ("Overall Loop Time: " + str (overall_loop_time ))
+    # average_loop_time = overall_loop_time / iterations
+    # print ("\tLoop Cloud Query Time: " + "{:.2f}%".format ((loop_cloud_query_time / average_loop_time) * 100 ))
+    # print ("\tLoop Diff Time: " + "{:.2f}%".format ((loop_diff_time / average_loop_time) * 100 ))
+    # print ("\tLoop Grid Query Time: " + "{:.2f}%".format ((loop_grid_query_time / average_loop_time) * 100 ))
+    # print ("\tLoop Rasterization Time: " + "{:.2f}%".format ((rasterization_time / average_loop_time) * 100 ))
+    # print ("Outro Time: " + str (outro_time ))
+    # print ("Overall Time: " + str (time.time () - start_time ) + "\n")
 
     # display the plot
     if (display_plot ):
