@@ -182,6 +182,8 @@ def print_reference_dict (reference_dictionary_name ):
 
         # unpack values
         ref_translation, ref_mse = results_tuple
+        if (type (ref_mse) is not tuple ):
+            ref_mse = (ref_mse, 0, 0)
 
         # print comparison
         print ("'" + aligned_file_name
@@ -189,7 +191,7 @@ def print_reference_dict (reference_dictionary_name ):
                + ';{: .8f}'.format(ref_translation[0])
                + '\n;{: .8f}'.format(ref_translation[1])
                + '\n;{: .8f}'.format(ref_translation[2])
-               + '\n;{: .8f}'.format(ref_mse))
+               + '\n;{: .8f}'.format(ref_mse[0]))
 
 
 def compare_results (dictionary, reference_dict, print_csv=True ):
