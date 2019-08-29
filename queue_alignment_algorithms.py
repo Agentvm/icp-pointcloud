@@ -17,9 +17,6 @@ from modules.np_pointcloud import NumpyPointCloud
 # basic imports
 import random
 
-# advanced functionality
-import scipy.spatial
-
 
 def set_pruning_arguments (prune_borders=True, borders_clearance=1.2,
                            prune_water_bodies=True,
@@ -255,6 +252,32 @@ def compare_results (dictionary, reference_dict, print_csv=True ):
                                                 + '{: .8f}) '.format(algorithmus_mse[2]))
 
 
+def rate_cloud_alignment (original_reference_pointcloud, original_aligned_pointcloud, translation ):
+    """
+    Measures cloud alignment quality by comparing the sum of nearest neighbor distances before and after translation
+    """
+
+    # prune clouds, so that points that do not match the corresponding other cloud's model are not considered
+    pruned_reference_pointcloud, pruned_aligned_pointcloud = \
+        conversions.prune_cloud_pair (original_reference_pointcloud, original_aligned_pointcloud,
+                                      prune_borders=False,
+                                      prune_water_bodies=True,
+                                      prune_sigma=False,
+                                      prune_outliers=True,
+                                      max_outlier_distance=0.5,
+                                      prune_normals=False )
+
+    # Criterion for alignment quality is the sum of all nearest neighbor distances
+    criterion_before = diagnosis.cloud2cloud_distance_sum (pruned_reference_pointcloud, pruned_aligned_pointcloud )
+
+    # Criterion for alignment quality with original clouds
+    criterion_after = diagnosis.cloud2cloud_distance_sum (pruned_reference_pointcloud,
+                                                          pruned_aligned_pointcloud,
+                                                          translation=translation )
+
+    return criterion_after/criterion_before
+
+
 # # TODO:  The clouds are then displaced by the translations found in the dictionary.
 def use_algorithmus_on_dictionary (reference_dictionary_name, algorithmus_function,
                                    results_save_name=None, prune_clouds=False ):
@@ -316,9 +339,6 @@ def use_algorithmus_on_dictionary (reference_dictionary_name, algorithmus_functi
             original_aligned_pointcloud = NumpyPointCloud (aligned_pointcloud.points.copy (),
                                                            aligned_pointcloud.field_labels )
 
-            # Criterion for alignment quality
-            criterion_before = diagnosis.cloud2cloud_distance_sum (reference_pointcloud, aligned_pointcloud )
-
             # displace the aligned cloud with the translation saved in the reference dictionary
             translation = reference_dictionary[(reference_cloud_path, aligned_cloud_path)][0]
             aligned_pointcloud.points[:, 0:3] += translation
@@ -344,16 +364,14 @@ def use_algorithmus_on_dictionary (reference_dictionary_name, algorithmus_functi
             # call the algorithmus supplied by algorithmus_function and update the results dictionary
             pre_results = algorithmus_function (reference_pointcloud, aligned_pointcloud, plot_title )
 
-            # Criterion for alignment quality with original clouds
-            criterion_after = diagnosis.cloud2cloud_distance_sum (original_reference_pointcloud,
-                                                                  original_aligned_pointcloud,
-                                                                  translation=pre_results[0] )
+            # find a measure for cloud alignment
+            measure = rate_cloud_alignment(original_reference_pointcloud, original_aligned_pointcloud, pre_results[0] )
 
             # add the previously applied translation to the resulting tranlsation and update the dictionary of results
             # (don't use a tuple if you want to alter it ever again)
             results = ((pre_results[0][0] + translation[0],
                         pre_results[0][1] + translation[1],
-                        pre_results[0][2] + translation[2] ), criterion_before/criterion_after )
+                        pre_results[0][2] + translation[2] ), measure )
             algorithmus_results.update ({(reference_cloud_path, aligned_cloud_path): results} )
 
     # save the results in a dictionary and print it

@@ -221,7 +221,7 @@ def prune_cloud_pair (reference_pointcloud, corresponding_pointcloud, translatio
     Input:
         reference_pointcloud: (NumpyPointCloud)     NumpyPointCloud object containing a numpy array and it's data labels
         corresponding_pointcloud: (NumpyPointCloud) Pointcloud corresponding to reference_pointcloud
-        translation: (3-tuple)                      This translation will be applied to corresponding_pointcloud
+        translation: (3-tuple)                      corresponding_pointcloud will be translated for pruning duration
         prune_borders: (boolean)                    If true, removes part of the borders of corresponding_pointcloud
         borders_clearance: (float)                  Sets how much of the bordes will be removed (in meters)
         prune_water_bodies: (boolean)               If true and Classification field is present, water is removed
@@ -262,6 +262,9 @@ def prune_cloud_pair (reference_pointcloud, corresponding_pointcloud, translatio
     if (prune_normals ):
         reference_pointcloud, corresponding_pointcloud = \
             prune_normal_vectors (reference_pointcloud, corresponding_pointcloud, max_angle_difference )
+
+    # translate back
+    corresponding_pointcloud.points[:, 0:3] -= translation
 
     return reference_pointcloud, corresponding_pointcloud
 
