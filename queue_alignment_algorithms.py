@@ -10,12 +10,14 @@ from modules import input_output
 from modules import icp
 from modules import conversions
 from modules import consensus
-from modules import accumulator
-from modules import diagnosis
+from modules import accumulator, diagnosis
 from modules.np_pointcloud import NumpyPointCloud
 
 # basic imports
 import random
+
+# advanced functionality
+import scipy.spatial
 
 
 def set_pruning_arguments (prune_borders=True, borders_clearance=1.2,
@@ -157,6 +159,15 @@ def do_icp (reference_pointcloud, aligned_pointcloud, dummy_arg = "" ):
     return (translation, mean_squared_error)
 
 
+def rate (reference_pointcloud, aligned_pointcloud, dummy_arg = "" ):
+    """
+    Function that can be passed to use_algorithmus_on_dictionary. Returns a results tuple containing a null-translation
+    (0, 0, 0) and mse values (0, 0, 0) ((x,y,z), (mse_x, mse_y, mse_z))
+    """
+
+    return ((0, 0, 0 ), (0, 0, 0 ))
+
+
 def print_reference_dict (reference_dictionary_name ):
     """
     Load a reference dictionary in the data/ folder by name (excluding extension) and print it's innards
@@ -254,14 +265,19 @@ def compare_results (dictionary, reference_dict, print_csv=True ):
                                                 + '{: .8f}) '.format(algorithmus_mse[2]))
 
 
+# DEBUG
+SOME_NAME = "rating_test_c2c_PRUNE_dict"
+
+
 def rate_cloud_alignment (original_reference_pointcloud, original_aligned_pointcloud, translation ):
     """
     Measures cloud alignment quality by comparing the sum of nearest neighbor distances before and after translation
     """
 
     # prune clouds, so that points that do not match the corresponding other cloud's model are not considered
-    pruned_reference_pointcloud, pruned_aligned_pointcloud = \
+    original_reference_pointcloud, original_aligned_pointcloud = \
         conversions.prune_cloud_pair (original_reference_pointcloud, original_aligned_pointcloud,
+                                      translation=?,
                                       prune_borders=False,
                                       prune_water_bodies=True,
                                       prune_sigma=False,
@@ -269,15 +285,35 @@ def rate_cloud_alignment (original_reference_pointcloud, original_aligned_pointc
                                       max_outlier_distance=0.5,
                                       prune_normals=False )
 
+    # print ("1")
+    #
+    # threshold = 0.1
+    # copy_of_aligned_pointcloud = NumpyPointCloud (
+    #     original_aligned_pointcloud.points.copy (), original_aligned_pointcloud.field_labels )
+    # reference_kdtree = scipy.spatial.KDTree (original_reference_pointcloud.get_xyz_coordinates () )
+    #
+    # print ("2")
+    #
+    # criterion_before, _ = consensus.point_distance_cloud_consensus(
+    #     reference_kdtree, original_aligned_pointcloud, (0, 0, 0), threshold )
+    #
+    # print ("3")
+    #
+    # criterion_after, _ = consensus.point_distance_cloud_consensus(
+    #     reference_kdtree, copy_of_aligned_pointcloud, translation, threshold )
+    #
+    # print ("4")
+
     # Criterion for alignment quality is the sum of all nearest neighbor distances
-    criterion_before = diagnosis.cloud2cloud_distance_sum (pruned_reference_pointcloud, pruned_aligned_pointcloud )
+    criterion_after = diagnosis.cloud2cloud_distance_sum (original_reference_pointcloud, original_aligned_pointcloud )
 
     # Criterion for alignment quality with original clouds
-    criterion_after = diagnosis.cloud2cloud_distance_sum (pruned_reference_pointcloud,
-                                                          pruned_aligned_pointcloud,
+    criterion_before = diagnosis.cloud2cloud_distance_sum (original_reference_pointcloud,
+                                                          original_aligned_pointcloud,
                                                           translation=translation )
 
-    return criterion_after/criterion_before
+    # return criterion_after/criterion_before
+    return criterion_before/criterion_after
 
 
 # # TODO:  The clouds are then displaced by the translations found in the dictionary.
@@ -366,14 +402,21 @@ def use_algorithmus_on_dictionary (reference_dictionary_name, algorithmus_functi
             # call the algorithmus supplied by algorithmus_function and update the results dictionary
             pre_results = algorithmus_function (reference_pointcloud, aligned_pointcloud, plot_title )
 
+            # add the previously applied translation to the resulting tranlsation and update the dictionary of results
+            # (don't use a tuple if you want to alter it ever again)
+            results = ((pre_results[0][0] + translation[0],
+                        pre_results[0][1] + translation[1],
+                        pre_results[0][2] + translation[2] ), pre_results[1] )
+
             # find a measure for cloud alignment
-            measure = rate_cloud_alignment(original_reference_pointcloud, original_aligned_pointcloud, pre_results[0] )
+            measure = rate_cloud_alignment(original_reference_pointcloud, original_aligned_pointcloud, results[0] )
 
             # add the previously applied translation to the resulting tranlsation and update the dictionary of results
             # (don't use a tuple if you want to alter it ever again)
             results = ((pre_results[0][0] + translation[0],
                         pre_results[0][1] + translation[1],
                         pre_results[0][2] + translation[2] ), measure )
+
             algorithmus_results.update ({(reference_cloud_path, aligned_cloud_path): results} )
 
     # save the results in a dictionary and print it
@@ -435,7 +478,7 @@ if __name__ == '__main__':
     # print ("\n\nComputing Accumulator Consensus for each cloud pair in reference_translations_dict returns: "
     #        + str(use_algorithmus_on_dictionary (reference_dictionary_name="no_translations_dict",
     #                                             algorithmus_function=accumulate,
-    #                                             results_save_name="accumulator_translations_dict" )))
+    #                                             results_save_name="accumulator_gauss_1_translations_dict" )))
 
     # # join
     # input_output.join_saved_dictionaries (["angle_consensus_translations_part1_dict",
@@ -450,21 +493,27 @@ if __name__ == '__main__':
     #                                             results_save_name="old_regions_distance_consensus-NOANGLES_NOSIGMA_pruning-icp_translations_dict",
     #                                             prune_clouds=True )))
 
-    # # icp new
+    # icp new
     # set_pruning_arguments (prune_sigma=True,
     #                        prune_borders=True,
     #                        prune_normals=False,
-    #                        prune_outliers=True, max_outlier_distance=2.0,
+    #                        prune_outliers=True, max_outlier_distance=0.5,
     #                        prune_water_bodies=True)
-
+    #
     # print ("\n\nComputing ICP for each cloud pair in no_translations_dict returns: "
     #        + str(use_algorithmus_on_dictionary (reference_dictionary_name="no_translations_dict",
     #                                             algorithmus_function=do_icp,
-    #                                             results_save_name="icp_translations_dict",
-    #                                             prune_clouds=True )))
+    #                                             results_save_name="rating_test_0.1_nopruning_dict",
+    #                                             prune_clouds=False )))
+
+    # print ("\n\nComputing rating values for each cloud pair in dict returns: "
+    #        + str(use_algorithmus_on_dictionary (reference_dictionary_name="icp_translations_dict",
+    #                                             algorithmus_function=rate,
+    #                                             results_save_name=SOME_NAME,
+    #                                             prune_clouds=False )))
 
     # print saved dictionaries
-    print_reference_dict ("icp_translations_dict" )
+    # print_reference_dict ("rating_test_c2c_PRUNE_dict" )
 
     # # get folder structure
     # for path in input_output.get_all_files_in_subfolders("clouds/New Regions/", ".asc" ):

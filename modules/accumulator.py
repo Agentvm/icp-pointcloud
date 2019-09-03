@@ -14,6 +14,7 @@ import warnings
 
 # advanced functionality
 import scipy.spatial
+import scipy.ndimage
 
 # plot imports
 import matplotlib.pyplot as plt
@@ -198,6 +199,54 @@ def create_plot_title (base_title, accumulator_radius, grid_size, distance_thres
     return plot_title
 
 
+def morph_consensus_cube (cube ):
+
+    # add the maximum value to the coordinates, so they are positive
+    cube[:, 0:3] += np.max (cube[:, 0])
+
+    # normalize by new maximum, so values are distributed from 0 to 1
+    cube[:, 0:3] /= np.max (cube[:, 0])
+
+    # spread the values again by step count (depends on original grid_size of the cube), so the coordinates
+    # are now monotonically rising real numbers that can easily be used for array indexing
+    steps_count = int (cube.shape[0] ** (1/3 ))
+    cube[:, 0:3] *= steps_count - 1
+
+    # create new cube
+    new_cube = np.zeros (shape=(steps_count + 1, steps_count + 1, steps_count + 1 ))
+    for row in cube:
+        new_cube[int (row[0]), int (row[1]), int (row[2])] = row[3]
+
+    return new_cube
+
+
+def morph_back (morphed_cube, grid_length=2.0 ):
+
+    # get steps and fashion cube container in the style of a pointcloud
+    steps_count = int (morphed_cube.shape[0] ** 3 )
+    cube = np.zeros (shape=(steps_count, 4 ))
+
+    #
+    iterator = 0
+    for x_dim in range (morphed_cube.shape[0] ):
+        for y_dim in range (morphed_cube.shape[1] ):
+            for z_dim in range (morphed_cube.shape[2] ):
+
+                cube[iterator, :] = [x_dim, y_dim, z_dim, morphed_cube[int (x_dim), int (y_dim), int (z_dim)]]
+                iterator += 1
+
+    # normalize by steps_count, so values are distributed from 0 to 1
+    cube[:, 0:3] /= np.max (cube[:, 0])
+
+    # apply the original grid_length
+    cube[:, 0:3] *= grid_length
+
+    # add the maximum value to the coordinates, so they are positive
+    cube[:, 0:3] -= np.max (cube[:, 0]) / 2
+
+    return cube
+
+
 def spheric_cloud_consensus (np_pointcloud, corresponding_pointcloud,
                              accumulator_radius=1.2, grid_size=0.1, distance_threshold=0.2,
                              display_plot=True, save_plot=False,
@@ -297,6 +346,11 @@ def spheric_cloud_consensus (np_pointcloud, corresponding_pointcloud,
 
     overall_loop_time = time.time () - interim_2
     interim = time.time ()
+
+    consensus_cube = morph_consensus_cube (consensus_cube )
+    sigma = 1
+    consensus_cube = scipy.ndimage.gaussian_filter (consensus_cube, sigma, order=0 )
+    consensus_cube = morph_back (consensus_cube )
 
     # save the results
     best_alignment = consensus_cube[np.argmax (consensus_cube[:, 3] ), 0:3].copy ()
