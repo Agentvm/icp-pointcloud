@@ -18,6 +18,85 @@ numpy_cloud = np.array([[1.1, 2.1, 3.1],
 #
 
 
+# # # apply gaussian filter
+# from modules import accumulator, input_output, consensus
+# import scipy.ndimage
+# import matplotlib.pyplot as plt
+#
+#
+# def morph_consensus_cube (cube ):
+#
+#     # add the maximum value to the coordinates, so they are positive
+#     cube[:, 0:3] += np.max (cube[:, 0])
+#
+#     # normalize by new maximum, so values are distributed from 0 to 1
+#     cube[:, 0:3] /= np.max (cube[:, 0])
+#
+#     # spread the values again by step count (depends on original grid_size of the cube), so the coordinates
+#     # are now monotonically rising real numbers that can easily be used for array indexing
+#     steps_count = int (cube.shape[0] ** (1/3 ))
+#     cube[:, 0:3] *= steps_count - 1
+#
+#     # create new cube
+#     new_cube = np.zeros (shape=(steps_count + 1, steps_count + 1, steps_count + 1 ))
+#     for row in cube:
+#         new_cube[int (row[0]), int (row[1]), int (row[2])] = row[3]
+#
+#     return new_cube
+#
+#
+# def morph_back (morphed_cube, grid_length=2.0 ):
+#
+#     # get steps and fashion cube container in the style of a pointcloud
+#     steps_count = int (morphed_cube.shape[0] ** 3 )
+#     cube = np.zeros (shape=(steps_count, 4 ))
+#
+#     #
+#     iterator = 0
+#     for x_dim in range (morphed_cube.shape[0] ):
+#         for y_dim in range (morphed_cube.shape[1] ):
+#             for z_dim in range (morphed_cube.shape[2] ):
+#
+#                 cube[iterator, :] = [x_dim, y_dim, z_dim, morphed_cube[int (x_dim), int (y_dim), int (z_dim)]]
+#                 iterator += 1
+#
+#     # normalize by steps_count, so values are distributed from 0 to 1
+#     cube[:, 0:3] /= np.max (cube[:, 0])
+#
+#     # apply the original grid_length
+#     cube[:, 0:3] *= grid_length
+#
+#     # add the maximum value to the coordinates, so they are positive
+#     cube[:, 0:3] -= np.max (cube[:, 0]) / 2
+#
+#     return cube
+#
+#
+# #test_cube = accumulator.create_closed_grid (0.5, 0.25 )
+# #test_cube[:, 3] = test_cube [:, 2] + np.random.uniform (-.1, .1, size=(test_cube.shape[0] ))
+#
+# test_cube, _ = input_output.load_ascii_file (str ("docs/logs/unordered_cube_savefiles/Color_Houses Color Houses_dim16 "
+#                                                 + "to Color Houses_als16_distance-accumulator_sphere_radius_1.0_"
+#                                                 + "step_0.05.asc" ), return_separate=True )
+#
+# original = test_cube.copy ()
+#
+# test_cube = morph_consensus_cube (test_cube )
+# sigma = 1
+# test_cube = scipy.ndimage.gaussian_filter (test_cube, sigma, order=0 )
+# test_cube = morph_back (test_cube )
+#
+# np.set_printoptions (precision=2, linewidth=380, suppress=True )
+#
+# combined_cube = np.concatenate ((original, test_cube[:, 3].reshape (-1, 1 )), axis=1 )
+# print (combined_cube[-100:-1, :] )
+#
+# accumulator.display_consensus_cube (original, 1, (0, 0, 0 ), "original")
+# accumulator.display_consensus_cube (test_cube, 1, (0, 0, 0 ), str ("gaussian filtered sigma=" + str (sigma )))
+#
+# #plt.show ()
+
+
 # # Test Cloud Pruning
 # from modules import input_output, conversions, np_pointcloud
 #
