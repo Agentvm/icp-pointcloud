@@ -349,7 +349,7 @@ def spheric_cloud_consensus (np_pointcloud, corresponding_pointcloud,
 
     consensus_cube = morph_consensus_cube (consensus_cube )
     sigma = 1
-    consensus_cube = scipy.ndimage.gaussian_filter (consensus_cube, sigma, order=0 )
+    consensus_cube = scipy.ndimage.gaussian_filter (consensus_cube, sigma, order=0, truncate=0.5 )
     consensus_cube = morph_back (consensus_cube )
 
     # save the results
