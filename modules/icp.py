@@ -50,9 +50,6 @@ def icp (numpy_reference_cloud, numpy_aligned_cloud, accuracy=0.000000001, verbo
                    + str(np.linalg.norm (clouds_delta - clouds_delta_previous_iteration) ))
 
         # get correspondences (e.g. nearest neighbors) of aligned_cloud's points in reference_cloud
-        # list(itertools.chain(*tree.query())  --> sklearn returns a list of lists,
-        # which needs to be reduced to a list to be used in this context
-        #correlations = list(itertools.chain(*tree.query (aligned_cloud, k=1, return_distance=False )))
         distances, correlations = scipy_kdtree.query(aligned_cloud, k=1 )
 
         # Compute translation between each point pair and sum it up

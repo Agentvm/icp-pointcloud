@@ -110,7 +110,7 @@ def compute_normals (np_pointcloud, query_radius, batch_size = 10000 ):
             normal_vector, sigma, mass_center = normals.PCA (points )
 
             # check if normal computation was a success
-            if (normal_vector[0] == 0 and normal_vector[1] == 0 and normal_vector[2] ):
+            if (normal_vector[0] == 0 and normal_vector[1] == 0 and normal_vector[2] == 0 ):
                 errors += 1
 
             # join the normal_vector and sigma value to a 4x1 array and write them to the corresponding position

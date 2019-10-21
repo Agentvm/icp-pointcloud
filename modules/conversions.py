@@ -202,8 +202,8 @@ def prune_normal_vectors (reference_pointcloud, corresponding_pointcloud, max_an
                                                   reference_normals ) * (180/np.pi)
 
     # prune points that do not match
-    reference_pointcloud.points[ref_angle_differences > max_angle_difference]
-    corresponding_pointcloud.points[corr_angle_differences > max_angle_difference]
+    reference_pointcloud.points = reference_pointcloud.points[ref_angle_differences < max_angle_difference]
+    corresponding_pointcloud.points = corresponding_pointcloud.points[corr_angle_differences < max_angle_difference]
 
     return reference_pointcloud, corresponding_pointcloud
 
