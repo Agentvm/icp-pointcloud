@@ -460,17 +460,17 @@ if __name__ == '__main__':
     # compare_results (do_icp ('clouds/Regions/Xy Tower/ALS16_Cloud_reduced_normals_cleared.asc',
     #                          'clouds/Regions/Xy Tower/DSM_Cloud_reduced_normals.asc' ), print_csv=True)
 
-    # # # consensus
-    # set_consensus_arguments (distance_threshold=0.2,
-    #                          angle_threshold=32,
-    #                          cubus_length=2,
-    #                          step=0.15,
-    #                          algorithm='combined' )
-    #
-    # print ("\n\nComputing Consensus for each cloud pair in reference dict returns: "
-    #        + str(use_algorithmus_on_dictionary (reference_dictionary_name="no_translations_part2_dict",
-    #                                             algorithmus_function=reach_a_consensus,
-    #                                             results_save_name="combined_consensus_translations_part2_dict" )))
+    # # consensus
+    set_consensus_arguments (distance_threshold=0.2,
+                             angle_threshold=32,
+                             cubus_length=1,
+                             step=0.05,
+                             algorithm='combined' )
+
+    print ("\n\nComputing Consensus for each cloud pair in reference dict returns: "
+           + str(use_algorithmus_on_dictionary (reference_dictionary_name="no_translations_part2_dict",
+                                                algorithmus_function=reach_a_consensus,
+                                                results_save_name="combined_consensus_translations_part2_dict" )))
 
     # # # accumulator
     # set_accumulator_arguments (accumulator_radius=1.0, grid_size=0.15)
