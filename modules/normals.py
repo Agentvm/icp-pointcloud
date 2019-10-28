@@ -30,7 +30,7 @@ def einsum_angle_between (vector_array_1, vector_array_2 ):
     """Works on (n, 3) numpy.ndarrays of vectors and returns the angle difference in rad between each pair of vectors"""
 
     # diagonal of dot product
-    diag = np.clip (np.einsum('ij,ij->i', vector_array_1, vector_array_2 ), -1, 1 )
+    diag = np.clip (np.einsum ('ij,ij->i', vector_array_1, vector_array_2 ), -1, 1 )
 
     return np.arccos (diag )
 
