@@ -18,6 +18,36 @@ numpy_cloud = np.array([[1.1, 2.1, 3.1],
 #
 
 
+# # last test case
+# from modules import input_output
+# from modules import icp
+#
+#
+# np_pointcloud = input_output.load_ascii_file ("clouds/tmp/noisy_reference.asc" )
+# corresponding_pointcloud = input_output.load_ascii_file ("clouds/tmp/cut_correspondence.asc" )
+#
+# t, mse = icp.icp (np_pointcloud.points[:, 0:3], corresponding_pointcloud.points[:, 0:3] )
+#
+# print ("ICP Results: ")
+# print (t)
+# print (mse)
+
+
+# ## apply noise
+# from modules import input_output
+#
+#
+# numpy_cloud = input_output.load_ascii_file (
+#     "clouds/New Regions/Everything/Everything_als16_reduced_normals_r_1_cleared.asc" )
+#
+# # noise
+# noise = np.random.uniform (-0.015, 0.015, size=(numpy_cloud.points.shape[0], 3 ))
+# noise = np.concatenate ((noise.reshape (-1, 3), np.zeros (shape=(numpy_cloud.points.shape[0], 9) )), axis=1 )
+# numpy_cloud.points = numpy_cloud.points + noise
+#
+# input_output.save_ascii_file (numpy_cloud.points, numpy_cloud.field_labels, "clouds/tmp/noisy_reference.asc")
+
+
 # # # apply gaussian filter
 # from modules import accumulator, input_output, consensus
 # import scipy.ndimage
