@@ -56,7 +56,10 @@ if __name__ == '__main__':
 
     # prepare example clouds, random or from file
     # np_pointcloud, corresponding_pointcloud, random_offset = prepare_random_cloud ()
-    np_pointcloud, corresponding_pointcloud = load_example_cloud ("Yz_Houses" )
+    # np_pointcloud, corresponding_pointcloud = load_example_cloud ("Yz_Houses" )
+
+    np_pointcloud = input_output.load_ascii_file ("clouds/tmp/noisy_reference.asc" )
+    corresponding_pointcloud = input_output.load_ascii_file ("clouds/tmp/cut_correspondence.asc" )
 
     # reach consensus
     best_alignment, best_consensus_count, best_alignment_consensus_vector = \
@@ -67,16 +70,16 @@ if __name__ == '__main__':
                                          distance_threshold=0.2,
                                          angle_threshold=None,
                                          algorithmus='distance',
-                                         plot_title="New_Regions_YZ_Houses",
+                                         plot_title="final_test",
                                          relative_color_scale=False,
                                          save_plot=True )
 
     #print ("Random Offset: " + str(random_offset ))
     #print ("Point Picking Offset Xy Tower: (-0.82777023,  0.16250610,  0.19129372)")
-    print ("Point Picking Offset Yz Houses: (0.31462097, -0.01929474, -0.03573704)")
+    #print ("Point Picking Offset Yz Houses: (0.31462097, -0.01929474, -0.03573704)")
 
     # show plot
-    plt.show ()
+    # plt.show ()
 
 
 # # Gute Werte:
