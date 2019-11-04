@@ -460,25 +460,25 @@ if __name__ == '__main__':
     # compare_results (do_icp ('clouds/Regions/Xy Tower/ALS16_Cloud_reduced_normals_cleared.asc',
     #                          'clouds/Regions/Xy Tower/DSM_Cloud_reduced_normals.asc' ), print_csv=True)
 
-    # # consensus
-    set_consensus_arguments (distance_threshold=0.2,
-                             angle_threshold=32,
-                             cubus_length=1,
-                             step=0.05,
-                             algorithm='combined' )
-
-    print ("\n\nComputing Consensus for each cloud pair in reference dict returns: "
-           + str(use_algorithmus_on_dictionary (reference_dictionary_name="no_translations_part2_dict",
-                                                algorithmus_function=reach_a_consensus,
-                                                results_save_name="combined_consensus_translations_part2_dict" )))
+    # # # consensus
+    # set_consensus_arguments (distance_threshold=0.2,
+    #                          angle_threshold=32,
+    #                          cubus_length=1,
+    #                          step=0.05,
+    #                          algorithm='combined' )
+    #
+    # print ("\n\nComputing Consensus for each cloud pair in reference dict returns: "
+    #        + str(use_algorithmus_on_dictionary (reference_dictionary_name="no_translations_part2_dict",
+    #                                             algorithmus_function=reach_a_consensus,
+    #                                             results_save_name="combined_consensus_translations_part2_dict" )))
 
     # # # accumulator
-    # set_accumulator_arguments (accumulator_radius=1.0, grid_size=0.15)
+    # set_accumulator_arguments (accumulator_radius=1.0, grid_size=0.05)
     #
-    # print ("\n\nComputing Accumulator Consensus for each cloud pair in reference dict returns: "
-    #        + str(use_algorithmus_on_dictionary (reference_dictionary_name="reference dict",
+    # print ("\n\nComputing Accumulator Consensus for each cloud pair in no_translations_dict returns: "
+    #        + str(use_algorithmus_on_dictionary (reference_dictionary_name="no_translations_dict",
     #                                             algorithmus_function=accumulate,
-    #                                             results_save_name="accumulator_0.15_gauss_s_1_t_0.5_translations_dict" )))
+    #                                             results_save_name="accumulator_0.15_multiple_translations_dict" )))
 
     # # join
     # input_output.join_saved_dictionaries (["combined_consensus_translations_part1_dict",
@@ -495,18 +495,18 @@ if __name__ == '__main__':
     #                                             results_save_name="old_regions_distance_consensus-NOANGLES_NOSIGMA_pruning-icp_translations_dict",
     #                                             prune_clouds=True )))
 
-    # # # icp new
-    # set_pruning_arguments (prune_sigma=False,
-    #                        prune_borders=True,
-    #                        prune_normals=False,
-    #                        prune_outliers=True, max_outlier_distance=0.5,
-    #                        prune_water_bodies=True)
-    #
-    # print ("\n\nComputing ICP for each cloud pair in reference dict returns: "
-    #        + str(use_algorithmus_on_dictionary (reference_dictionary_name="distance_consensus_translations_dict",
-    #                                             algorithmus_function=do_icp,
-    #                                             results_save_name="prune_DistCon-outliers_translations_dict",
-    #                                             prune_clouds=True )))
+    # # icp new
+    set_pruning_arguments (prune_sigma=False,
+                           prune_borders=True,
+                           prune_normals=False, max_angle_difference=32,
+                           prune_outliers=True, max_outlier_distance=0.5,
+                           prune_water_bodies=True)
+
+    print ("\n\nComputing ICP for each cloud pair in reference dict returns: "
+           + str(use_algorithmus_on_dictionary (reference_dictionary_name="distance_consensus_translations_dict",
+                                                algorithmus_function=do_icp,
+                                                results_save_name="prune_onesided_DistCon-distpruning_translations_dict",
+                                                prune_clouds=True )))
 
     # print ("\n\nComputing rating values for each cloud pair in dict returns: "
     #        + str(use_algorithmus_on_dictionary (reference_dictionary_name="icp_translations_dict",
@@ -514,8 +514,8 @@ if __name__ == '__main__':
     #                                             results_save_name=SOME_NAME,
     #                                             prune_clouds=False )))
 
-    # print saved dictionaries
-    print_reference_dict ("combined_consensus_translations_dict" )
+    # # print saved dictionaries
+    # print_reference_dict ("prune_DistCon-normals_translations_dict" )
 
     # # get folder structure
     # for path in input_output.get_all_files_in_subfolders("clouds/New Regions/", ".asc" ):
