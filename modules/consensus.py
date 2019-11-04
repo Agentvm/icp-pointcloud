@@ -248,16 +248,16 @@ def display_consensus_cube (consensus_cube, corresponding_cloud_size, best_align
     return original_cube, matplotlib_figure_object
 
 
-def create_plot_title (base_title, algorithmus, cubus_length, step, distance_threshold, angle_threshold ):
+def create_plot_title (base_title, algorithm, cubus_length, step, distance_threshold, angle_threshold ):
     """Simple concatenation of strings to make a structured consensus plot title"""
 
     plot_title = str(base_title
-            + "_" + str(algorithmus ) + "-consensus"
+            + "_" + str(algorithm ) + "-consensus"
             + "_cubus_length_" + '{:.1f}'.format (cubus_length )
             + "_step_" + '{:.2f}'.format (step ))
-    if (algorithmus == 'distance' or algorithmus == 'combined'):
+    if (algorithm == 'distance' or algorithm == 'combined'):
         plot_title = str(plot_title + "_distance_threshold_" + '{:.3f}'.format (distance_threshold ))
-    if (algorithmus == 'angle' or algorithmus == 'combined'):
+    if (algorithm == 'angle' or algorithm == 'combined'):
         plot_title = str(plot_title + "_angle_threshold_" + '{:.3f}'.format (angle_threshold))
 
     return plot_title
@@ -265,7 +265,7 @@ def create_plot_title (base_title, algorithmus, cubus_length, step, distance_thr
 
 def cubic_cloud_consensus (np_pointcloud, corresponding_pointcloud,
                            cubus_length, step, distance_threshold=0.3, angle_threshold=30,
-                           algorithmus='distance',
+                           algorithm='distance',
                            display_plot=True, relative_color_scale=False,
                            plot_title="ConsensusCube (TM)", save_plot=False ):
     """
@@ -279,7 +279,7 @@ def cubic_cloud_consensus (np_pointcloud, corresponding_pointcloud,
         angle_threshold: (float)                Angle difference lower than this (in rad) are considered inliers
         cubus_length: (float)                   Cubus center is (0,0,0). Determines maximum detectable translation
         step: (float)                           Changes accuracy/resolution of resulting translation. Impact on runtime
-        algorithmus: (string)                   Sets consensus variant
+        algorithm: (string)                   Sets consensus variant
             if dtype = 'distance':  Neigbors are compared based on their distance using distance_threshold
             if dtype = 'angle':     Neigbors are compared based on their normal vector angles using angle_threshold
             if dtype = 'combined':  Both criterions are combined using 'and'
@@ -292,7 +292,7 @@ def cubic_cloud_consensus (np_pointcloud, corresponding_pointcloud,
     """
 
     # printing the argument of this consensus run for later reference
-    print ("\nStarting " + algorithmus + " Cubic Cloud Consensus" )
+    print ("\nStarting " + algorithm + " Cubic Cloud Consensus" )
     print ("distance_threshold: " + str(distance_threshold ))
     print ("angle_threshold: " + str(angle_threshold ))
     print ("cubus_length: " + str(cubus_length ))
@@ -331,7 +331,7 @@ def cubic_cloud_consensus (np_pointcloud, corresponding_pointcloud,
                 translation = [x_iterator * step, y_iterator * step, z_iterator * step]
 
                 # Start the computation of the consensus for this translation, using the specified algorithm
-                if (algorithmus == 'combined'):
+                if (algorithm == 'combined'):
 
                     consensus_count, consensus_vector = \
                         combined_cloud_consensus (scipy_kdtree,
@@ -341,7 +341,7 @@ def cubic_cloud_consensus (np_pointcloud, corresponding_pointcloud,
                                                   angle_threshold=angle_threshold_radians,
                                                   distance_threshold=distance_threshold )
 
-                elif (algorithmus == 'angle'):
+                elif (algorithm == 'angle'):
 
                     consensus_count, consensus_vector = \
                         normal_vector_cloud_consensus (scipy_kdtree,
@@ -352,7 +352,7 @@ def cubic_cloud_consensus (np_pointcloud, corresponding_pointcloud,
 
                 else:
 
-                    algorithmus = 'distance'
+                    algorithm = 'distance'
                     consensus_count, consensus_vector = \
                         point_distance_cloud_consensus (scipy_kdtree,
                                                        corresponding_pointcloud,
@@ -383,10 +383,10 @@ def cubic_cloud_consensus (np_pointcloud, corresponding_pointcloud,
     print ("highest_consensus_count: " + str(highest_consensus_count ))
 
     if (display_plot or save_plot ):
-        # put together the plot tile, including the string given as argument to this function and the other algorithmus
+        # put together the plot tile, including the string given as argument to this function and the other algorithm
         # parameters
         plot_title = create_plot_title (
-            plot_title, algorithmus, cubus_length, step, distance_threshold, angle_threshold )
+            plot_title, algorithm, cubus_length, step, distance_threshold, angle_threshold )
 
         # display the plot
         display_cube, figure = display_consensus_cube (
