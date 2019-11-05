@@ -58,7 +58,7 @@ def use_c2c_on_dictionary (reference_dictionary_name, descriptive_name ):
         for aligned_cloud_path in file_paths_dictionary[reference_cloud_path]:   # multiple aligned clouds possible
 
             # load clouds
-            reference_cloud = input_output.load_ascii_file (reference_cloud_path )
+            reference_pointcloud = input_output.load_ascii_file (reference_cloud_path )
             aligned_pointcloud = input_output.conditionalized_load(aligned_cloud_path )
 
             # compute cloud to cloud distance on the translated cloud and update field_labels_list
@@ -67,20 +67,20 @@ def use_c2c_on_dictionary (reference_dictionary_name, descriptive_name ):
             alignment, mse = reference_dictionary[key]              # extract alignment
 
             # apply alignment (the cloud will be saved with a new name)
-            aligned_pointcloud.points[:, 0:3] += alignment
+            reference_pointcloud.points[:, 0:3] -= alignment
 
             # update aligned_cloud with C2C_absolute_distances field
-            updated_aligned_pointcloud = cloud2cloud(reference_cloud, aligned_pointcloud )
+            updated_reference_pointcloud = cloud2cloud(aligned_pointcloud, reference_pointcloud )
 
             # carve path
             _, reference_file_name = input_output.get_folder_and_file_name (reference_cloud_path)
             _, aligned_file_name = input_output.get_folder_and_file_name (aligned_cloud_path)
             base_path = os.path.dirname(aligned_cloud_path) + "/Results/"
-            save_path = base_path + aligned_file_name + "to_" + reference_file_name + descriptive_name + ".asc"
+            save_path = base_path + descriptive_name + "_" + aligned_file_name + "_to_" + reference_file_name + ".asc"
 
             # save as result
-            input_output.save_ascii_file (updated_aligned_pointcloud.points,
-                                          updated_aligned_pointcloud.field_labels,
+            input_output.save_ascii_file (updated_reference_pointcloud.points,
+                                          updated_reference_pointcloud.field_labels,
                                           save_path )
 
     return True
@@ -88,14 +88,14 @@ def use_c2c_on_dictionary (reference_dictionary_name, descriptive_name ):
 
 if __name__ == '__main__':
 
-    # no translation, original clouds
-    print ("\n\nComputing C2C_absolute_distances for each cloud pair in no_translations returns: "
-           + str(use_c2c_on_dictionary ("no_translations_dict", "no_translations" ) ))
-
-    # reference_translations, cloud compare point picking
-    print ("\n\nComputing C2C_absolute_distances "
-           + "for each cloud pair in reference_translations returns: "
-           + str(use_c2c_on_dictionary ("reference_translations_dict", "point_clicking" )))
+    # # no translation, original clouds
+    # print ("\n\nComputing C2C_absolute_distances for each cloud pair in no_translations returns: "
+    #        + str(use_c2c_on_dictionary ("no_translations_dict", "no_translations" ) ))
+    #
+    # # reference_translations, cloud compare point picking
+    # print ("\n\nComputing C2C_absolute_distances "
+    #        + "for each cloud pair in reference_translations returns: "
+    #        + str(use_c2c_on_dictionary ("reference_translations_dict", "point_clicking" )))
 
     # icp translations
     print ("\n\nComputing C2C_absolute_distances "
