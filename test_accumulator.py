@@ -61,7 +61,7 @@ def load_example_cloud (folder ):
         'clouds/New Regions/' + folder + '/Yz Houses_als16_reduced_normals_r_1_cleared.asc' )
 
     corresponding_pointcloud = input_output.conditionalized_load (
-        'clouds/New Regions/' + folder + '/Yz Houses_als16_reduced_normals_r_1_cleared.asc' )
+        'clouds/New Regions/' + folder + '/Yz Houses_dim16_reduced_normals_r_1_cleared.asc' )
 
     return np_pointcloud, corresponding_pointcloud
 
