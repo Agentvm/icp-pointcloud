@@ -72,12 +72,22 @@ def set_accumulator_arguments (accumulator_radius=1.0, grid_size=0.05 ):
 
 def accumulate (reference_pointcloud, aligned_pointcloud, plot_title ):
     """
-    Function that can be passed to use_algorithmus_on_dictionary. Returns a results tuple containing a translation
+    Function that can be passed to use_algorithm_on_dictionary. Returns a results tuple containing a translation
     and mse values ((x,y,z), (mse_x, mse_y, mse_z))
     """
 
     if ('ACCUMULATOR_RADIUS' not in globals() or 'ACCUMULATOR_GRID_SIZE' not in globals()):
         raise NameError("Consensus arguments are not defined. Call set_consensus_arguments() first.")
+
+    # sample DIM clouds (which have color fields)
+    if (reference_pointcloud.has_fields (["Rf", "Gf", "Bf"] )):
+        reference_pointcloud.points = conversions.sample_cloud (
+                                                    reference_pointcloud.points, 6, deterministic_sampling=False )
+
+    # sample DIM Clouds (which have color fields)
+    if (aligned_pointcloud.has_fields (["Rf", "Gf", "Bf"] )):
+        aligned_pointcloud.points = conversions.sample_cloud (
+                                                    aligned_pointcloud.points, 6, deterministic_sampling=False )
 
     # reach consensus by accumulation of results
     best_alignment, best_consensus_count = accumulator.spheric_cloud_consensus (reference_pointcloud,
@@ -111,7 +121,7 @@ def set_consensus_arguments (distance_threshold=.3, angle_threshold=30,
 
 def reach_a_consensus (reference_pointcloud, aligned_pointcloud, plot_title ):
     """
-    Function that can be passed to use_algorithmus_on_dictionary. Returns a results tuple containing a translation
+    Function that can be passed to use_algorithm_on_dictionary. Returns a results tuple containing a translation
     and mse values ((x,y,z), (mse_x, mse_y, mse_z))
     """
 
@@ -129,7 +139,7 @@ def reach_a_consensus (reference_pointcloud, aligned_pointcloud, plot_title ):
                                          step=CONSENSUS_STEP,
                                          distance_threshold=CONSENSUS_DISTANCE_THRESHOLD,
                                          angle_threshold=CONSENSUS_ANGLE_THRESHOLD,
-                                         algorithmus=CONSENSUS_ALGORITHM,
+                                         algorithm=CONSENSUS_ALGORITHM,
                                          plot_title=plot_title,
                                          save_plot=True)
 
@@ -138,7 +148,7 @@ def reach_a_consensus (reference_pointcloud, aligned_pointcloud, plot_title ):
 
 def do_icp (reference_pointcloud, aligned_pointcloud, dummy_arg = "" ):
     """
-    Function that can be passed to use_algorithmus_on_dictionary. Returns a results tuple containing a translation
+    Function that can be passed to use_algorithm_on_dictionary. Returns a results tuple containing a translation
     and mse values ((x,y,z), (mse_x, mse_y, mse_z))
     """
 
@@ -161,7 +171,7 @@ def do_icp (reference_pointcloud, aligned_pointcloud, dummy_arg = "" ):
 
 def rate (reference_pointcloud, aligned_pointcloud, dummy_arg = "" ):
     """
-    Function that can be passed to use_algorithmus_on_dictionary. Returns a results tuple containing a null-translation
+    Function that can be passed to use_algorithm_on_dictionary. Returns a results tuple containing a null-translation
     (0, 0, 0) and mse values (0, 0, 0) ((x,y,z), (mse_x, mse_y, mse_z))
     """
 
@@ -235,19 +245,19 @@ def compare_results (dictionary, reference_dict, print_csv=True ):
 
             # unpack values
             ref_translation, ref_mse = reference_dict [paths]
-            algorithmus_translation, algorithmus_mse = translation_value
+            algorithm_translation, algorithm_mse = translation_value
 
             if (print_csv):
                 # print comparison
                 print ('\n' + folder + "/"
                        + " " + reference_file_name
                        + " " + aligned_file_name
-                             + ';{: .8f}'.format(ref_translation[0]) + ';{: .8f}'.format(algorithmus_translation[0])
-                            + '\n;{: .8f}'.format(ref_translation[1]) + ';{: .8f}'.format(algorithmus_translation[1])
-                            + '\n;{: .8f}'.format(ref_translation[2]) + ';{: .8f}'.format(algorithmus_translation[2])
-                            + '\n;{: .8f}'.format(ref_mse) + ';=MAX({: .8f}'.format(algorithmus_mse[0])
-                             + ',{: .8f}'.format(algorithmus_mse[1])
-                             + ',{: .8f}) '.format(algorithmus_mse[2]))
+                             + ';{: .8f}'.format(ref_translation[0]) + ';{: .8f}'.format(algorithm_translation[0])
+                            + '\n;{: .8f}'.format(ref_translation[1]) + ';{: .8f}'.format(algorithm_translation[1])
+                            + '\n;{: .8f}'.format(ref_translation[2]) + ';{: .8f}'.format(algorithm_translation[2])
+                            + '\n;{: .8f}'.format(ref_mse) + ';=MAX({: .8f}'.format(algorithm_mse[0])
+                             + ',{: .8f}'.format(algorithm_mse[1])
+                             + ',{: .8f}) '.format(algorithm_mse[2]))
             else:
                 # print comparison
                 print ('\n' + folder + "/"
@@ -257,12 +267,12 @@ def compare_results (dictionary, reference_dict, print_csv=True ):
                                                    + '{: .8f}, '.format(ref_translation[1])
                                                    + '{: .8f}), '.format(ref_translation[2])
                                                    + ' {: .8f}, '.format(ref_mse)
-                       + "\n\talgorithmus alignment:\t" + '({: .8f}, '.format(algorithmus_translation[0])
-                                                + '{: .8f}, '.format(algorithmus_translation[1])
-                                                + '{: .8f}), '.format(algorithmus_translation[2])
-                                                + '({: .8f}, '.format(algorithmus_mse[0])
-                                                + '{: .8f}, '.format(algorithmus_mse[1])
-                                                + '{: .8f}) '.format(algorithmus_mse[2]))
+                       + "\n\talgorithm alignment:\t" + '({: .8f}, '.format(algorithm_translation[0])
+                                                + '{: .8f}, '.format(algorithm_translation[1])
+                                                + '{: .8f}), '.format(algorithm_translation[2])
+                                                + '({: .8f}, '.format(algorithm_mse[0])
+                                                + '{: .8f}, '.format(algorithm_mse[1])
+                                                + '{: .8f}) '.format(algorithm_mse[2]))
 
 
 # DEBUG
@@ -317,7 +327,7 @@ def rate_cloud_alignment (original_reference_pointcloud, original_aligned_pointc
 
 
 # # TODO:  The clouds are then displaced by the translations found in the dictionary.
-def use_algorithmus_on_dictionary (reference_dictionary_name, algorithmus_function,
+def use_algorithm_on_dictionary (reference_dictionary_name, algorithm_function,
                                    results_save_name=None, prune_clouds=False ):
     """
     Uses a dictionary with path tuples (reference cloud file path, aligned cloud file path ) as keys
@@ -331,7 +341,7 @@ def use_algorithmus_on_dictionary (reference_dictionary_name, algorithmus_functi
 
     Input:
         reference_dictionary_name: (string) Dictionary with paths tuple as keys for extraction of file locations
-        algorithmus_function: (function)    Function that returns {(reference path, aligned_path); (translation, mse)}
+        algorithm_function: (function)    Function that returns {(reference path, aligned_path); (translation, mse)}
         results_save_name: (string)         Results will be saved in 'data/'. Values may be overwritten.
         prune_clouds: (boolean)             Set True if clouds are reasonably aligned. Removes undesirable points.
                                             Points of both cloud are filtered for bad sigma values from normal calcu-
@@ -357,7 +367,7 @@ def use_algorithmus_on_dictionary (reference_dictionary_name, algorithmus_functi
                 print ("File " + aligned_cloud_path + " was not found. Aborting.")
                 return False
 
-    algorithmus_results = {}    # dictionary
+    algorithm_results = {}    # dictionary
 
     # create a list of tuples from reference and aligned cloud file paths
     for reference_cloud_path in file_paths_dictionary:
@@ -399,8 +409,8 @@ def use_algorithmus_on_dictionary (reference_dictionary_name, algorithmus_functi
                 else:
                     raise ValueError ("No Pruning parameters were set, please use set_pruning_arguments().")
 
-            # call the algorithmus supplied by algorithmus_function and update the results dictionary
-            pre_results = algorithmus_function (reference_pointcloud, aligned_pointcloud, plot_title )
+            # call the algorithm supplied by algorithm_function and update the results dictionary
+            pre_results = algorithm_function (reference_pointcloud, aligned_pointcloud, plot_title )
 
             # add the previously applied translation to the resulting tranlsation and update the dictionary of results
             # (don't use a tuple if you want to alter it ever again)
@@ -417,15 +427,15 @@ def use_algorithmus_on_dictionary (reference_dictionary_name, algorithmus_functi
                         pre_results[0][1] + translation[1],
                         pre_results[0][2] + translation[2] ), measure )
 
-            algorithmus_results.update ({(reference_cloud_path, aligned_cloud_path): results} )
+            algorithm_results.update ({(reference_cloud_path, aligned_cloud_path): results} )
 
     # save the results in a dictionary and print it
     if (results_save_name is not None ):
-        input_output.save_obj (algorithmus_results, results_save_name)
+        input_output.save_obj (algorithm_results, results_save_name)
         print_reference_dict (results_save_name )
     else:
         # prints the values computed along with the ground truth in the dictionary
-        compare_results (algorithmus_results, reference_dictionary )
+        compare_results (algorithm_results, reference_dictionary )
 
     return True
 
@@ -433,7 +443,7 @@ def use_algorithmus_on_dictionary (reference_dictionary_name, algorithmus_functi
 def get_reference_data_paths (reference_dict ):
     """
     Reads input_dictionary to get all transformations currently saved and returns them in a
-    dictionary that can be directly used with use_algorithmus_on_dictionary()
+    dictionary that can be directly used with use_algorithm_on_dictionary()
     """
 
     dict = {}
@@ -455,7 +465,7 @@ if __name__ == '__main__':
 
     # # icp
     # print ("\n\nComputing ICP for each cloud pair in reference_translations returns: "
-    #        + str(use_algorithmus_on_dictionary (get_reference_data_paths (), do_icp )))
+    #        + str(use_algorithm_on_dictionary (get_reference_data_paths (), do_icp )))
     #
     # compare_results (do_icp ('clouds/Regions/Xy Tower/ALS16_Cloud_reduced_normals_cleared.asc',
     #                          'clouds/Regions/Xy Tower/DSM_Cloud_reduced_normals.asc' ), print_csv=True)
@@ -465,20 +475,20 @@ if __name__ == '__main__':
     #                          angle_threshold=32,
     #                          cubus_length=1,
     #                          step=0.05,
-    #                          algorithm='combined' )
+    #                          algorithm='distance' )
     #
     # print ("\n\nComputing Consensus for each cloud pair in reference dict returns: "
-    #        + str(use_algorithmus_on_dictionary (reference_dictionary_name="no_translations_part2_dict",
-    #                                             algorithmus_function=reach_a_consensus,
-    #                                             results_save_name="combined_consensus_translations_part2_dict" )))
-
+    #        + str(use_algorithm_on_dictionary (reference_dictionary_name="no_translations_part_dict",
+    #                                             algorithm_function=reach_a_consensus,
+    #                                             results_save_name="distance_consensus_translations" )))
+    #
     # # # accumulator
     # set_accumulator_arguments (accumulator_radius=1.0, grid_size=0.05)
     #
     # print ("\n\nComputing Accumulator Consensus for each cloud pair in no_translations_dict returns: "
-    #        + str(use_algorithmus_on_dictionary (reference_dictionary_name="no_translations_dict",
-    #                                             algorithmus_function=accumulate,
-    #                                             results_save_name="accumulator_0.15_multiple_translations_dict" )))
+    #        + str(use_algorithm_on_dictionary (reference_dictionary_name="no_translations_dict",
+    #                                             algorithm_function=accumulate,
+    #                                             results_save_name="accumulator_sampling_translations_dict" )))
 
     # # join
     # input_output.join_saved_dictionaries (["combined_consensus_translations_part1_dict",
@@ -490,27 +500,27 @@ if __name__ == '__main__':
 
     # # # icp old
     # print ("\n\nComputing ICP for each cloud pair in reference dict returns: "
-    #        + str(use_algorithmus_on_dictionary (reference_dictionary_name="old_regions_distance_consensus_translations_dict",
-    #                                             algorithmus_function=do_icp,
+    #        + str(use_algorithm_on_dictionary (reference_dictionary_name="old_regions_distance_consensus_translations_dict",
+    #                                             algorithm_function=do_icp,
     #                                             results_save_name="old_regions_distance_consensus-NOANGLES_NOSIGMA_pruning-icp_translations_dict",
     #                                             prune_clouds=True )))
 
-    # # icp new
-    set_pruning_arguments (prune_sigma=False,
-                           prune_borders=True,
-                           prune_normals=False, max_angle_difference=32,
-                           prune_outliers=True, max_outlier_distance=0.5,
-                           prune_water_bodies=True)
-
-    print ("\n\nComputing ICP for each cloud pair in reference dict returns: "
-           + str(use_algorithmus_on_dictionary (reference_dictionary_name="distance_consensus_translations_dict",
-                                                algorithmus_function=do_icp,
-                                                results_save_name="prune_onesided_DistCon-distpruning_translations_dict",
-                                                prune_clouds=True )))
+    # # # icp new
+    # set_pruning_arguments (prune_sigma=False,
+    #                        prune_borders=True,
+    #                        prune_normals=False, max_angle_difference=32,
+    #                        prune_outliers=True, max_outlier_distance=0.5,
+    #                        prune_water_bodies=True)
+    #
+    # print ("\n\nComputing ICP for each cloud pair in reference dict returns: "
+    #        + str(use_algorithm_on_dictionary (reference_dictionary_name="distance_consensus_translations_dict",
+    #                                             algorithm_function=do_icp,
+    #                                             results_save_name="prune_onesided_DistCon-distpruning_translations_dict",
+    #                                             prune_clouds=True )))
 
     # print ("\n\nComputing rating values for each cloud pair in dict returns: "
-    #        + str(use_algorithmus_on_dictionary (reference_dictionary_name="icp_translations_dict",
-    #                                             algorithmus_function=rate,
+    #        + str(use_algorithm_on_dictionary (reference_dictionary_name="icp_translations_dict",
+    #                                             algorithm_function=rate,
     #                                             results_save_name=SOME_NAME,
     #                                             prune_clouds=False )))
 

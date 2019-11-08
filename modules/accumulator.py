@@ -282,12 +282,12 @@ def spheric_cloud_consensus (np_pointcloud, corresponding_pointcloud,
         warnings.warn (message)
 
     # timing variables
-    loop_cloud_query_time = 0
-    loop_diff_time = 0
-    loop_grid_query_time = 0
-    rasterization_time = 0
+    # loop_cloud_query_time = 0
+    # loop_diff_time = 0
+    # loop_grid_query_time = 0
+    # rasterization_time = 0
     start_time = time.time ()
-    interim = time.time ()
+    # interim = time.time ()
 
     # build a grid as a kdtree to discretize the results
     consensus_cube = create_closed_grid (accumulator_radius * 2, grid_size )
@@ -297,8 +297,8 @@ def spheric_cloud_consensus (np_pointcloud, corresponding_pointcloud,
     scipy_kdtree = scipy.spatial.cKDTree (np_pointcloud.get_xyz_coordinates ())
     # cloud_indices = scipy_kdtree.query_ball_point (
     #     np.ascontiguousarray(corresponding_pointcloud.points[:, 0:3]), accumulator_radius )   # memory problem
-    init_time = time.time () - interim
-    interim_2 = time.time ()
+    # init_time = time.time () - interim
+    # interim_2 = time.time ()
 
     # simplified process:
     #   for each point in corresponding_pointcloud:
@@ -306,33 +306,33 @@ def spheric_cloud_consensus (np_pointcloud, corresponding_pointcloud,
     #       Compute the translations to these neighbors
     #       Rasterize the translations by matching them with the grid
     #       When a translation matches a grid cell, increment the consensus counter of that cell
-    iterations = 0
+    # iterations = 0
     for i, point in enumerate (corresponding_pointcloud.get_xyz_coordinates ()):
-        interim = time.time ()
+        # interim = time.time ()
 
         point_indices = scipy_kdtree.query_ball_point (point, accumulator_radius )
 
-        loop_cloud_query_time += time.time () - interim
+        # loop_cloud_query_time += time.time () - interim
 
         # Progress Prints every 10 %
         if (i % int(corresponding_pointcloud.points.shape[0] / 10) == 0):
             print ("Progress: " + "{:.1f}".format ((i / corresponding_pointcloud.points.shape[0]) * 100.0 ) + " %" )
 
         if (len(point_indices ) > 0):
-            interim = time.time ()
+            # interim = time.time ()
             # diff all points found near the corresponding point with corresponding point
             diff_vectors = np_pointcloud.points[point_indices, 0:3] - point
             # print ("\n--------------------------------------------------\n\npoint_indices:\n" + str (point_indices ))
             # print ("diff_vectors:\n" + str (diff_vectors ))
-            loop_diff_time += time.time () - interim
-            interim = time.time ()
+            # loop_diff_time += time.time () - interim
+            # interim = time.time ()
 
             # rasterize by finding nearest grid node (representing a translation)
             dists, point_matches = grid_kdtree.query (diff_vectors, k=1 )
             # print ("dists from gridpoints: " + str (dists.T ))
             # print ("grid point matches: " + str (point_matches.T ))
-            loop_grid_query_time += time.time () - interim
-            interim = time.time ()
+            # loop_grid_query_time += time.time () - interim
+            # interim = time.time ()
 
             # apply distance filter to results
             if (distance_threshold is not None and distance_threshold > 0 ):
@@ -341,11 +341,11 @@ def spheric_cloud_consensus (np_pointcloud, corresponding_pointcloud,
             # update the cube with the results of this point, ignore multiple hits
             consensus_cube[np.unique (point_matches ), 3] += 1
             # print ("\nupdated consensus_cube >0:\n" + str (consensus_cube[consensus_cube[:, 3] > 0, :] ))
-            rasterization_time += time.time () - interim
-            iterations = i
+            # rasterization_time += time.time () - interim
+            # iterations = i
 
-    overall_loop_time = time.time () - interim_2
-    interim = time.time ()
+    # overall_loop_time = time.time () - interim_2
+    # interim = time.time ()
 
     # no gauss
     # consensus_cube = morph_consensus_cube (consensus_cube )
@@ -371,7 +371,7 @@ def spheric_cloud_consensus (np_pointcloud, corresponding_pointcloud,
     print ("3rd best_alignment dist: " + str (np.linalg.norm (consensus_cube[-3, 0:3] - best_alignment )))
     print ("3rd best_alignment_consensus: " + str (consensus_cube[-3, 3] ))
 
-    # put together the plot title from the string given as argument to this function and the algorithmus parameters
+    # put together the plot title from the string given as argument to this function and the algorithm parameters
     plot_title = create_plot_title (plot_title, accumulator_radius, grid_size, distance_threshold )
 
     # create the plot
@@ -396,13 +396,9 @@ def spheric_cloud_consensus (np_pointcloud, corresponding_pointcloud,
         input_output.save_ascii_file (display_cube, ["X", "Y", "Z", "Consensus"],
             str("docs/logs/unordered_cube_savefiles/" + plot_title + ".asc"))
 
-    outro_time = time.time () - interim
+    # outro_time = time.time () - interim
 
-    # normalizing the timing
-    loop_cloud_query_time /= iterations
-    loop_diff_time /= iterations
-    loop_grid_query_time /= iterations
-    rasterization_time /= iterations
+    # # normalizing t/= iterations
 
     # print ("\nInit Time: " + str (init_time ))
     # print ("Overall Loop Time: " + str (overall_loop_time ))
@@ -412,7 +408,7 @@ def spheric_cloud_consensus (np_pointcloud, corresponding_pointcloud,
     # print ("\tLoop Grid Query Time: " + "{:.2f}%".format ((loop_grid_query_time / average_loop_time) * 100 ))
     # print ("\tLoop Rasterization Time: " + "{:.2f}%".format ((rasterization_time / average_loop_time) * 100 ))
     # print ("Outro Time: " + str (outro_time ))
-    # print ("Overall Time: " + str (time.time () - start_time ) + "\n")
+    print ("Overall Time: " + str (time.time () - start_time ) + "\n")
 
     # display the plot
     if (display_plot ):

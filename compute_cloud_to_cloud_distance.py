@@ -95,7 +95,7 @@ if __name__ == '__main__':
     # # reference_translations, cloud compare point picking
     # print ("\n\nComputing C2C_absolute_distances "
     #        + "for each cloud pair in reference_translations returns: "
-    #        + str(use_c2c_on_dictionary ("reference_translations_dict", "point_clicking" )))
+    #        + str(use_c2c_on_dictionary ("reference_translations_dict", "manual_alignment" )))
 
     # icp translations
     print ("\n\nComputing C2C_absolute_distances "

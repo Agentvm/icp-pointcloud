@@ -558,7 +558,7 @@ input_output.save_ascii_file (cloud_water.points, cloud_water.field_labels, "clo
 #
 #
 # in loop:
-# if (algorithmus == 'distance'):
+# if (algorithm == 'distance'):
 #
 #     arguments_list.append (
 #         [scipy_kdtree, numpy_cloud, corresponding_cloud, translation, distance_threshold] )
@@ -651,7 +651,7 @@ input_output.save_ascii_file (cloud_water.points, cloud_water.field_labels, "clo
 # from data import transformations
 #
 #
-# def an_algorithmus (ref_cloud_path, aligned_cloud_path, plot_title ):
+# def an_algorithm (ref_cloud_path, aligned_cloud_path, plot_title ):
 #
 #     dictionary_line = {(ref_cloud_path, aligned_cloud_path):
 #                        ((1337, 0, 0), (1337, 0, 0))}
@@ -659,14 +659,14 @@ input_output.save_ascii_file (cloud_water.points, cloud_water.field_labels, "clo
 #     return dictionary_line
 #
 #
-# def use_algorithmus_on_dictionary (reference_dictionary_name, algorithmus_function, results_save_name=None ):
+# def use_algorithm_on_dictionary (reference_dictionary_name, algorithm_function, results_save_name=None ):
 #     '''
 #     Uses a dictionary of reference cloud file_paths as keys and a list of corresponding aligned cloud file_paths as
 #     values
 #
 #     Input:
 # file_paths_dictionary: (string)  Dictionary with reference_paths as keys and paths of aligned clouds as values
-# algorithmus_function (function): Function that returns dict {(reference path, aligned_path): (translation, mse)}
+# algorithm_function (function): Function that returns dict {(reference path, aligned_path): (translation, mse)}
 # results_save_name (string):      Results will be saved as data/results_save_path.pkl. Values may be overwritten.
 #     '''
 #
@@ -684,7 +684,7 @@ input_output.save_ascii_file (cloud_water.points, cloud_water.field_labels, "clo
 #                 print ("File " + aligned_cloud_path + " was not found. Aborting.")
 #                 return False
 #
-#     algorithmus_results = {}    # dictionary
+#     algorithm_results = {}    # dictionary
 #
 #     # create a list of tuples from reference and aligned cloud file paths
 #     for ref_cloud_path in file_paths_dictionary:
@@ -694,21 +694,21 @@ input_output.save_ascii_file (cloud_water.points, cloud_water.field_labels, "clo
 #             folder, aligned_file_name = input_output.get_folder_and_file_name (aligned_cloud_path)
 #             plot_title = folder + ' ' + aligned_file_name + ' to ' + reference_file_name
 #
-#             # call the algorithmus supplied by algorithmus_function
-#             algorithmus_results.update (algorithmus_function (ref_cloud_path, aligned_cloud_path, plot_title ))
+#             # call the algorithm supplied by algorithm_function
+#             algorithm_results.update (algorithm_function (ref_cloud_path, aligned_cloud_path, plot_title ))
 #
 #     if (results_save_name is not None ):
-#         input_output.save_obj (algorithmus_results, results_save_name)
+#         input_output.save_obj (algorithm_results, results_save_name)
 #
 #     # prints the values computed along with the ground truth in the dictionary
-#     compare_results (algorithmus_results, reference_dictionary )
+#     compare_results (algorithm_results, reference_dictionary )
 #
 #     return True
 #
 #
 # print ("\n\nComputing Consensus for each cloud pair in reference_translations returns: "
-#        + str(use_algorithmus_on_dictionary ("reference_translations_dict",
-#                                             an_algorithmus,
+#        + str(use_algorithm_on_dictionary ("reference_translations_dict",
+#                                             an_algorithm,
 #                                             "test_results_dict" )))
 #
 # print (input_output.load_obj ("test_results_dict"))

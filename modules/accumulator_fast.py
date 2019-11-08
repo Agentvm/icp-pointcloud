@@ -194,14 +194,14 @@ def create_closed_grid (grid_length, step ):
     return grid
 
 
-def create_plot_title (base_title, algorithmus, accumulator_radius, grid_size, distance_threshold, angle_threshold ):
+def create_plot_title (base_title, algorithm, accumulator_radius, grid_size, distance_threshold, angle_threshold ):
     plot_title = str(base_title
-            + "_" + str(algorithmus ) + "-consensus"
+            + "_" + str(algorithm ) + "-consensus"
             + "_sphere_radius_" + '{:.1f}'.format (accumulator_radius )
             + "_step_" + '{:.2f}'.format (grid_size ))
-    if (algorithmus == 'distance' or algorithmus == 'combined'):
+    if (algorithm == 'distance' or algorithm == 'combined'):
         plot_title = str(plot_title + "_distance_threshold_" + '{:.3f}'.format (distance_threshold ))
-    if (algorithmus == 'angle' or algorithmus == 'combined'):
+    if (algorithm == 'angle' or algorithm == 'combined'):
         plot_title = str(plot_title + "_angle_threshold_" + '{:.3f}'.format (angle_threshold))
 
     return plot_title
@@ -209,13 +209,13 @@ def create_plot_title (base_title, algorithmus, accumulator_radius, grid_size, d
 
 def spheric_cloud_consensus (np_pointcloud, corresponding_pointcloud,
                              accumulator_radius=1.2, grid_size=0.1, distance_threshold=0.2, angle_threshold=30,
-                             algorithmus='distance',
+                             algorithm='distance',
                              display_plot=True, save_plot=False,
                              relative_color_scale=False,
                              plot_title="ConsensusCube (TM)",
                              batch_size=10000 ):
     '''
-    if algorithmus='distance':  Counts how many points of cloud np_pointcloud have a neighbor within threshold range in
+    if algorithm='distance':  Counts how many points of cloud np_pointcloud have a neighbor within threshold range in
                                 corresponding_cloud.
 
     Input:
@@ -225,7 +225,7 @@ def spheric_cloud_consensus (np_pointcloud, corresponding_pointcloud,
         angle_threshold (float, degree):    Angle threshold to define maximum deviation of normal vectors
         accumulator_radius: (float)         Sphere center is translation (0, 0, 0). Translations are possible in sphere
         grid_size: (float)                  Rasterization of results. May yield unsatisfying results if too small
-        algorithmus (string):               'distance', 'angle' or 'combined'
+        algorithm (string):               'distance', 'angle' or 'combined'
 
     Output:
         best_alignment: ((x, y, z) tuple )
@@ -233,7 +233,7 @@ def spheric_cloud_consensus (np_pointcloud, corresponding_pointcloud,
         consensus_cube: ((n, 4) numpy array)
     '''
 
-    print ("\nStarting " + algorithmus + " Accumulator Consensus" )
+    print ("\nStarting " + algorithm + " Accumulator Consensus" )
     print ("distance_threshold: " + str(distance_threshold ))
     print ("angle_threshold: " + str(angle_threshold ))
     print ("accumulator_radius: " + str(accumulator_radius ))
@@ -345,11 +345,11 @@ def spheric_cloud_consensus (np_pointcloud, corresponding_pointcloud,
     best_alignment = consensus_cube[np.argmax (consensus_cube[:, 3] ), 0:3].copy ()
     best_consensus_count = np.max (consensus_cube[:, 3] ).copy ()
 
-    # put together the plot title, including the string given as argument to this function and the other algorithmus
+    # put together the plot title, including the string given as argument to this function and the other algorithm
     # parameters
     original_plot_base = plot_title
     plot_title = create_plot_title (
-        original_plot_base, algorithmus, accumulator_radius, grid_size, distance_threshold, angle_threshold )
+        original_plot_base, algorithm, accumulator_radius, grid_size, distance_threshold, angle_threshold )
 
     # create the plot
     display_cube, figure = display_consensus_cube (consensus_cube,

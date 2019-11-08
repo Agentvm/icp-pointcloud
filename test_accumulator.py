@@ -78,9 +78,9 @@ if __name__ == '__main__':
     borders = False
 
     # prepare example clouds, random or from file
-    np_pointcloud, corresponding_pointcloud, random_offset = prepare_random_cloud ()
+    # np_pointcloud, corresponding_pointcloud, random_offset = prepare_random_cloud ()
     # np_pointcloud, corresponding_pointcloud = load_example_cloud_old ("Yz Houses" )
-    # np_pointcloud, corresponding_pointcloud = load_example_cloud ("Yz_Houses" )
+    np_pointcloud, corresponding_pointcloud = load_example_cloud ("Yz_Houses" )
 
     if (sigma ):
         title += "_sigma_"
@@ -100,20 +100,17 @@ if __name__ == '__main__':
     # reach consensus
     best_alignment, best_consensus_count, = accumulator.spheric_cloud_consensus (np_pointcloud,
                                                                                  corresponding_pointcloud,
-                                                                                 accumulator_radius=1.0,
-                                                                                 grid_size=0.1,
+                                                                                 accumulator_radius=0.5,
+                                                                                 grid_size=0.15,
                                                                                  distance_threshold=None,
                                                                                  display_plot=False,
-                                                                                 save_plot=True,
+                                                                                 save_plot=False,
                                                                                  relative_color_scale=True,
                                                                                  plot_title=title )
 
-    print ("best_alignment: \t\t" + str(best_alignment ))
     if (random_offset is not None ):
+        print ("best_alignment: \t\t" + str(best_alignment ))
         print ("Random Offset: \t\t\t" + str(random_offset ))
-    else:
-        #print ("Point Picking Offset Xy Tower: (-0.82777023,  0.16250610,  0.19129372)")
-        print ("Point Picking Offset Yz Houses: [0.31462097, -0.01929474, -0.03573704]")
 
     # show plot
     #plt.show ()
