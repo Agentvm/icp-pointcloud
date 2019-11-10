@@ -19,10 +19,10 @@ Progress: 89.9 %
 Progress: 99.9 %
 
 cloud_consensus Time: 0.0020119182445384838
-	Part 1: 55.58 %
+	Part 1: 55.58 % query
 	Part 2: 0.01 %
-	Part 3: 22.35 %
-	Part 4: 21.42 %
+	Part 3: 22.35 % angle diffs
+	Part 4: 21.42 % consensus vector
 
 Overall Time - Consensus Time: 0.13839435577392578
 Overall Time: 6.9286298751831055
