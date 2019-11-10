@@ -14,7 +14,7 @@ language governing permissions and limitations under the License.
 File description:
 
 An attempt to make a faster version of the accumulator. Problem: KD-Tree Query yields an array of lists that have
-varying lenghts. This resulting array can therefore not be used for fast indexing of points. Instead, points must be
+varying lenghts. This resulting array can therefore not be used for fast indexing of points.
 
 Contains the accumulator algorithm to implement a spheric_cloud_consensus. This can robustly find the best translation
 between two different clouds that share important features (like two scenes showing the same place at a different time).
@@ -290,7 +290,7 @@ def spheric_cloud_consensus (np_pointcloud, corresponding_pointcloud,
     #       Rasterize the translations by matching them with the grid
     #       When a translation matches a grid cell, increment the consensus counter of that cell
     iterations = 0
-    inner_iterations = 0
+    #inner_iterations = 0
 
     # iterate through the cloud in batches of size 'batch_size'
     for i in range (0, corresponding_pointcloud.shape[0], batch_size ):

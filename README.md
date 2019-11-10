@@ -4,6 +4,8 @@ This is a logfile of the things I used and installed to work on this project.
 
 ## Python
 
+Python 3 was used in the end. This project does not support Python 2.
+
 ```
 python --version
 >Python 2.7.12
