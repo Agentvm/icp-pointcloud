@@ -104,21 +104,23 @@ def use_c2c_on_dictionary (reference_dictionary_name, descriptive_name ):
 
 if __name__ == '__main__':
 
+    # ### Example 1 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
+    # compute the scalar field "C2C_absolute_distances" for all clouds that are in the dictionary of
+    # "new_regions/no_translations_dict", contained in the data folder
     # # no translation, original clouds
-    # print ("\n\nComputing C2C_absolute_distances for each cloud pair in no_translations returns: "
-    #        + str(use_c2c_on_dictionary ("no_translations_dict", "no_translations" ) ))
-    #
+    # print ("\n\nComputing C2C_absolute_distances for each cloud pair in new_regions/no_translations returns: "
+    #        + str(use_c2c_on_dictionary ("new_regions/no_translations_dict", "no_translations" ) ))
+
+    # ### Example 2 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
     # # reference_translations, cloud compare point picking
     # print ("\n\nComputing C2C_absolute_distances "
-    #        + "for each cloud pair in reference_translations returns: "
-    #        + str(use_c2c_on_dictionary ("reference_translations_dict", "manual_alignment" )))
+    #        + "for each cloud pair in new_regions/reference_translations returns: "
+    #        + str(use_c2c_on_dictionary ("new_regions/reference_translations_dict", "manual_alignment" )))
 
+    # ### Example 3 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
+    # compute the scalar field "C2C_absolute_distances" for all clouds that are contained in the dictionary of
+    # "new_regions/icp_translations_dict", contained in the data folder
     # icp translations
     print ("\n\nComputing C2C_absolute_distances "
-           + "for each cloud pair in icp_translations returns: "
-           + str(use_c2c_on_dictionary ("icp_translations_dict", "icp" )))
-
-    # best consensus (point distance version) translations
-    # print ("\n\nComputing C2C_absolute_distances "
-    #        + "for each cloud pair in distance_consensus_translations returns: "
-    #        + str(use_c2c_on_dictionary ("distance_consensus_translations_dict", "distance_consensus" ) ))
+           + "for each cloud pair in new_regions/icp_translations returns: "
+           + str(use_c2c_on_dictionary ("new_regions/icp_translations_dict", "icp" )))

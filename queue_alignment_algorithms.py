@@ -15,7 +15,8 @@ File description:
 
 Convenient script to compute results of different algorithms (icp, consensus, accumulator) on multiple clouds. Works
 the 'data/' folder in the form of loading an saving reference dictionaries that contain the cloud file paths and the
-corresponding results in the form of {("",""); ((x,y,z), mse)}
+corresponding results in the form of {("",""); ((x,y,z), mse)}. Saved results can be used as inital alignment basis in
+other experiments by choosing them using the parameter "reference_dictionary_name".
 """
 
 
@@ -477,13 +478,11 @@ if __name__ == '__main__':
 
     random.seed (1337 )
 
-    # # icp
-    # print ("\n\nComputing ICP for each cloud pair in reference_translations returns: "
-    #        + str(use_algorithm_on_dictionary (get_reference_data_paths (), do_icp )))
-    #
-    # compare_results (do_icp ('clouds/Regions/Xy Tower/ALS16_Cloud_reduced_normals_cleared.asc',
-    #                          'clouds/Regions/Xy Tower/DSM_Cloud_reduced_normals.asc' ), print_csv=True)
+    # ### Example 1 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
+    # print saved dictionaries
+    print_reference_dict ("new_regions/combined_consensus_translations_dict" )
 
+    # ### Example 2 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
     # # # consensus
     # set_consensus_arguments (distance_threshold=0.2,
     #                          angle_threshold=32,
@@ -492,34 +491,20 @@ if __name__ == '__main__':
     #                          algorithm='distance' )
     #
     # print ("\n\nComputing Consensus for each cloud pair in reference dict returns: "
-    #        + str(use_algorithm_on_dictionary (reference_dictionary_name="no_translations_part_dict",
+    #        + str(use_algorithm_on_dictionary (reference_dictionary_name="new_regions/no_translations_dict",
     #                                             algorithm_function=reach_a_consensus,
     #                                             results_save_name="distance_consensus_translations" )))
     #
+    # ### Example 3 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
     # # # accumulator
     # set_accumulator_arguments (accumulator_radius=1.0, grid_size=0.05)
     #
     # print ("\n\nComputing Accumulator Consensus for each cloud pair in no_translations_dict returns: "
-    #        + str(use_algorithm_on_dictionary (reference_dictionary_name="no_translations_dict",
+    #        + str(use_algorithm_on_dictionary (reference_dictionary_name="new_regions/no_translations_dict",
     #                                             algorithm_function=accumulate,
     #                                             results_save_name="accumulator_sampling_translations_dict" )))
-
-    # # join
-    # input_output.join_saved_dictionaries (["combined_consensus_translations_part1_dict",
-    #                                        "combined_consensus_translations_part2_dict",
-    #                                        "combined_consensus_translations_part3_dict",
-    #                                        "combined_consensus_translations_part4_dict",
-    #                                        "combined_consensus_translations_part5_dict"],
-    #                                       "combined_consensus_translations_dict")
-
-    # # # icp old
-    # print ("\n\nComputing ICP for each cloud pair in reference dict returns: "
-    #        + str(use_algorithm_on_dictionary (reference_dictionary_name="old_regions_distance_consensus_translations_dict",
-    #                                             algorithm_function=do_icp,
-    #                                             results_save_name="old_regions_distance_consensus-NOANGLES_NOSIGMA_pruning-icp_translations_dict",
-    #                                             prune_clouds=True )))
-
-    # # # icp new
+    # ### Example 4 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
+    # # # icp and pruning based on the initial alignment of distance consensus.
     # set_pruning_arguments (prune_sigma=False,
     #                        prune_borders=True,
     #                        prune_normals=False, max_angle_difference=32,
@@ -527,26 +512,35 @@ if __name__ == '__main__':
     #                        prune_water_bodies=True)
     #
     # print ("\n\nComputing ICP for each cloud pair in reference dict returns: "
-    #        + str(use_algorithm_on_dictionary (reference_dictionary_name="distance_consensus_translations_dict",
+    #        + str(use_algorithm_on_dictionary (reference_dictionary_name="new_regions/distance_consensus_translations_dict",
     #                                             algorithm_function=do_icp,
     #                                             results_save_name="prune_onesided_DistCon-distpruning_translations_dict",
     #                                             prune_clouds=True )))
 
+    # ### Example 5 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
+    # # join dictionaries that have their results split up
+    # input_output.join_saved_dictionaries (["some_path/combined_consensus_translations_part1_dict",
+    #                                        "some_path/combined_consensus_translations_part2_dict",
+    #                                        "some_path/combined_consensus_translations_part3_dict",
+    #                                        "some_path/combined_consensus_translations_part4_dict",
+    #                                        "some_path/combined_consensus_translations_part5_dict"],
+    #                                       "combined_consensus_translations_dict")
+
+    # ### Example 6 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
     # print ("\n\nComputing rating values for each cloud pair in dict returns: "
     #        + str(use_algorithm_on_dictionary (reference_dictionary_name="icp_translations_dict",
     #                                             algorithm_function=rate,
     #                                             results_save_name=SOME_NAME,
     #                                             prune_clouds=False )))
 
-    # # print saved dictionaries
-    # print_reference_dict ("prune_DistCon-normals_translations_dict" )
-
+    # ### Example 7 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
     # # get folder structure
     # for path in input_output.get_all_files_in_subfolders("clouds/New Regions/", ".asc" ):
     #     print (path )
 
-    # # Make a dict of test cases (tuple of paths) as keys
-    # # and the corresponding results (tuple of translation and mse) as values
+    # ### Example 8 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
+    # # Create a new dictionary with test cases (tuple of paths) as keys and
+    # # the corresponding results (tuple of translation and mse or another value) as values
     # dict = \
     #     {
     #         ("clouds/New Regions/Color_Houses/Color Houses_als16_reduced_normals_r_1_cleared.asc",
@@ -557,44 +551,44 @@ if __name__ == '__main__':
     #
     #         ("clouds/New Regions/Everything/Everything_als16_reduced_normals_r_1_cleared.asc",
     #         "clouds/New Regions/Everything/Everything_dim16_reduced_normals_r_1_cleared.asc"): ((0, 0, 0), 0),
-    #         # ("clouds/New Regions/Everything/Everything_als14_reduced_normals_r_1_cleared.asc",
-    #         # "clouds/New Regions/Everything/Everything_als16_reduced_normals_r_1_cleared.asc"): ((0, 0, 0), 0),
-    #         # ("clouds/New Regions/Everything/Everything_als14_reduced_normals_r_1_cleared.asc",
-    #         # "clouds/New Regions/Everything/Everything_dim16_reduced_normals_r_1_cleared.asc"): ((0, 0, 0), 0),
-    #         #
-    #         # ("clouds/New Regions/Field/Field_als16_reduced_normals_r_1_cleared.asc",
-    #         # "clouds/New Regions/Field/Field_dim16_reduced_normals_r_1_cleared.asc"): ((0, 0, 0), 0),
-    # #
-    # #         ("clouds/New Regions/Forest/Forest_als16_reduced_normals_r_1_cleared.asc",
-    # #         "clouds/New Regions/Forest/Forest_dim16_reduced_normals_r_1_cleared.asc"): ((0, 0, 0), 0),
-    # # #
-    # #         ("clouds/New Regions/Missing_Building/Missing Building_als16_reduced_normals_r_1_cleared.asc",
-    # #         "clouds/New Regions/Missing_Building/Missing Building_dim16_reduced_normals_r_1_cleared.asc"):
-    # #         ((0, 0, 0), 0),
-    # #         ("clouds/New Regions/Missing_Building/Missing Building_als14_reduced_normals_r_1_cleared.asc",
-    # #         "clouds/New Regions/Missing_Building/Missing Building_als16_reduced_normals_r_1_cleared.asc"):
-    # #         ((0, 0, 0), 0),
-    #         # ("clouds/New Regions/Missing_Building/Missing Building_als14_reduced_normals_r_1_cleared.asc",
-    #         # "clouds/New Regions/Missing_Building/Missing Building_dim16_reduced_normals_r_1_cleared.asc"):
-    #         # ((0, 0, 0), 0),
-    #         #
-    #         # ("clouds/New Regions/Road/Road_als16_reduced_normals_r_1_cleared.asc",
-    #         # "clouds/New Regions/Road/Road_dim16_reduced_normals_r_1_cleared.asc"): ((0, 0, 0), 0),
-    #         #
-    #         # ("clouds/New Regions/Xyz_Square/Xyz Square_als16_reduced_normals_r_1_cleared.asc",
-    #         # "clouds/New Regions/Xyz_Square/Xyz Square_dim16_reduced_normals_r_1_cleared.asc"): ((0, 0, 0), 0),
-    #         #
-    #         # ("clouds/New Regions/Xy_Tower/Xy Tower_als16_reduced_normals_r_1_cleared.asc",
-    #         # "clouds/New Regions/Xy_Tower/Xy Tower_dim16_reduced_normals_r_1_cleared.asc"): ((0, 0, 0), 0),
-    #         #
-    #         # ("clouds/New Regions/Xz_Hall/Xz Hall_als16_reduced_normals_r_1_cleared.asc",
-    #         # "clouds/New Regions/Xz_Hall/Xz Hall_dim16_reduced_normals_r_1_cleared.asc"): ((0, 0, 0), 0),
-    #         #
-    #         # ("clouds/New Regions/Yz_Houses/Yz Houses_als16_reduced_normals_r_1_cleared.asc",
-    #         # "clouds/New Regions/Yz_Houses/Yz Houses_dim16_reduced_normals_r_1_cleared.asc"): ((0, 0, 0), 0),
-    #         #
-    #         # ("clouds/New Regions/Yz_Street/Yz Street_als16_reduced_normals_r_1_cleared.asc",
-    #         # "clouds/New Regions/Yz_Street/Yz Street_dim16_reduced_normals_r_1_cleared.asc"): ((0, 0, 0), 0)
+    #         ("clouds/New Regions/Everything/Everything_als14_reduced_normals_r_1_cleared.asc",
+    #         "clouds/New Regions/Everything/Everything_als16_reduced_normals_r_1_cleared.asc"): ((0, 0, 0), 0),
+    #         ("clouds/New Regions/Everything/Everything_als14_reduced_normals_r_1_cleared.asc",
+    #         "clouds/New Regions/Everything/Everything_dim16_reduced_normals_r_1_cleared.asc"): ((0, 0, 0), 0),
+    #
+    #         ("clouds/New Regions/Field/Field_als16_reduced_normals_r_1_cleared.asc",
+    #         "clouds/New Regions/Field/Field_dim16_reduced_normals_r_1_cleared.asc"): ((0, 0, 0), 0),
+    #
+    #         ("clouds/New Regions/Forest/Forest_als16_reduced_normals_r_1_cleared.asc",
+    #         "clouds/New Regions/Forest/Forest_dim16_reduced_normals_r_1_cleared.asc"): ((0, 0, 0), 0),
+    #
+    #         ("clouds/New Regions/Missing_Building/Missing Building_als16_reduced_normals_r_1_cleared.asc",
+    #         "clouds/New Regions/Missing_Building/Missing Building_dim16_reduced_normals_r_1_cleared.asc"):
+    #         ((0, 0, 0), 0),
+    #         ("clouds/New Regions/Missing_Building/Missing Building_als14_reduced_normals_r_1_cleared.asc",
+    #         "clouds/New Regions/Missing_Building/Missing Building_als16_reduced_normals_r_1_cleared.asc"):
+    #         ((0, 0, 0), 0),
+    #         ("clouds/New Regions/Missing_Building/Missing Building_als14_reduced_normals_r_1_cleared.asc",
+    #         "clouds/New Regions/Missing_Building/Missing Building_dim16_reduced_normals_r_1_cleared.asc"):
+    #         ((0, 0, 0), 0),
+    #
+    #         ("clouds/New Regions/Road/Road_als16_reduced_normals_r_1_cleared.asc",
+    #         "clouds/New Regions/Road/Road_dim16_reduced_normals_r_1_cleared.asc"): ((0, 0, 0), 0),
+    #
+    #         ("clouds/New Regions/Xyz_Square/Xyz Square_als16_reduced_normals_r_1_cleared.asc",
+    #         "clouds/New Regions/Xyz_Square/Xyz Square_dim16_reduced_normals_r_1_cleared.asc"): ((0, 0, 0), 0),
+    #
+    #         ("clouds/New Regions/Xy_Tower/Xy Tower_als16_reduced_normals_r_1_cleared.asc",
+    #         "clouds/New Regions/Xy_Tower/Xy Tower_dim16_reduced_normals_r_1_cleared.asc"): ((0, 0, 0), 0),
+    #
+    #         ("clouds/New Regions/Xz_Hall/Xz Hall_als16_reduced_normals_r_1_cleared.asc",
+    #         "clouds/New Regions/Xz_Hall/Xz Hall_dim16_reduced_normals_r_1_cleared.asc"): ((0, 0, 0), 0),
+    #
+    #         ("clouds/New Regions/Yz_Houses/Yz Houses_als16_reduced_normals_r_1_cleared.asc",
+    #         "clouds/New Regions/Yz_Houses/Yz Houses_dim16_reduced_normals_r_1_cleared.asc"): ((0, 0, 0), 0),
+    #
+    #         ("clouds/New Regions/Yz_Street/Yz Street_als16_reduced_normals_r_1_cleared.asc",
+    #         "clouds/New Regions/Yz_Street/Yz Street_dim16_reduced_normals_r_1_cleared.asc"): ((0, 0, 0), 0)
     #     }
-    # #
-    # input_output.save_obj(dict, "no_translations_part1_dict" )
+    #
+    # input_output.save_obj(dict, "new_no_translations_dict" )

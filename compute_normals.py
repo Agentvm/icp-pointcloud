@@ -292,6 +292,7 @@ def process_clouds_in_folder (path_to_folder,
         # set current to previous folder for folder-specific computations
         previous_folder = current_folder
 
+    # save all reductions applied to the clouds in the processed folder in a dictionary, using the name of the folder
     if (reduce_clouds ):
         input_output.save_obj (reductions_dictionary,
                                str(os.path.basename (path_to_folder.strip('/' )) + "_reductions" ))
@@ -302,6 +303,9 @@ def process_clouds_in_folder (path_to_folder,
 
 if __name__ == '__main__':
 
+    # ### Example 1 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
+    # computing the normals of all .asc files that are contained in the subfolders of "clouds/New Regions/", ignoring
+    # files containing the term "original_clouds"
     # # normals / reducing clouds / clearing classes
     if (process_clouds_in_folder ('clouds/New Regions/',
                                   permitted_file_extension='.asc',
@@ -314,6 +318,7 @@ if __name__ == '__main__':
     else:
         print ("Error. Not all clouds could be processed.")
 
+    # ### Example 2 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
     # # single cloud
     # complete_file_path = "clouds/New Regions/Missing_Building/Missing Building_dim16_reduced_normals_r_1_cleared.asc"
     # np_pointcloud = input_output.conditionalized_load (complete_file_path )
@@ -321,5 +326,3 @@ if __name__ == '__main__':
     #                                                                       complete_file_path,
     #                                                                       do_normal_calculation=True,
     #                                                                       normals_computation_radius = 1.0 )
-
-    # print (input_output.load_obj ("tmp_reductions" ))

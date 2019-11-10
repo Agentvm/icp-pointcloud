@@ -90,13 +90,11 @@ class NumpyPointCloud (object ):
             field_labels_list: (list(string))   Labels of the columns of this cloud, describing the type of data
         """
 
-        # # Inheritance
-        # super (NumpyPointCloud, self ).__init__ ()
-
         # Assign a copy of labels and data, remove any spaces around the labels
         self.field_labels = [label.strip () for label in field_labels_list].copy ()
         self.points = numpy_ndarray.copy ()
         #self.shape = self.points.shape  # wraps np.ndarray.shape, this has to be updated with changes
+        # (and does not work reliably)
 
     def __get_indices (self, field_labels_list ):
         """Returns all indices of fields in this cloud that correspond to the requested labels"""
@@ -228,7 +226,7 @@ class NumpyPointCloud (object ):
             self.points = np.concatenate ((self.points, field_data), axis=1 )
             self.field_labels += field_labels_list
 
-        # update shape
+        # update shape (does not work reliably)
         #self.shape = self.points.shape
 
         return self
@@ -272,7 +270,7 @@ class NumpyPointCloud (object ):
         for field_to_delete in field_labels_list:
             self.field_labels.remove (field_to_delete )
 
-        # update shape
+        # update shape  (does not work reliably)
         #self.shape = self.points.shape
 
         return self

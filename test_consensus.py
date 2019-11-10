@@ -71,8 +71,8 @@ if __name__ == '__main__':
     np.random.seed (1337 )
 
     # prepare example clouds, random or from file
-    # np_pointcloud, corresponding_pointcloud, random_offset = prepare_random_cloud ()
-    np_pointcloud, corresponding_pointcloud = load_example_cloud ("Yz_Houses" )
+    np_pointcloud, corresponding_pointcloud, random_offset = prepare_random_cloud ()
+    # np_pointcloud, corresponding_pointcloud = load_example_cloud ("Yz_Houses" )
 
     # reach consensus
     best_alignment, best_consensus_count, best_alignment_consensus_vector = \
@@ -89,28 +89,3 @@ if __name__ == '__main__':
 
     # show plot
     # plt.show ()
-
-
-# # Gute Werte:
-
-# Bsp Random
-
-# # 1 combined
-# Starting Cubic Cloud Consensus
-# distance_threshold: 0.2
-# angle_threshold: 0.6108652381980153
-# cubus_length: 2
-# step: 0.2
-
-# # 2 combined
-# Starting combined Cubic Cloud Consensus
-# distance_threshold: 0.3
-# angle_threshold: 0.08726646259971647
-# cubus_length: 2
-# step: 0.15
-
-# Starting Cubic Cloud Consensus
-# distance_threshold: 0.2
-# angle_threshold: 0.08726646259971647
-# cubus_length: 2
-# step: 0.2

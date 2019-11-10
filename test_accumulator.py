@@ -94,24 +94,9 @@ if __name__ == '__main__':
     borders = False
 
     # prepare example clouds, random or from file
-    # np_pointcloud, corresponding_pointcloud, random_offset = prepare_random_cloud ()
+    np_pointcloud, corresponding_pointcloud, random_offset = prepare_random_cloud ()
     # np_pointcloud, corresponding_pointcloud = load_example_cloud_old ("Yz Houses" )
-    np_pointcloud, corresponding_pointcloud = load_example_cloud ("Yz_Houses" )
-
-    if (sigma ):
-        title += "_sigma_"
-
-        if (filter_sigma_only_on_corresponding_cloud ):
-            title += "corr_only_"
-        else:
-            np_pointcloud.points = np_pointcloud.points[np_pointcloud.get_fields ("Sigma") < sigma_value]
-        corresponding_pointcloud.points = corresponding_pointcloud.points[
-                                                corresponding_pointcloud.get_fields ("Sigma") < sigma_value]
-        title += str(sigma_value )
-
-    if (borders ):
-        title += "_borders"
-        corresponding_pointcloud.points = conversions.prune_cloud_borders (corresponding_pointcloud.points )
+    # np_pointcloud, corresponding_pointcloud = load_example_cloud ("Yz_Houses" )
 
     # reach consensus
     best_alignment, best_consensus_count, = accumulator.spheric_cloud_consensus (np_pointcloud,
@@ -130,28 +115,3 @@ if __name__ == '__main__':
 
     # show plot
     #plt.show ()
-
-
-# # Gute Werte:
-
-# Bsp Random
-
-# # 1 combined
-# Starting Cubic Cloud Consensus
-# distance_threshold: 0.2
-# angle_threshold: 0.6108652381980153
-# cubus_length: 2
-# step: 0.2
-
-# # 2 combined
-# Starting combined Cubic Cloud Consensus
-# distance_threshold: 0.3
-# angle_threshold: 0.08726646259971647
-# cubus_length: 2
-# step: 0.15
-
-# Starting Cubic Cloud Consensus
-# distance_threshold: 0.2
-# angle_threshold: 0.08726646259971647
-# cubus_length: 2
-# step: 0.2
