@@ -193,43 +193,6 @@ def rate (reference_pointcloud, aligned_pointcloud, dummy_arg = "" ):
     return ((0, 0, 0 ), (0, 0, 0 ))
 
 
-def print_reference_dict (reference_dictionary_name ):
-    """
-    Load a reference dictionary in the data/ folder by name (excluding extension) and print it's innards
-
-    Input:
-        reference_dictionary_name: (String)   Name of a dict located in 'data/' of shape {("",""); ((x,y,z), mse)}
-    """
-
-    # parse the reference values saved in a file
-    reference_dictionary = input_output.load_obj (reference_dictionary_name )
-    print ("\n" + str (reference_dictionary_name ) + ":" )
-
-    # iterate through the keys (path pairs) of the dictionary
-    for path_tuple in sorted(reference_dictionary ):
-
-        # disassemble the key
-        reference_path, aligned_path = path_tuple
-        results_tuple = reference_dictionary[path_tuple]
-
-        # folder should be the the same
-        folder, reference_file_name = input_output.get_folder_and_file_name (reference_path)
-        folder, aligned_file_name = input_output.get_folder_and_file_name (aligned_path)
-
-        # unpack values
-        ref_translation, ref_mse = results_tuple
-        if (type (ref_mse) is not tuple ):
-            ref_mse = (ref_mse, 0, 0)
-
-        # print comparison
-        print ("'" + aligned_file_name
-               + "' aligned to '" + reference_file_name + "'"
-               + ';{: .8f}'.format(ref_translation[0])
-               + '\n;{: .8f}'.format(ref_translation[1])
-               + '\n;{: .8f}'.format(ref_translation[2])
-               + '\n;{: .8f}'.format(ref_mse[0]))
-
-
 def compare_results (dictionary, reference_dict, print_csv=True ):
     """
     Given a dictionary of results, this compares the results against a dictionary of reference values
@@ -447,7 +410,7 @@ def use_algorithm_on_dictionary (reference_dictionary_name, algorithm_function,
     # save the results in a dictionary and print it
     if (results_save_name is not None ):
         input_output.save_obj (algorithm_results, results_save_name)
-        print_reference_dict (results_save_name )
+        input_output.print_reference_dict (results_save_name )
     else:
         # prints the values computed along with the ground truth in the dictionary
         compare_results (algorithm_results, reference_dictionary )
@@ -480,10 +443,11 @@ if __name__ == '__main__':
 
     # ### Example 1 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
     # print saved dictionaries
-    print_reference_dict ("new_regions/combined_consensus_translations_dict" )
+    input_output.print_reference_dict ("new_regions/combined_consensus_translations_dict" )
 
     # ### Example 2 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
-    # # # consensus
+    # # # compute a coarse alignment using the consensus algorithm on a dictionary without previous alignments. The
+    # # # dictionary does, in this case, only contain the file path data to the point clouds.
     # set_consensus_arguments (distance_threshold=0.2,
     #                          angle_threshold=32,
     #                          cubus_length=1,
@@ -494,7 +458,7 @@ if __name__ == '__main__':
     #        + str(use_algorithm_on_dictionary (reference_dictionary_name="new_regions/no_translations_dict",
     #                                             algorithm_function=reach_a_consensus,
     #                                             results_save_name="distance_consensus_translations" )))
-    #
+
     # ### Example 3 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
     # # # accumulator
     # set_accumulator_arguments (accumulator_radius=1.0, grid_size=0.05)
@@ -503,6 +467,7 @@ if __name__ == '__main__':
     #        + str(use_algorithm_on_dictionary (reference_dictionary_name="new_regions/no_translations_dict",
     #                                             algorithm_function=accumulate,
     #                                             results_save_name="accumulator_sampling_translations_dict" )))
+
     # ### Example 4 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
     # # # icp and pruning based on the initial alignment of distance consensus.
     # set_pruning_arguments (prune_sigma=False,
@@ -527,18 +492,11 @@ if __name__ == '__main__':
     #                                       "combined_consensus_translations_dict")
 
     # ### Example 6 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
-    # print ("\n\nComputing rating values for each cloud pair in dict returns: "
-    #        + str(use_algorithm_on_dictionary (reference_dictionary_name="icp_translations_dict",
-    #                                             algorithm_function=rate,
-    #                                             results_save_name=SOME_NAME,
-    #                                             prune_clouds=False )))
-
-    # ### Example 7 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
     # # get folder structure
     # for path in input_output.get_all_files_in_subfolders("clouds/New Regions/", ".asc" ):
     #     print (path )
 
-    # ### Example 8 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
+    # ### Example 7 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
     # # Create a new dictionary with test cases (tuple of paths) as keys and
     # # the corresponding results (tuple of translation and mse or another value) as values
     # dict = \

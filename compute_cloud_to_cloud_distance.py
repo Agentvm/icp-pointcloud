@@ -120,7 +120,7 @@ if __name__ == '__main__':
     # ### Example 3 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
     # compute the scalar field "C2C_absolute_distances" for all clouds that are contained in the dictionary of
     # "new_regions/icp_translations_dict", contained in the data folder
-    # icp translations
+    # uses icp translations
     print ("\n\nComputing C2C_absolute_distances "
            + "for each cloud pair in new_regions/icp_translations returns: "
            + str(use_c2c_on_dictionary ("new_regions/icp_translations_dict", "icp" )))

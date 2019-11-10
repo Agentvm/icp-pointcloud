@@ -291,6 +291,43 @@ def join_saved_dictionaries (list_of_dict_names, output_name ):
     return True
 
 
+def print_reference_dict (reference_dictionary_name ):
+    """
+    Load a reference dictionary in the data/ folder by name (excluding extension) and print it's innards
+
+    Input:
+        reference_dictionary_name: (String)   Name of a dict located in 'data/' of shape {("",""); ((x,y,z), mse)}
+    """
+
+    # parse the reference values saved in a file
+    reference_dictionary = load_obj (reference_dictionary_name )
+    print ("\n" + str (reference_dictionary_name ) + ":" )
+
+    # iterate through the keys (path pairs) of the dictionary
+    for path_tuple in sorted(reference_dictionary ):
+
+        # disassemble the key
+        reference_path, aligned_path = path_tuple
+        results_tuple = reference_dictionary[path_tuple]
+
+        # folder should be the the same
+        folder, reference_file_name = get_folder_and_file_name (reference_path)
+        folder, aligned_file_name = get_folder_and_file_name (aligned_path)
+
+        # unpack values
+        ref_translation, ref_mse = results_tuple
+        if (type (ref_mse) is not tuple ):
+            ref_mse = (ref_mse, 0, 0)
+
+        # print comparison
+        print ("'" + aligned_file_name
+               + "' aligned to '" + reference_file_name + "'"
+               + ';{: .8f}'.format(ref_translation[0])
+               + '\n;{: .8f}'.format(ref_translation[1])
+               + '\n;{: .8f}'.format(ref_translation[2])
+               + '\n;{: .8f}'.format(ref_mse[0]))
+
+
 def check_for_file (file_path ):
     """Checks if a file is present"""
     return os.path.isfile(file_path )

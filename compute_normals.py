@@ -304,8 +304,9 @@ def process_clouds_in_folder (path_to_folder,
 if __name__ == '__main__':
 
     # ### Example 1 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
-    # computing the normals of all .asc files that are contained in the subfolders of "clouds/New Regions/", ignoring
-    # files containing the term "original_clouds"
+    # computing the normals, reducing cloud coordinates and clearing points with "Classification" >= 20 of all .asc
+    # files that are contained in the subfolders of "clouds/New Regions/", ignoring files containing the term
+    # "original_clouds"
     # # normals / reducing clouds / clearing classes
     if (process_clouds_in_folder ('clouds/New Regions/',
                                   permitted_file_extension='.asc',

@@ -87,12 +87,6 @@ if __name__ == '__main__':
     np.random.seed (1337 )
     random_offset = None
 
-    title = "New_Regions_YZ_Houses"
-    sigma = False
-    filter_sigma_only_on_corresponding_cloud = False
-    sigma_value = 0.2
-    borders = False
-
     # prepare example clouds, random or from file
     np_pointcloud, corresponding_pointcloud, random_offset = prepare_random_cloud ()
     # np_pointcloud, corresponding_pointcloud = load_example_cloud_old ("Yz Houses" )
@@ -101,17 +95,14 @@ if __name__ == '__main__':
     # reach consensus
     best_alignment, best_consensus_count, = accumulator.spheric_cloud_consensus (np_pointcloud,
                                                                                  corresponding_pointcloud,
-                                                                                 accumulator_radius=0.5,
+                                                                                 accumulator_radius=1,
                                                                                  grid_size=0.15,
                                                                                  distance_threshold=None,
-                                                                                 display_plot=False,
+                                                                                 display_plot=True,
                                                                                  save_plot=False,
                                                                                  relative_color_scale=True,
-                                                                                 plot_title=title )
+                                                                                 plot_title="Example" )
 
     if (random_offset is not None ):
         print ("best_alignment: \t\t" + str(best_alignment ))
         print ("Random Offset: \t\t\t" + str(random_offset ))
-
-    # show plot
-    #plt.show ()

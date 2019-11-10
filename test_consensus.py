@@ -83,9 +83,9 @@ if __name__ == '__main__':
                                          distance_threshold=0.2,
                                          angle_threshold=32,
                                          algorithm='distance',
-                                         plot_title="Laufzeit",
+                                         plot_title="Example",
                                          relative_color_scale=False,
                                          save_plot=False )
 
     # show plot
-    # plt.show ()
+    plt.show ()
