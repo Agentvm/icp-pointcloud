@@ -15,7 +15,7 @@ File description:
 
 Contains the accumulator algorithm to implement a spheric_cloud_consensus. This can robustly find the best translation
 between two different clouds that share important features (like two scenes showing the same place at a different time).
-Finds a (X, Y, Z) translation if the correct result is within a sphere of 2 meters with a resolution of 0.1 m.
+Finds a (X, Y, Z) translation if the correct result is within a sphere of 2 meters with a resolution of 0.05 m.
 """
 
 # local modules
