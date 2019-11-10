@@ -1,4 +1,18 @@
 """
+Copyright 2019 Jannik Busse
+
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the
+License. You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an
+"AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific
+language governing permissions and limitations under the License.
+
+
+File description:
+
 Input and output of Point Cloud formats. Loads ASCII (.asc), .ply and .las files. Saves .las and .asc files. Also
 contains functions for saving python objects like dictionaries and convenience functions for filepath discovery.
 """

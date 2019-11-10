@@ -1,4 +1,20 @@
-"""This file contains various code snippets with varying relevance focused on numpy point clouds"""
+"""
+Copyright 2019 Jannik Busse
+
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the
+License. You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an
+"AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific
+language governing permissions and limitations under the License.
+
+
+File description:
+
+This file contains various code snippets with varying relevance focused on numpy point clouds
+"""
 
 import numpy as np
 import random
@@ -48,7 +64,7 @@ numpy_cloud = np.array([[1.1, 2.1, 3.1],
 # input_output.save_ascii_file (numpy_cloud.points, numpy_cloud.field_labels, "clouds/tmp/noisy_reference.asc")
 
 
-# # # apply gaussian filter
+# # # test gaussian filter
 # from modules import accumulator, input_output, consensus
 # import scipy.ndimage
 # import matplotlib.pyplot as plt
@@ -128,7 +144,7 @@ numpy_cloud = np.array([[1.1, 2.1, 3.1],
 
 
 # Test Cloud Pruning
-from modules import input_output, conversions, np_pointcloud
+# from modules import input_output, conversions, np_pointcloud
 
 
 # a1 = input_output.load_ascii_file (
@@ -139,10 +155,10 @@ from modules import input_output, conversions, np_pointcloud
 #     "clouds/New Regions/Everything/Everything_als16_reduced_normals_r_1_cleared.asc" )
 # d2 = input_output.load_ascii_file (
 #     "clouds/New Regions/Everything/Everything_dim16_reduced_normals_r_1_cleared.asc" )
-a3 = input_output.load_ascii_file (
-    "clouds/New Regions/Forest/Forest_als16_reduced_normals_r_1_cleared.asc" )
-d3 = input_output.load_ascii_file (
-    "clouds/New Regions/Forest/Forest_dim16_reduced_normals_r_1_cleared.asc" )
+# a3 = input_output.load_ascii_file (
+#     "clouds/New Regions/Forest/Forest_als16_reduced_normals_r_1_cleared.asc" )
+# d3 = input_output.load_ascii_file (
+#     "clouds/New Regions/Forest/Forest_dim16_reduced_normals_r_1_cleared.asc" )
 # a4 = input_output.load_ascii_file (
 #     "clouds/New Regions/Everything/Everything_als16_reduced_normals_r_1_cleared.asc" )
 # d4 = input_output.load_ascii_file (
@@ -173,9 +189,9 @@ d3 = input_output.load_ascii_file (
 # input_output.save_ascii_file (cloud_borders, a2.field_labels, "clouds/tmp/borders.asc" )
 #
 # water classes
-input_output.save_ascii_file (d3.points, d3.field_labels, "clouds/tmp/original_water.asc" )
-cloud_water = conversions.remove_water_classes (d3 )
-input_output.save_ascii_file (cloud_water.points, cloud_water.field_labels, "clouds/tmp/water.asc" )
+# input_output.save_ascii_file (d3.points, d3.field_labels, "clouds/tmp/original_water.asc" )
+# cloud_water = conversions.remove_water_classes (d3 )
+# input_output.save_ascii_file (cloud_water.points, cloud_water.field_labels, "clouds/tmp/water.asc" )
 #
 # # sigma
 # cloud_sigma = conversions.prune_sigma_quality (a4 )
