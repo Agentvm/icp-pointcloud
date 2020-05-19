@@ -38,7 +38,7 @@ python -m pip install --user matplotlib numpy scikit-learn cython opencv-python 
 python3 -m pip install --user matplotlib numpy scikit-learn cython opencv-python open3d-python psutil laspy scipy
 ```
 
-## python-pcl
+## python-pcl (optional)
 
 How to install the python wrapper for the point cloud library
 
